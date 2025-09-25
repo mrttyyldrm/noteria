@@ -1,0 +1,268 @@
+@import "tailwindcss";
+
+@custom-variant hover (&:hover);
+
+/*#region Font Codes*/
+
+@font-face {
+  font-family: "Fellix";
+  src: url("/font/Fellix-Thin.woff2") format("woff2"),
+    url("/font/Fellix-Thin.woff") format("woff"),
+    url("/font/Fellix-Thin.ttf") format("truetype");
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Fellix";
+  src: url("/font/Fellix-Light.woff2") format("woff2"),
+    url("/font/Fellix-Light.woff") format("woff"),
+    url("/font/Fellix-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Fellix";
+  src: url("/font/Fellix-Regular.woff2") format("woff2"),
+    url("/font/Fellix-Regular.woff") format("woff"),
+    url("/font/Fellix-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Fellix";
+  src: url("/font/Fellix-Medium.woff2") format("woff2"),
+    url("/font/Fellix-Medium.woff") format("woff"),
+    url("/font/Fellix-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Fellix";
+  src: url("/font/Fellix-SemiBold.woff2") format("woff2"),
+    url("/font/Fellix-SemiBold.woff") format("woff"),
+    url("/font/Fellix-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Fellix";
+  src: url("/font/Fellix-Bold.woff2") format("woff2"),
+    url("/font/Fellix-Bold.woff") format("woff"),
+    url("/font/Fellix-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Fellix";
+  src: url("/font/Fellix-ExtraBold.woff2") format("woff2"),
+    url("/font/Fellix-ExtraBold.woff") format("woff"),
+    url("/font/Fellix-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Fellix";
+  src: url("/font/Fellix-Black.woff2") format("woff2"),
+    url("/font/Fellix-Black.woff") format("woff"),
+    url("/font/Fellix-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+}
+
+/*#endregion*/
+
+/*#region Theme Variables*/
+
+@theme {
+  --font-fellix: "Fellix", sans-serif;
+
+  --breakpoint-*: initial;
+  --breakpoint-sm: 468px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1440px;
+
+  --container-sm: 100%;
+  --container-lg: 768px;
+  --container-xl: 1440px;
+
+  --color-background: #f5f6fa;
+  --color-primary: #0063dd;
+  --color-primary-light: #005aca;
+  --color-black: #364a63;
+  --color-white: #ffffff;
+  --color-gray: #526484;
+  --color-gray-light: #dbdfea;
+  --color-success: #27ae60;
+  --color-success-light: #dbf8e6;
+  --color-error: #f1416c;
+  --color-error-light: #fce3e3;
+
+  --background-image-auth: url("/img/auth-bg.png");
+
+  --text-*: initial;
+  --text-2xl: 3rem;
+  --text-xl: 2.4rem;
+  --text-lg: 1.8rem;
+  --text-md: 1.6rem;
+  --text-sm: 1.4rem;
+  --text-xs: 1.2rem;
+  --text-2xs: 1rem;
+
+  --animate-scale: fade-scale 0.3s ease-out;
+  --animate-fade-up: fade-up 0.3s ease-out;
+  --animate-fade-right: fade-right 0.3s ease-out;
+
+  @keyframes fade-scale {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-right {
+    0% {
+      opacity: 0;
+      transform: translateX(-1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+/*#endregion*/
+
+/*#region Base Codes*/
+
+@layer base {
+  * {
+    @apply font-fellix m-0 box-border list-none p-0 no-underline;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background;
+  }
+}
+
+@layer base {
+  input::-webkit-inner-spin-button,
+  input::-webkit-outer-spin-button {
+    @apply appearance-none;
+  }
+
+  input::-webkit-calendar-picker-indicator {
+    @apply appearance-none;
+  }
+}
+
+/*#endregion*/
+
+/*#region Responsive Codes*/
+
+@layer base {
+  html {
+    @apply text-[10px];
+  }
+
+  @media (max-width: 1024px) {
+    html {
+      @apply text-[9.8px];
+    }
+  }
+
+  @media (max-width: 974px) {
+    html {
+      @apply text-[9.6px];
+    }
+  }
+
+  @media (max-width: 924px) {
+    html {
+      @apply text-[9.4px];
+    }
+  }
+
+  @media (max-width: 874px) {
+    html {
+      @apply text-[9.2px];
+    }
+  }
+
+  @media (max-width: 824px) {
+    html {
+      @apply text-[9px];
+    }
+  }
+
+  @media (max-width: 468px) {
+    html {
+      @apply text-[10px];
+    }
+  }
+
+  @media (max-width: 425px) {
+    html {
+      @apply text-[9.75px];
+    }
+  }
+
+  @media (max-width: 400px) {
+    html {
+      @apply text-[9.5px];
+    }
+  }
+
+  @media (max-width: 375px) {
+    html {
+      @apply text-[9.25px];
+    }
+  }
+
+  @media (max-width: 350px) {
+    html {
+      @apply text-[9px];
+    }
+  }
+
+  @media (max-width: 325px) {
+    html {
+      @apply text-[8.75px];
+    }
+  }
+
+  @media (max-width: 300px) {
+    html {
+      @apply text-[8.5px];
+    }
+  }
+}
+
+/*#endregion*/
