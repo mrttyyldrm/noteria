@@ -19,7 +19,7 @@ export async function validateToken(token: string | undefined): Promise<boolean>
         }
 
         return response.ok;
-    } catch (error) {
+    } catch {
         return false;
     }
 }

@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Text, Icon } from "@/components";
 import clsx from "clsx";
 
@@ -23,17 +21,6 @@ function Search({
   children,
   onChange,
 }: SearchTypes) {
-  const [isLabelActive, setIsLabelActive] = useState<boolean>(value !== "");
-
-  useEffect(() => {
-    setIsLabelActive(value !== "");
-  }, [value]);
-
-  const clearInputValue = () => {
-    setIsLabelActive(false);
-    onChange?.("");
-  };
-
   return (
     <div className={clsx("flex w-full flex-col gap-[0.6rem]", className)}>
       {label && <label className="text-xs font-bold text-black">{label}</label>}
@@ -59,7 +46,7 @@ function Search({
             size="text-sm"
             color="text-black"
             className="cursor-pointer"
-            onClick={clearInputValue}
+            onClick={() => onChange?.("")}
           />
         )}
       </div>

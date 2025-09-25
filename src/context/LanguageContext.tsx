@@ -29,7 +29,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const [isLanguageLoading, setIsLanguageLoading] = useState<boolean>(false);
   const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
-  const [languages, setLanguages] = useState<Record<string, string> | {}>({});
+  const [languages, setLanguages] = useState<Record<string, string>>({});
   const [languagePackage, setLanguagePackage] = useState<
     Record<string, string>
   >({});
