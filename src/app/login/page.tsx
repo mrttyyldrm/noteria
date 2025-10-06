@@ -226,6 +226,7 @@ function Login() {
                   <InputOTPGroup className="gap-2.5 *:data-[slot=input-otp-slot]:h-16 *:data-[slot=input-otp-slot]:w-12 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl">
                     {Array.from({ length: 6 }).map((_, index) => (
                       <InputOTPSlot
+                        autoFocus={index === 0}
                         key={index}
                         index={index}
                         className={isCodeError ? "border-destructive" : ""}

@@ -3,7 +3,7 @@ import { TranslationProvider } from "@/context/TranslationContext";
 import "@/style/globals.css";
 
 export const metadata: Metadata = {
-  title: "NOTARY | Kosovo's AI Powered Notary App",
+  title: "Noteria | Kosovo's AI Powered Notary App",
   icons: {
     icon: "/img/favicon.ico",
   },

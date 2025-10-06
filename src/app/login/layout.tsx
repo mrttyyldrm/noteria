@@ -26,7 +26,7 @@ function LoginLayout({ children }: { children: React.ReactNode }) {
           <h1 className="text-9xl text-muted font-semibold">Noteria</h1>
         </div>
         <p className="text-muted font-normal text-sm">
-          © 2025 Powered by Zhvillo® Sh.p.k.
+          © 2025 Powered by Zhvillo®
         </p>
       </div>
     </div>
