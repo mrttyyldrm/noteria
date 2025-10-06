@@ -1,5 +1,5 @@
-import { useToast } from "@/context/ToastContext";
-import { useLanguage } from "@/context/LanguageContext";
+// import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/TranslationContext";
 import { useRouter } from "next/navigation";
 
 export const getCookie = (cookieName: string): string | null => {
@@ -20,8 +20,8 @@ export const getCookie = (cookieName: string): string | null => {
 const useAPI = () => {
     const router = useRouter();
 
-    const { showMessage } = useToast();
-    const { languagePackage } = useLanguage();
+    // const { showMessage } = useToast();
+    const { t } = useTranslation();
 
     const baseURL = "https://api.noteria.app/";
 
@@ -56,7 +56,7 @@ const useAPI = () => {
 
         if (response.status === 202) {
             return response.json().then((error: any) => {
-                showMessage?.(error.m);
+                // showMessage?.(error.m);
                 onError?.();
             });
         }
@@ -89,7 +89,7 @@ const useAPI = () => {
             credentials: "include",
         })
             .then(response => handleAPIResponse(response, onSuccess, onError))
-            .catch(() => showMessage(languagePackage["980942A93"]));
+        // .catch(() => showMessage(getTranslation("error")));
     }
 
     const POST = (
@@ -112,7 +112,7 @@ const useAPI = () => {
             body: JSON.stringify(data)
         })
             .then(response => handleAPIResponse(response, onSuccess, onError))
-            .catch(() => showMessage(languagePackage["980942A93"]));
+        // .catch(() => showMessage(getTranslation("error.")));
     }
 
     return { GET, POST };

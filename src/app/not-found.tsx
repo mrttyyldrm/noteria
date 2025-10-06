@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Title, Text, Button } from "@/components";
 
 function NotFound() {
   return (
@@ -17,14 +16,12 @@ function NotFound() {
           className="h-[9rem] w-auto"
         />
         <div id="notfound-title" className="flex flex-col text-center">
-          <Title className="text-center">Sayfa Bulunamadı</Title>
+          {/* <Title className="text-center">Sayfa Bulunamadı</Title>
           <Text>
             Üzgünüz, aradığınız sayfa kaldırılmış veya taşınmış olabilir.
-          </Text>
+          </Text> */}
         </div>
-        <Link href="/">
-          <Button>Panele Dön</Button>
-        </Link>
+        <Link href="/">{/* <Button>Panele Dön</Button> */}</Link>
       </section>
     </main>
   );

@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import Script from "next/script";
-import { ToastProvider } from "@/context/ToastContext";
+import { TranslationProvider } from "@/context/TranslationContext";
 import "@/style/globals.css";
 
 export const metadata: Metadata = {
-  title: "SENTI | Yangın Keşif Asistanı",
-  description:
-    "SENTI Yangın Keşif Asistanı, Aspire Ekibi tarafından TEKNOFEST Geleceğin Sürdürülebilir Şehirleri Hackathonu Yarışması kapsamında geliştirilmektedir.",
+  title: "NOTARY | Kosovo's AI Powered Notary App",
   icons: {
     icon: "/img/favicon.ico",
   },
@@ -20,8 +17,7 @@ export default function RootLayout({
   return (
     <html lang="tr-TR">
       <body>
-        <ToastProvider>{children}</ToastProvider>
-        <Script src="https://kit.fontawesome.com/9ed0001a15.js" />
+        <TranslationProvider>{children}</TranslationProvider>
       </body>
     </html>
   );
