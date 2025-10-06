@@ -7,6 +7,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -23,13 +25,9 @@ export default function DashboardLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2">
-          <div className="flex items-center gap-2 px-4">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4">
+          <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
@@ -42,6 +40,9 @@ export default function DashboardLayout({
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <Button variant="outline" size="icon-sm" className="ml-auto">
+            <LogOut />
+          </Button>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
       </SidebarInset>

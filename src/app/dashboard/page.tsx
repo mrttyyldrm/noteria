@@ -1,15 +1,28 @@
 import React from "react";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 function Home() {
   return (
-    <>
-      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-      </div>
-      <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
-    </>
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="rounded-lg border w-full h-full"
+    >
+      <ResizablePanel defaultSize={75} className="min-w-md">
+        <div className="flex h-full items-center justify-center p-6">
+          <span className="font-semibold">Draft Preview</span>
+        </div>
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={25} className="min-w-sm">
+        <div className="flex h-full items-center justify-center p-6">
+          <span className="font-semibold">Controls</span>
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
 

@@ -156,9 +156,14 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg">
-              <div className="flex items-center gap-2 font-semibold text-lg">
+              <div className="flex items-center gap-2 font-semibold text-lg text-foreground">
                 <Image src="/logo.svg" alt="Logo" width={32} height={32} />
-                Noteria
+                <div className="flex items-center">
+                  Noteria
+                  <span className="ml-2 mt-1 text-xs text-muted-foreground font-medium">
+                    v1.0.0
+                  </span>
+                </div>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -188,10 +193,10 @@ export function AppSidebar() {
                   <Card
                     key={document.id}
                     className={cn(
-                      "cursor-pointer transition-all duration-200 hover:shadow-md",
+                      "cursor-pointer transition-all duration-200",
                       selectedDocument === document.id
-                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                        : "border-border hover:border-primary/50 hover:bg-muted/30"
+                        ? "border-primary bg-primary/10 ring-2 ring-primary/20"
+                        : "hover:scale-95"
                     )}
                     onClick={() => handleDocumentSelect(document.id)}
                   >
@@ -230,7 +235,7 @@ export function AppSidebar() {
           )}
         </div>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="p-2 border-t mt-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <Button className="w-full">Upload New Document</Button>
