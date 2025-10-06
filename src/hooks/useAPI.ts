@@ -21,7 +21,7 @@ const useAPI = () => {
     const router = useRouter();
 
     // const { showMessage } = useToast();
-    const { t } = useTranslation();
+    // const { t } = useTranslation();
 
     const baseURL = "https://api.noteria.app/";
 
@@ -55,7 +55,7 @@ const useAPI = () => {
         }
 
         if (response.status === 202) {
-            return response.json().then((error: any) => {
+            return response.json().then(() => {
                 // showMessage?.(error.m);
                 onError?.();
             });

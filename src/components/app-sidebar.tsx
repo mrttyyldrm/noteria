@@ -5,7 +5,6 @@ import Image from "next/image";
 import {
   BookOpen,
   Bot,
-  Command,
   Frame,
   LifeBuoy,
   Map,
