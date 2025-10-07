@@ -1,29 +1,16 @@
-import React from "react";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
+"use client";
+
+import { useEffect } from "react";
+import { useDocument } from "@/context/DocumentContext";
 
 function Home() {
-  return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="rounded-lg border w-full h-full"
-    >
-      <ResizablePanel defaultSize={75} className="min-w-md">
-        <div className="flex h-full items-center justify-center p-6">
-          <span className="font-semibold">Draft Preview</span>
-        </div>
-      </ResizablePanel>
-      <ResizableHandle withHandle />
-      <ResizablePanel defaultSize={25} className="min-w-sm">
-        <div className="flex h-full items-center justify-center p-6">
-          <span className="font-semibold">Controls</span>
-        </div>
-      </ResizablePanel>
-    </ResizablePanelGroup>
-  );
+  const { currentDocument } = useDocument();
+
+  useEffect(() => {
+    console.log("DOCUMENT CHANGED", currentDocument);
+  }, [currentDocument]);
+
+  return <></>;
 }
 
 export default Home;

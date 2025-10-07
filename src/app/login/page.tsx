@@ -25,6 +25,8 @@ function Login() {
   const { t } = useTranslation();
   const { GET, POST } = useAPI();
 
+  const otpRef = useRef<HTMLInputElement>(null);
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isTimeout, setIsTimeout] = useState<boolean>(false);
   const [countDown, setCountDown] = useState(120);
@@ -111,6 +113,12 @@ function Login() {
 
   useEffect(() => {
     if (currentStep === 2 && !isTimeout) {
+      setTimeout(() => {
+        if (otpRef.current) {
+          otpRef.current.focus();
+        }
+      }, 100);
+
       const timer = setInterval(() => {
         setCountDown((prev) => {
           if (prev <= 1) {
@@ -211,6 +219,7 @@ function Login() {
             <div className="flex flex-col gap-6">
               <Field className="flex justify-center">
                 <InputOTP
+                  ref={otpRef}
                   maxLength={6}
                   required
                   value={code}
@@ -221,12 +230,11 @@ function Login() {
                     }
                   }}
                   disabled={countDown === 0}
-                  containerClassName="gap-4"
+                  containerClassName="justify-center"
                 >
-                  <InputOTPGroup className="gap-2.5 *:data-[slot=input-otp-slot]:h-16 *:data-[slot=input-otp-slot]:w-12 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl">
+                  <InputOTPGroup className="gap-2 *:data-[slot=input-otp-slot]:h-10 *:data-[slot=input-otp-slot]:w-10 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-lg">
                     {Array.from({ length: 6 }).map((_, index) => (
                       <InputOTPSlot
-                        autoFocus={index === 0}
                         key={index}
                         index={index}
                         className={isCodeError ? "border-destructive" : ""}
@@ -240,7 +248,7 @@ function Login() {
               </Field>
               <div className="flex justify-center text-center">
                 <p
-                  className={`text-sm font-semibold transition-colors duration-300 ${
+                  className={`text-sm font-medium transition-colors duration-300 ${
                     countDown <= 30
                       ? "text-destructive"
                       : "text-muted-foreground"

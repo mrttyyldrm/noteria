@@ -66,8 +66,8 @@ const useAPI = () => {
 
     const GET = (
         path: string,
-        params: object | undefined,
-        onSuccess?: (data: object) => void,
+        params: object,
+        onSuccess?: (data: any) => void,
         onError?: () => void) => {
 
         let parameters = "";
@@ -95,7 +95,7 @@ const useAPI = () => {
     const POST = (
         path: string,
         data: object,
-        onSuccess?: (data: object) => void,
+        onSuccess?: (data: any) => void,
         onError?: () => void) => {
 
         const token = getCookie("token");

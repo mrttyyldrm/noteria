@@ -10,8 +10,8 @@ import {
   FileSpreadsheet,
   FileCheck,
   Search,
-  Plus,
 } from "lucide-react";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,10 +27,8 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
@@ -39,7 +37,7 @@ const draftDocuments = [
   {
     id: "1",
     title: "Property Transfer Agreement",
-    type: "PDF Document",
+    type: "/arber/hebele/hubele/noterdoc0.docx",
     uploadDate: "2024-10-05",
     fileType: "pdf",
     category: "Contracts",
@@ -155,23 +153,21 @@ export function AppSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
-              <div className="flex items-center gap-2 font-semibold text-lg text-foreground">
-                <Image src="/logo.svg" alt="Logo" width={32} height={32} />
-                <div className="flex items-center">
-                  Noteria
-                  <span className="ml-2 mt-1 text-xs text-muted-foreground font-medium">
-                    v1.0.0
-                  </span>
-                </div>
+            <div className="w-full flex items-center gap-2 font-semibold text-xl text-foreground">
+              <Image src="/logo.svg" alt="Logo" width={42} height={42} />
+              <div className="flex items-center">
+                Noteria
+                <span className="ml-2 mt-1 text-xs text-muted-foreground font-medium">
+                  v1.0.0
+                </span>
               </div>
-            </SidebarMenuButton>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="flex flex-col h-full">
         {/* Search Section */}
-        <div className="p-2 border-b">
+        <div className="py-2 px-4 md:px-2 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -184,42 +180,38 @@ export function AppSidebar() {
         </div>
 
         {/* Documents by Category */}
-        <div className="flex-1 overflow-auto">
+        <ScrollArea className="h-[20rem] flex-1 pl-4 pr-2 md:pl-2">
           {Object.entries(documentsByCategory).map(([category, documents]) => (
-            <SidebarGroup key={category}>
-              <SidebarGroupLabel>{category}</SidebarGroupLabel>
-              <div className="space-y-2">
-                {documents.map((document) => (
-                  <Card
-                    key={document.id}
-                    className={cn(
-                      "cursor-pointer transition-all duration-200",
-                      selectedDocument === document.id
-                        ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                        : "hover:scale-95"
-                    )}
-                    onClick={() => handleDocumentSelect(document.id)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-1">
-                          {getFileIcon(document.fileType)}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm text-foreground truncate mb-1">
-                            {document.title}
-                          </h3>
-
-                          <p className="text-xs text-muted-foreground">
-                            {document.type}
-                          </p>
-                        </div>
+            <SidebarGroup key={category} className="px-0 space-y-2">
+              {documents.map((document) => (
+                <Card
+                  key={document.id}
+                  className={cn(
+                    "cursor-pointer transition-all duration-200",
+                    selectedDocument === document.id
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/20"
+                      : "hover:scale-95"
+                  )}
+                  onClick={() => handleDocumentSelect(document.id)}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-1">
+                        {getFileIcon(document.fileType)}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm text-foreground truncate mb-1">
+                          {document.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {document.type}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </SidebarGroup>
           ))}
 
@@ -233,9 +225,9 @@ export function AppSidebar() {
               </EmptyHeader>
             </Empty>
           )}
-        </div>
+        </ScrollArea>
       </SidebarContent>
-      <SidebarFooter className="p-2 border-t mt-2">
+      <SidebarFooter className="py-2 px-4 md:px-2 border-t mt-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <Button className="w-full">Upload New Document</Button>
