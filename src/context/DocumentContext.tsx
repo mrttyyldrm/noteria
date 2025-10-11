@@ -82,7 +82,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const [currentDocument, setcurrentDocument] = useState<Document | null>(null);
 
   const selectDocument = (documentID: number | null) => {
-    if (!documentID || !documents) {
+    if (documentID === null || !documents) {
       setcurrentDocument(null);
       return;
     }
@@ -177,8 +177,8 @@ function DocumentsSidebar() {
           {documents === null ? (
             <DocumentsLoading />
           ) : (
-            filteredDocuments?.map((document) => (
-              <SidebarGroupContent key={document.documentID}>
+            filteredDocuments?.map((document, index) => (
+              <SidebarGroupContent key={index}>
                 <Card
                   key={document.documentID}
                   className={cn(

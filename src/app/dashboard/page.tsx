@@ -10,6 +10,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 function ParametersLoading() {
   return (
@@ -34,8 +44,11 @@ function Home() {
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const isParametersExits = Object.entries(parameters).length > 0;
+  const isDocumentExist = currentDocument !== null;
+
   const getDocumentParameters = () => {
-    if (!currentDocument || isFetching) return;
+    if (!currentDocument || isFetching || isParametersExits) return;
 
     setIsFetching(true);
     GET("GetDocParam", { DocID: currentDocument.documentID }, (data) => {
@@ -67,15 +80,13 @@ function Home() {
   });
 
   useEffect(() => {
-    getDocumentParameters();
+    setParameters({});
+    formik.resetForm();
   }, [currentDocument]);
 
-  const isParametersExits = Object.entries(parameters).length > 0;
-  const isDocumentExist = currentDocument !== null;
-
   return (
-    <div className="w-full h-full bg-red grid grid-cols-[1fr_20rem] items-start gap-4">
-      <Card className="h-full overflow-hidden">
+    <div className="w-full h-full gap-4">
+      <Card className="relative h-full overflow-hidden">
         {isDocumentExist && (
           <DocumentEditor
             id="docxEditor"
@@ -83,41 +94,59 @@ function Home() {
             config={currentDocument.config}
           />
         )}
-      </Card>
-      <form noValidate onSubmit={formik.handleSubmit}>
-        <FieldGroup className="gap-4">
-          {isFetching ? (
-            <ParametersLoading />
-          ) : (
-            isParametersExits && (
-              <>
-                {Object.entries(parameters).map(
-                  ([key, type]: [string, any]) => (
-                    <Field key={key}>
-                      <FieldLabel htmlFor={key}>{key}</FieldLabel>
-                      <Input
-                        id={key}
-                        name={key}
-                        type={type}
-                        placeholder={key}
-                        value={
-                          type === "file" ? undefined : formik.values[key] || ""
-                        }
-                        onChange={formik.handleChange}
-                      />
-                    </Field>
-                  )
-                )}
-                <Field>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Loading..." : "Save"}
-                  </Button>
-                </Field>
-              </>
-            )
+        <Sheet>
+          {isDocumentExist && (
+            <SheetTrigger
+              asChild
+              className="absolute top-4 right-4 z-50"
+              onClick={getDocumentParameters}
+            >
+              <Button variant="outline">Show Parameters</Button>
+            </SheetTrigger>
           )}
-        </FieldGroup>
-      </form>
+          <SheetContent className="h-[calc(100svh-1rem)] top-2 right-2 rounded-lg border border-border">
+            <SheetHeader>
+              <SheetTitle>Document Parameters</SheetTitle>
+              <SheetDescription>
+                Fill in the required parameters for this document. Click save
+                when you&apos;re done.
+              </SheetDescription>
+            </SheetHeader>
+            <FieldGroup className="gap-4 px-4">
+              {isFetching ? (
+                <ParametersLoading />
+              ) : (
+                isParametersExits &&
+                Object.entries(parameters).map(([key, type]: [string, any]) => (
+                  <Field key={key}>
+                    <FieldLabel htmlFor={key}>{key}</FieldLabel>
+                    <Input
+                      id={key}
+                      name={key}
+                      type={type}
+                      placeholder={key}
+                      value={
+                        type === "file" ? undefined : formik.values[key] || ""
+                      }
+                      onChange={formik.handleChange}
+                    />
+                  </Field>
+                ))
+              )}
+            </FieldGroup>
+            <SheetFooter>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+                onClick={() => formik.handleSubmit()}
+              >
+                {isLoading ? "Loading..." : "Save"}
+              </Button>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+      </Card>
     </div>
   );
 }
