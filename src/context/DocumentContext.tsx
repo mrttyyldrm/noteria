@@ -27,25 +27,34 @@ import {
 import { cn } from "@/lib/utils";
 import useAPI from "@/hooks/useAPI";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Document {
-  documentPath: string;
-  documentTitle: string;
   documentID: number;
+  title: string;
+  fileType: string;
   content: null | string;
+  key: string;
+  permissions: {
+    download: boolean;
+    print: boolean;
+    edit: boolean;
+  };
+  token: string;
+  url: string;
 }
 
 interface DocumentContextTypes {
   currentDocument: Document | null;
   selectDocument: (documentID: number | null) => void;
-  documents: Document[];
+  documents: Document[] | null;
   setDocuments: (documents: Document[]) => void;
 }
 
 const DocumentContextDefaultValues: DocumentContextTypes = {
   currentDocument: null,
   selectDocument: () => {},
-  documents: [],
+  documents: null,
   setDocuments: () => {},
 };
 
@@ -57,11 +66,13 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const { GET } = useAPI();
   const { setOpenMobile } = useSidebar();
 
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<Document[] | null>(
+    DocumentContextDefaultValues.documents
+  );
   const [currentDocument, setcurrentDocument] = useState<Document | null>(null);
 
   const selectDocument = (documentID: number | null) => {
-    if (documentID === null) {
+    if (!documentID || !documents) {
       setcurrentDocument(null);
       return;
     }
@@ -93,7 +104,6 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         setDocuments,
       }}
     >
-      {}
       <DocumentsSidebar />
       {children}
     </DocumentContext.Provider>
@@ -104,16 +114,24 @@ export function useDocument() {
   return useContext(DocumentContext);
 }
 
+function DocumentsLoading() {
+  return (
+    <>
+      {Array.from({ length: 8 }).map((_, index) => (
+        <Skeleton key={index} className="w-full h-16" />
+      ))}
+    </>
+  );
+}
+
 function DocumentsSidebar() {
   const { documents, currentDocument, selectDocument } = useDocument();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const filteredDocuments = documents.filter((document) =>
-    document.documentTitle.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDocuments = documents?.filter((document) =>
+    document.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  console.log(filteredDocuments.length);
 
   return (
     <Sidebar variant="inset">
@@ -146,38 +164,42 @@ function DocumentsSidebar() {
         </div>
         <SidebarGroup className="space-y-2">
           <SidebarGroupLabel className="p-0 mb-0">Drafts</SidebarGroupLabel>
-          {filteredDocuments.map((document) => (
-            <SidebarGroupContent key={document.documentID}>
-              <Card
-                key={document.documentID}
-                className={cn(
-                  "cursor-pointer transition-all duration-200",
-                  currentDocument?.documentID === document.documentID
-                    ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                    : "hover:scale-95"
-                )}
-                onClick={() => selectDocument(document.documentID)}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-1 text-foreground">
-                      <File />
+          {documents === null ? (
+            <DocumentsLoading />
+          ) : (
+            filteredDocuments?.map((document) => (
+              <SidebarGroupContent key={document.documentID}>
+                <Card
+                  key={document.documentID}
+                  className={cn(
+                    "cursor-pointer transition-all duration-200",
+                    currentDocument?.documentID === document.documentID
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/20"
+                      : "hover:scale-95"
+                  )}
+                  onClick={() => selectDocument(document.documentID)}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-1 text-foreground">
+                        <File />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm text-foreground truncate mb-1">
+                          {document.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {document.fileType.toUpperCase()} Document
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm text-foreground truncate mb-1">
-                        {document.documentTitle}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {document.documentPath}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </SidebarGroupContent>
-          ))}
+                  </CardContent>
+                </Card>
+              </SidebarGroupContent>
+            ))
+          )}
         </SidebarGroup>
-        {filteredDocuments.length === 0 && (
+        {filteredDocuments?.length === 0 && (
           <Empty className="p-2">
             <EmptyHeader>
               <EmptyMedia variant="icon">
