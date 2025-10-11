@@ -81,22 +81,12 @@ function Home() {
             id="docxEditor"
             documentServerUrl="https://384311e4.docs.onlyoffice.com"
             config={{
-              document: {
-                fileType: currentDocument.fileType,
-                key: currentDocument.key,
-                title: currentDocument.title,
-                url: currentDocument.url,
-                permissions: currentDocument.permissions,
-              },
-              token: currentDocument.token,
-              documentType: "word",
+              ...currentDocument.config,
               editorConfig: {
-                mode: "edit",
-                lang: "en",
+                ...currentDocument.config.editorConfig,
                 customization: {
                   uiTheme: "theme-light",
                 },
-                callbackUrl: "https://api.noteria.com/DocUpdate",
               },
             }}
           />

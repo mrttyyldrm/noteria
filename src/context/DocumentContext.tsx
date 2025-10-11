@@ -32,16 +32,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface Document {
   documentID: number;
   title: string;
-  fileType: string;
-  content: null | string;
-  key: string;
-  permissions: {
-    download: boolean;
-    print: boolean;
-    edit: boolean;
-  };
-  token: string;
   url: string;
+  config: {
+    type: string;
+    document: {
+      fileType: string;
+      title: string;
+      url: string;
+      key: string;
+      permissions: {
+        edit: boolean;
+        download: boolean;
+        print: boolean;
+      };
+    };
+    editorConfig: {
+      mode: string;
+      callbackUrl: string;
+    };
+    token: string;
+  };
 }
 
 interface DocumentContextTypes {
@@ -189,7 +199,7 @@ function DocumentsSidebar() {
                           {document.title}
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          {document.fileType.toUpperCase()} Document
+                          {document.config.document.fileType.toUpperCase()} File
                         </p>
                       </div>
                     </div>
