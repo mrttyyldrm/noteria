@@ -80,15 +80,7 @@ function Home() {
           <DocumentEditor
             id="docxEditor"
             documentServerUrl="https://384311e4.docs.onlyoffice.com"
-            config={{
-              ...currentDocument.config,
-              editorConfig: {
-                ...currentDocument.config.editorConfig,
-                customization: {
-                  uiTheme: "theme-light",
-                },
-              },
-            }}
+            config={currentDocument.config}
           />
         )}
       </Card>
