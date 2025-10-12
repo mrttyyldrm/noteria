@@ -165,6 +165,7 @@ function Login() {
                     id="email"
                     name="email"
                     type="email"
+                    disabled={isLoading}
                     placeholder={t("email")}
                     value={formik.values.email}
                     onChange={formik.handleChange}
@@ -184,6 +185,7 @@ function Login() {
                     id="password"
                     name="password"
                     type="password"
+                    disabled={isLoading}
                     placeholder={t("password")}
                     value={formik.values.password}
                     onChange={formik.handleChange}

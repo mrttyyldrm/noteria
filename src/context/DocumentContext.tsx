@@ -80,6 +80,7 @@ interface Document {
 interface DocumentContextTypes {
   currentDocument: Document | null;
   selectDocument: (documentID: number | null) => void;
+  getDocuments: () => void;
   documents: Document[] | null;
   setDocuments: (documents: Document[]) => void;
 }
@@ -87,6 +88,7 @@ interface DocumentContextTypes {
 const DocumentContextDefaultValues: DocumentContextTypes = {
   currentDocument: null,
   selectDocument: () => {},
+  getDocuments: () => {},
   documents: null,
   setDocuments: () => {},
 };
@@ -133,6 +135,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentDocument,
         selectDocument,
+        getDocuments,
         documents,
         setDocuments,
       }}
@@ -159,7 +162,8 @@ function DocumentsLoading() {
 
 function DocumentsSidebar() {
   const { POST } = useAPI();
-  const { documents, currentDocument, selectDocument } = useDocument();
+  const { documents, currentDocument, selectDocument, getDocuments } =
+    useDocument();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -194,11 +198,20 @@ function DocumentsSidebar() {
         };
 
         setIsLoading(true);
-        POST("UploadDoc", documentData, () => {
-          formik.resetForm();
-          setIsDialogOpen(false);
-          setIsLoading(false);
-        });
+        POST(
+          "UploadDoc",
+          documentData,
+          () => {
+            getDocuments();
+            formik.resetForm();
+            setIsLoading(false);
+          },
+          () => {
+            formik.resetForm();
+            setIsDialogOpen(false);
+            setIsLoading(false);
+          }
+        );
       };
 
       reader.readAsDataURL(values.file);
@@ -329,6 +342,7 @@ function DocumentsSidebar() {
                       id="title"
                       name="title"
                       type="text"
+                      disabled={isLoading}
                       value={formik.values.title}
                       onChange={formik.handleChange}
                       placeholder="Title"
@@ -346,6 +360,7 @@ function DocumentsSidebar() {
                           [".docx"],
                       }}
                       maxFiles={1}
+                      disabled={isLoading}
                       maxSize={1024 * 1024 * 50}
                       onDrop={handleDrop}
                       src={
@@ -361,10 +376,10 @@ function DocumentsSidebar() {
                   </Field>
                 </FieldGroup>
                 <DialogFooter>
-                  <DialogClose asChild>
+                  <DialogClose asChild disabled={isLoading}>
                     <Button variant="outline">Cancel</Button>
                   </DialogClose>
-                  <Button type="submit">
+                  <Button type="submit" disabled={isLoading}>
                     {isLoading ? "Uploading..." : "Upload Document"}
                   </Button>
                 </DialogFooter>

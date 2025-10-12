@@ -105,7 +105,7 @@ const useAPI = () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                ...(token && { nath: token }),
+                ...(token && { nauth: token }),
                 ...(language && { nlng: language })
             },
             credentials: "include",

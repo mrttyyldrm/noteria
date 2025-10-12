@@ -120,6 +120,7 @@ function Home() {
                       id={key}
                       name={key}
                       type={type}
+                      disabled={isLoading}
                       placeholder={key}
                       value={
                         type === "file" ? undefined : formik.values[key] || ""
