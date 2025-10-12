@@ -146,7 +146,7 @@ function DocumentsSidebar() {
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
-        <SidebarMenu>
+        <SidebarMenu className="p-2 pb-0 md:p-0">
           <SidebarMenuItem>
             <div className="w-full flex items-center gap-2 font-semibold text-xl text-foreground">
               <Image src="/logo.svg" alt="Logo" width={42} height={42} />
@@ -161,7 +161,7 @@ function DocumentsSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="flex flex-col h-full">
-        <div className="py-2 px-4 md:px-2 border-b">
+        <div className="pt-2 pb-4 px-4 md:px-2 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -172,7 +172,7 @@ function DocumentsSidebar() {
             />
           </div>
         </div>
-        <SidebarGroup className="space-y-2">
+        <SidebarGroup className="space-y-2 px-4 md:px-2">
           <SidebarGroupLabel className="p-0 mb-0">Drafts</SidebarGroupLabel>
           {documents === null ? (
             <DocumentsLoading />
@@ -223,8 +223,8 @@ function DocumentsSidebar() {
           </Empty>
         )}
       </SidebarContent>
-      <SidebarFooter className="py-2 px-4 md:px-2 border-t mt-2">
-        <SidebarMenu>
+      <SidebarFooter className="border-t mt-2">
+        <SidebarMenu className="p-2 md:p-0 md:pt-2">
           <SidebarMenuItem>
             <Button className="w-full">Upload New Document</Button>
           </SidebarMenuItem>
