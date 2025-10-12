@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, use, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import Image from "next/image";
 import { Search, File } from "lucide-react";
 import {
@@ -14,6 +14,21 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import {
+  Dropzone,
+  DropzoneContent,
+  DropzoneEmptyState,
+} from "@/components/ui/dropzone";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +43,14 @@ import { cn } from "@/lib/utils";
 import useAPI from "@/hooks/useAPI";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useFormik } from "formik";
+import * as yup from "yup";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 
 interface Document {
   documentID: number;
@@ -135,13 +158,60 @@ function DocumentsLoading() {
 }
 
 function DocumentsSidebar() {
+  const { POST } = useAPI();
   const { documents, currentDocument, selectDocument } = useDocument();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
   const filteredDocuments = documents?.filter((document) =>
     document.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const validationSchema = yup.object({
+    file: yup.string().required("File is required!"),
+    title: yup.string().required("Title is required!"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      file: undefined,
+      title: "",
+    },
+    validationSchema: validationSchema,
+    onSubmit: (values) => {
+      if (isLoading || !values.file) return;
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+
+        const documentData = {
+          FileName: values.title,
+          DocType: "Draft",
+          Content: base64String,
+        };
+
+        setIsLoading(true);
+        POST("UploadDoc", documentData, () => {
+          formik.resetForm();
+          setIsDialogOpen(false);
+          setIsLoading(false);
+        });
+      };
+
+      reader.readAsDataURL(values.file);
+    },
+  });
+
+  const handleDrop = async (files: File[]) => {
+    const file = files[0];
+    const fileName = file.name.split(".").slice(0, -1).join(".");
+
+    formik.setFieldValue("file", file);
+    formik.setFieldValue("title", fileName);
+  };
 
   return (
     <Sidebar variant="inset">
@@ -225,9 +295,79 @@ function DocumentsSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t mt-2">
         <SidebarMenu className="p-2 md:p-0 md:pt-2">
-          <SidebarMenuItem>
-            <Button className="w-full">Upload New Document</Button>
-          </SidebarMenuItem>
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(open) => {
+              if (!open) formik.resetForm();
+              setIsDialogOpen(open);
+            }}
+          >
+            <DialogTrigger asChild>
+              <SidebarMenuItem>
+                <Button className="w-full">Upload New Document</Button>
+              </SidebarMenuItem>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Upload Document</DialogTitle>
+                <DialogDescription className="flex flex-col gap-2">
+                  Upload a document to create a new draft.
+                </DialogDescription>
+              </DialogHeader>
+              <form
+                noValidate
+                onSubmit={formik.handleSubmit}
+                className="flex flex-col gap-6"
+              >
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="title">Title</FieldLabel>
+                    <Input
+                      id="title"
+                      name="title"
+                      type="text"
+                      value={formik.values.title}
+                      onChange={formik.handleChange}
+                      placeholder="Title"
+                    />
+                    {formik.touched.title && formik.errors.title && (
+                      <FieldError>{formik.errors.title}</FieldError>
+                    )}
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="file">File</FieldLabel>
+                    <Dropzone
+                      accept={{
+                        "application/pdf": [".pdf"],
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                          [".docx"],
+                      }}
+                      maxFiles={1}
+                      maxSize={1024 * 1024 * 50}
+                      onDrop={handleDrop}
+                      src={
+                        formik.values.file ? [formik.values.file] : undefined
+                      }
+                    >
+                      <DropzoneEmptyState />
+                      <DropzoneContent />
+                    </Dropzone>
+                    {formik.touched.file && formik.errors.file && (
+                      <FieldError>{formik.errors.file}</FieldError>
+                    )}
+                  </Field>
+                </FieldGroup>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <Button type="submit">
+                    {isLoading ? "Uploading..." : "Upload Document"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
