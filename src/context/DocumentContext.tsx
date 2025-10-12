@@ -298,7 +298,10 @@ function DocumentsSidebar() {
           <Dialog
             open={isDialogOpen}
             onOpenChange={(open) => {
-              if (!open) formik.resetForm();
+              if (!open) {
+                formik.resetForm();
+                setIsLoading(false);
+              }
               setIsDialogOpen(open);
             }}
           >
