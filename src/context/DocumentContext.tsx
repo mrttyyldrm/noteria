@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import Image from "next/image";
-import { Search, File } from "lucide-react";
+import { Search, File, Pencil } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -31,7 +31,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardAction,
+  CardContent,
+} from "@/components/ui/card";
 import {
   Empty,
   EmptyDescription,
@@ -168,6 +175,10 @@ function DocumentsSidebar() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<{
+    status: boolean;
+    documentID: number | null;
+  }>({ status: false, documentID: null });
 
   const filteredDocuments = documents?.filter((document) =>
     document.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -204,6 +215,7 @@ function DocumentsSidebar() {
           () => {
             getDocuments();
             formik.resetForm();
+            setIsDialogOpen(false);
             setIsLoading(false);
           },
           () => {
@@ -256,7 +268,9 @@ function DocumentsSidebar() {
           </div>
         </div>
         <SidebarGroup className="space-y-2 px-4 md:px-2">
-          <SidebarGroupLabel className="p-0 mb-0">Drafts</SidebarGroupLabel>
+          <SidebarGroupLabel className="p-0 mb-0 text-foreground">
+            Drafts
+          </SidebarGroupLabel>
           {documents === null ? (
             <DocumentsLoading />
           ) : (
@@ -265,27 +279,34 @@ function DocumentsSidebar() {
                 <Card
                   key={document.documentID}
                   className={cn(
-                    "cursor-pointer transition-all duration-200",
+                    "cursor-pointer py-3 gap-0 transition-all duration-200",
                     currentDocument?.documentID === document.documentID
                       ? "border-primary bg-primary/10 ring-2 ring-primary/20"
                       : "hover:scale-95"
                   )}
                   onClick={() => selectDocument(document.documentID)}
                 >
-                  <CardContent className="p-3">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-1 text-foreground">
-                        <File />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-sm text-foreground truncate mb-1">
-                          {document.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {document.config.document.fileType.toUpperCase()} File
-                        </p>
-                      </div>
-                    </div>
+                  <CardHeader className="px-3 flex justify-between items-center gap-2">
+                    <CardTitle className="text-foreground">
+                      {document.title}
+                    </CardTitle>
+                    <CardAction>
+                      <Button
+                        variant="outline"
+                        size="icon-sm"
+                        className="shrink-0 size-7"
+                        onClick={() => {
+                          alert();
+                        }}
+                      >
+                        <Pencil />
+                      </Button>
+                    </CardAction>
+                  </CardHeader>
+                  <CardContent className="px-3">
+                    <p className="text-xs text-muted-foreground">
+                      {document.config.document.fileType.toUpperCase()} File
+                    </p>
                   </CardContent>
                 </Card>
               </SidebarGroupContent>
@@ -298,9 +319,9 @@ function DocumentsSidebar() {
               <EmptyMedia variant="icon">
                 <File />
               </EmptyMedia>
-              <EmptyTitle>No Documents Found</EmptyTitle>
+              <EmptyTitle>No Drafts Found</EmptyTitle>
               <EmptyDescription>
-                Try creating a new document or uploading an existing one.
+                Try creating a new draft or uploading an existing one.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -355,7 +376,6 @@ function DocumentsSidebar() {
                     <FieldLabel htmlFor="file">File</FieldLabel>
                     <Dropzone
                       accept={{
-                        "application/pdf": [".pdf"],
                         "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
                           [".docx"],
                       }}

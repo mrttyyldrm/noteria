@@ -23,7 +23,7 @@ const useAPI = () => {
     // const { showMessage } = useToast();
     // const { t } = useTranslation();
 
-    const baseURL = "https://api.noteria.app/";
+    const BASE_URL = "https://api.noteria.app/";
 
     const handleAPIResponse = (
         response: Response,
@@ -43,7 +43,6 @@ const useAPI = () => {
 
         if (response.status === 200) {
             const newToken = response.headers.get("nauth");
-            console.log("NAUTH: ", newToken, response.headers);
 
             if (newToken) {
                 document.cookie = `token=${newToken}; path=/; samesite=Strict; secure; max-age=1200`;
@@ -72,7 +71,7 @@ const useAPI = () => {
 
         let parameters = "";
 
-        if (params) {
+        if (Object.keys(params).length > 0) {
             const parsedParams = JSON.parse(JSON.stringify(params));
             parameters = "?" + new URLSearchParams(parsedParams).toString();
         }
@@ -80,7 +79,7 @@ const useAPI = () => {
         const token = getCookie("token");
         const language = getCookie("language");
 
-        fetch(`${baseURL}${path}${parameters}`, {
+        fetch(`${BASE_URL}${path}${parameters}`, {
             method: "GET",
             headers: {
                 ...(token && { nauth: token }),
@@ -101,7 +100,7 @@ const useAPI = () => {
         const token = getCookie("token");
         const language = getCookie("language");
 
-        fetch(`${baseURL}${path}`, {
+        fetch(`${BASE_URL}${path}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

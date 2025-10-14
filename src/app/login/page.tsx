@@ -31,7 +31,6 @@ function Login() {
   const [isTimeout, setIsTimeout] = useState<boolean>(false);
   const [countDown, setCountDown] = useState(120);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [phone, setPhone] = useState<string>("");
   const [code, setCode] = useState<string>("");
   const [isCodeError, setIsCodeError] = useState<boolean>(false);
 
@@ -50,14 +49,13 @@ function Login() {
       Pass: formik.values.password,
     };
 
-    setPhone("");
     setIsLoading(true);
     POST(
       "Auth",
       loginData,
       (response: any) => {
+        formik.setFieldValue("requestID", response.requestID);
         resetTimer();
-        setPhone(response.phone);
         setCurrentStep(2);
         setIsLoading(false);
       },
@@ -73,6 +71,7 @@ function Login() {
 
     const verifyData = {
       OTP: code,
+      requestID: formik.values.requestID,
     };
 
     setIsLoading(true);
@@ -104,6 +103,7 @@ function Login() {
     initialValues: {
       email: "mrttyyldrm@gmail.com",
       password: "1234567890",
+      requestID: "",
     },
     validationSchema: validationSchema,
     onSubmit: () => {
@@ -215,7 +215,10 @@ function Login() {
                 {t("two_step_verification")}
               </h1>
               <p className="text-muted-foreground text-sm text-balance">
-                {t("two_step_description").replace("{phone}", phone)}
+                {t("two_step_description").replace(
+                  "{email}",
+                  formik.values.email
+                )}
               </p>
             </div>
             <div className="flex flex-col gap-6">
