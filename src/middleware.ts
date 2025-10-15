@@ -5,7 +5,7 @@ export async function middleware(req: NextRequest) {
     const token = req.cookies.get("token")?.value;
 
     if (!token) {
-        const res = NextResponse.redirect(new URL("/login", req.url));
+        const res = NextResponse.redirect(new URL("/auth", req.url));
         return res;
     }
 
@@ -14,10 +14,10 @@ export async function middleware(req: NextRequest) {
 
         if (isValidated) return NextResponse.next();
 
-        const res = NextResponse.redirect(new URL("/login", req.url));
+        const res = NextResponse.redirect(new URL("/auth", req.url));
         return res;
     } catch {
-        const res = NextResponse.redirect(new URL("/login", req.url));
+        const res = NextResponse.redirect(new URL("/auth", req.url));
         res.cookies.delete("token");
         return res;
     }

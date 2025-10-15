@@ -33,7 +33,7 @@ const useAPI = () => {
         if (!response.ok) {
             if (response.status === 401) {
                 document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                router.replace("/login");
+                router.replace("/auth");
                 return null;
             }
             else {
