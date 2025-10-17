@@ -10,7 +10,10 @@
     "verify_button": "Verify",
     "resend": "Resend",
     "seconds_short": "sec.",
-    "validation_required": "This field is required!"
+    "validation_required": "This field is required!",
+    "error": {
+      "unknown": "An unknown error occurred, please try again later."
+    }
   },
   "sq": {
     "login": "Kyçu",
@@ -23,6 +26,9 @@
     "verify_button": "Verifiko",
     "resend": "Ridërgo",
     "seconds_short": "sek.",
-    "validation_required": "Kjo fushë është e detyrueshme!"
+    "validation_required": "Kjo fushë është e detyrueshme!",
+    "error": {
+      "unknown": "Ndodhi një gabim i panjohur, ju lutemi provoni përsëri më vonë."
+    }
   }
 }

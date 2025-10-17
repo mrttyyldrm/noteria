@@ -211,14 +211,10 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --constructive: oklch(0.6 0.118 184.704);
   --border: oklch(0.922 0 0);
   --input: #dadfe6;
   --ring: #dadfe6;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: #364a63;
   --sidebar-primary: #0063dd;
@@ -253,6 +249,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-constructive: var(--constructive);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -274,6 +271,43 @@
   --font-outfit: "Outfit", sans-serif;
 
   --background-image-auth: url("/auth-bg.png");
+
+  --animate-scale: fade-scale 0.3s ease-out;
+  --animate-fade-up: fade-up 0.3s ease-out;
+  --animate-fade-right: fade-right 0.3s ease-out;
+
+  @keyframes fade-scale {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-right {
+    0% {
+      opacity: 0;
+      transform: translateX(-1rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 }
 
 /*#endregion*/

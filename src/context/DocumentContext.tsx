@@ -234,13 +234,9 @@ export function useDocument() {
 }
 
 function DocumentsLoading() {
-  return (
-    <>
-      {Array.from({ length: 5 }).map((_, index) => (
-        <Skeleton key={index} className="w-full h-16" />
-      ))}
-    </>
-  );
+  return Array.from({ length: 5 }).map((_, index) => (
+    <Skeleton key={index} className="w-full h-16" />
+  ));
 }
 
 function DocumentsSidebar() {

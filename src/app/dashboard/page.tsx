@@ -19,6 +19,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useNotification } from "@/context/NotificationContext";
 import {
   Empty,
   EmptyDescription,
@@ -44,6 +45,7 @@ function ParametersLoading() {
 
 function Home() {
   const { GET, POST } = useAPI();
+  const { showNotification } = useNotification();
   const { currentDocument } = useDocument();
 
   const [parameters, setParameters] = useState<any>({});

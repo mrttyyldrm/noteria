@@ -1,5 +1,5 @@
-// import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
+import { useNotification } from "@/context/NotificationContext";
 import { useRouter } from "next/navigation";
 
 export const getCookie = (cookieName: string): string | null => {
@@ -20,8 +20,8 @@ export const getCookie = (cookieName: string): string | null => {
 const useAPI = () => {
     const router = useRouter();
 
-    // const { showMessage } = useToast();
-    // const { t } = useTranslation();
+    const { t } = useTranslation();
+    const { showNotification } = useNotification();
 
     const BASE_URL = "https://api.noteria.app/";
 
@@ -54,8 +54,8 @@ const useAPI = () => {
         }
 
         if (response.status === 202) {
-            return response.json().then(() => {
-                // showMessage?.(error.m);
+            return response.json().then((error) => {
+                showNotification?.(error.m);
                 onError?.();
             });
         }
@@ -88,7 +88,7 @@ const useAPI = () => {
             credentials: "include",
         })
             .then(response => handleAPIResponse(response, onSuccess, onError))
-        // .catch(() => showMessage(getTranslation("error")));
+            .catch(() => showNotification(t("error.unknown")));
     }
 
     const POST = (
@@ -111,7 +111,7 @@ const useAPI = () => {
             body: JSON.stringify(data)
         })
             .then(response => handleAPIResponse(response, onSuccess, onError))
-        // .catch(() => showMessage(getTranslation("error.")));
+            .catch(() => showNotification(t("error.unknown")));
     }
 
     return { GET, POST };
