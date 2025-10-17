@@ -88,22 +88,30 @@ function Home() {
 
   useEffect(() => {
     setParameters({});
+    setIsReady(false);
     formik.resetForm();
   }, [currentDocument]);
 
   return (
     <div className="relative w-full h-full gap-4 overflow-hidden flex justify-center items-center">
       {isDocumentExist ? (
-        isReady ? (
-          <DocumentEditor
-            id="docxEditor"
-            documentServerUrl="https://384311e4.docs.onlyoffice.com"
-            config={currentDocument.config}
-            events_onAppReady={() => setIsReady(true)}
-          />
-        ) : (
-          <Skeleton className="w-full h-full rounded-t-none" />
-        )
+        <>
+          {!isReady && (
+            <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50" />
+          )}
+          <div
+            className={`w-full h-full rounded-b-lg overflow-hidden ${
+              !isReady ? "opacity-0" : ""
+            }`}
+          >
+            <DocumentEditor
+              id="docxEditor"
+              documentServerUrl="https://384311e4.docs.onlyoffice.com"
+              config={currentDocument.config}
+              events_onDocumentReady={() => setIsReady(true)}
+            />
+          </div>
+        </>
       ) : (
         <Empty className="p-2">
           <EmptyHeader>
