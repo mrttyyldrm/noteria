@@ -11,7 +11,6 @@ export async function middleware(req: NextRequest) {
 
     try {
         const isValidated = await validateToken(token);
-
         if (isValidated) return NextResponse.next();
 
         const res = NextResponse.redirect(new URL("/auth", req.url));

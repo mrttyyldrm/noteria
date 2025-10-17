@@ -227,6 +227,7 @@ function Auth() {
                   ref={otpRef}
                   maxLength={6}
                   required
+                  disabled={isLoading}
                   value={code}
                   onChange={(value) => {
                     setCode(value);
