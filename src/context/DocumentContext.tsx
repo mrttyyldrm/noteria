@@ -26,7 +26,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -67,10 +66,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
+import { useNotification } from "./NotificationContext";
 
-interface Document {
+interface IDocument {
   documentID: number;
   title: string;
   url: string;
@@ -95,24 +96,50 @@ interface Document {
   };
 }
 
+interface INewDocument {
+  fileName: string;
+  docType: "Draft" | "Court";
+  content: string;
+}
+
 interface DocumentContextTypes {
-  currentDocument: Document | null;
+  selectedDocument: IDocument | null;
+  process: {
+    mode: "delete" | "rename" | "upload" | null;
+    documentID: number | null;
+    documentType: "Draft" | "Court" | null;
+  };
+  openProcess: (
+    mode: "delete" | "rename" | "upload",
+    documentID: number | null,
+    documentType: "Draft" | "Court" | null
+  ) => void;
+  closeProcess: () => void;
   selectDocument: (documentID: number | null) => void;
   getDocuments: () => void;
-  deleteDocument: (documentID: number, callback?: () => void) => void;
-  renameDocument: (
-    documentID: number,
-    fileName: string,
+  uploadDocument: (
+    title: INewDocument["fileName"],
+    file: Blob,
+    type: INewDocument["docType"],
     callback?: () => void
   ) => void;
-  documents: Document[] | null;
+  renameDocument: (
+    title: INewDocument["fileName"],
+    callback?: () => void
+  ) => void;
+  deleteDocument: (callback?: () => void) => void;
+  documents: IDocument[] | null;
   isDocumentLoading: boolean;
 }
 
 const DocumentContextDefaultValues: DocumentContextTypes = {
-  currentDocument: null,
+  selectedDocument: null,
+  process: { mode: null, documentID: null, documentType: null },
+  openProcess: () => {},
+  closeProcess: () => {},
   selectDocument: () => {},
   getDocuments: () => {},
+  uploadDocument: () => {},
   deleteDocument: () => {},
   renameDocument: () => {},
   documents: null,
@@ -124,18 +151,26 @@ const DocumentContext = createContext<DocumentContextTypes>(
 );
 
 export function DocumentProvider({ children }: { children: React.ReactNode }) {
-  const { GET } = useAPI();
+  const { GET, POST } = useAPI();
   const { setOpenMobile } = useSidebar();
+  const { showNotification } = useNotification();
 
-  const [documents, setDocuments] = useState<Document[] | null>(
+  const [documents, setDocuments] = useState<IDocument[] | null>(
     DocumentContextDefaultValues.documents
   );
-  const [isDocumentLoading, setIsDocumentLoading] = useState<boolean>(false);
-  const [currentDocument, setcurrentDocument] = useState<Document | null>(null);
+  const [isDocumentLoading, setIsDocumentLoading] = useState<boolean>(
+    DocumentContextDefaultValues.isDocumentLoading
+  );
+  const [process, setProcess] = useState<DocumentContextTypes["process"]>(
+    DocumentContextDefaultValues.process
+  );
+  const [selectedDocument, setSelectedDocument] = useState<IDocument | null>(
+    DocumentContextDefaultValues.selectedDocument
+  );
 
   const selectDocument = (documentID: number | null) => {
     if (documentID === null || !documents) {
-      setcurrentDocument(null);
+      setSelectedDocument(null);
       return;
     }
 
@@ -143,7 +178,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
       (document) => document.documentID === documentID
     );
 
-    setcurrentDocument(document ?? null);
+    setSelectedDocument(document ?? null);
     setOpenMobile(document === undefined);
   };
 
@@ -155,7 +190,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     GET(
       "GetDrafts",
       {},
-      (data: Document[]) => {
+      (data: IDocument[]) => {
         setDocuments(data);
         setIsDocumentLoading(false);
       },
@@ -163,48 +198,131 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const deleteDocument = (documentID: number, callback?: () => void) => {
-    if (!documents || isDocumentLoading) return;
+  const uploadDocument = (
+    title: INewDocument["fileName"],
+    file: Blob,
+    type: INewDocument["docType"],
+    callback?: () => void
+  ) => {
+    if (isDocumentLoading || !file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+
+      const documentData = {
+        FileName: title,
+        DocType: "Draft",
+        Content: base64String,
+      };
+
+      setIsDocumentLoading(true);
+      POST(
+        "UploadDoc",
+        documentData,
+        () => {
+          getDocuments();
+          setIsDocumentLoading(false);
+          showNotification("Document uploaded successfully.", "success");
+          callback?.();
+        },
+        () => setIsDocumentLoading(false)
+      );
+    };
+
+    reader.readAsDataURL(file);
+    const base64String = reader.result as string;
+
+    const newDocument = {
+      FileName: title,
+      DocType: type,
+      Content: base64String,
+    };
 
     setIsDocumentLoading(true);
-    GET(
-      "DeleteDoc",
-      { DocID: documentID },
+    POST(
+      "UploadDoc",
+      newDocument,
       () => {
-        if (currentDocument?.documentID === documentID) {
-          setcurrentDocument(null);
-        }
-
-        setDocuments(documents.filter((doc) => doc.documentID !== documentID));
+        getDocuments();
         setIsDocumentLoading(false);
-        if (callback) callback();
+        showNotification("Document uploaded successfully.", "success");
+        callback?.();
       },
       () => setIsDocumentLoading(false)
     );
   };
 
   const renameDocument = (
-    documentID: number,
-    fileName: string,
+    title: INewDocument["fileName"],
     callback?: () => void
   ) => {
     if (!documents || isDocumentLoading) return;
 
+    const renameDocument = {
+      DocID: process.documentID,
+      FileName: title,
+    };
+
     setIsDocumentLoading(true);
     GET(
       "RenameDoc",
-      { DocID: documentID, FileName: fileName },
+      renameDocument,
       () => {
+        if (selectedDocument?.documentID === process.documentID) {
+          setSelectedDocument({ ...selectedDocument, title });
+        }
+
         setDocuments(
-          documents.map((doc) =>
-            doc.documentID === documentID ? { ...doc, title: fileName } : doc
+          documents.map((document) =>
+            document.documentID !== process.documentID
+              ? { ...document, title }
+              : document
           )
         );
         setIsDocumentLoading(false);
-        if (callback) callback();
+        showNotification("Document renamed successfully.", "success");
+        callback?.();
       },
       () => setIsDocumentLoading(false)
     );
+  };
+
+  const deleteDocument = (callback?: () => void) => {
+    if (!documents || isDocumentLoading) return;
+
+    setIsDocumentLoading(true);
+    GET(
+      "DeleteDoc",
+      { DocID: process.documentID },
+      () => {
+        if (selectedDocument?.documentID === process.documentID) {
+          setSelectedDocument(null);
+        }
+
+        setDocuments(
+          documents.filter(
+            (document) => document.documentID !== process.documentID
+          )
+        );
+        setIsDocumentLoading(false);
+        showNotification("Document deleted successfully.", "success");
+        callback?.();
+      },
+      () => setIsDocumentLoading(false)
+    );
+  };
+
+  const openProcess = (
+    mode: "delete" | "rename" | "upload",
+    documentID: number | null,
+    documentType: "Draft" | "Court" | null
+  ) => {
+    setProcess({ mode, documentID, documentType });
+  };
+
+  const closeProcess = () => {
+    setProcess({ mode: null, documentID: null, documentType: null });
   };
 
   useEffect(() => {
@@ -212,9 +330,13 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = {
-    currentDocument,
+    selectedDocument,
+    process,
+    openProcess,
+    closeProcess,
     selectDocument,
     getDocuments,
+    uploadDocument,
     deleteDocument,
     renameDocument,
     documents,
@@ -224,6 +346,9 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   return (
     <DocumentContext.Provider value={value}>
       <DocumentsSidebar />
+      <DeleteDocumentDialog />
+      <UploadDocumentDialog />
+      <RenameDocumentDialog />
       {children}
     </DocumentContext.Provider>
   );
@@ -239,113 +364,226 @@ function DocumentsLoading() {
   ));
 }
 
-function DocumentsSidebar() {
-  const { POST } = useAPI();
-  const {
-    documents,
-    isDocumentLoading,
-    selectDocument,
-    getDocuments,
-    deleteDocument,
-    renameDocument,
-  } = useDocument();
-
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [dialog, setDialog] = useState<{
-    mode: "edit" | "delete" | "create" | null;
-    documentID: number | null;
-  }>({ mode: null, documentID: null });
-
-  const filteredDocuments = documents?.filter((document) =>
-    document.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const createValidationSchema = yup.object({
-    file: yup.string().required("File is required!"),
-    title: yup.string().required("Title is required!"),
-  });
-
-  const renameValidationSchema = yup.object({
-    title: yup.string().required("Title is required!"),
-  });
-
-  const createForm = useFormik({
-    initialValues: {
-      file: undefined,
-      title: "",
-    },
-    validationSchema: createValidationSchema,
-    onSubmit: (values) => {
-      if (isLoading || !values.file) return;
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-
-        const documentData = {
-          FileName: values.title,
-          DocType: "Draft",
-          Content: base64String,
-        };
-
-        setIsLoading(true);
-        POST(
-          "UploadDoc",
-          documentData,
-          () => {
-            getDocuments();
-            createForm.resetForm();
-            setDialog({ mode: null, documentID: null });
-            setIsLoading(false);
-          },
-          () => {
-            createForm.resetForm();
-            setDialog({ mode: null, documentID: null });
-            setIsLoading(false);
-          }
-        );
-      };
-
-      reader.readAsDataURL(values.file);
-    },
-  });
-
-  const renameForm = useFormik({
-    initialValues: {
-      title: "",
-    },
-    validationSchema: renameValidationSchema,
-    enableReinitialize: true,
-    onSubmit: (values) => {
-      if (isLoading) return;
-
-      // setIsLoading(true);
-      // GET(
-      //   "renameDoc",
-      //   {},
-      //   () => {
-      //     getDocuments();
-      //     createForm.resetForm();
-      //     setDialog({ mode: null, documentID: null });
-      //     setIsLoading(false);
-      //   },
-      //   () => {
-      //     createForm.resetForm();
-      //     setDialog({ mode: null, documentID: null });
-      //     setIsLoading(false);
-      //   }
-      // );
-    },
-  });
+function UploadDocumentDialog() {
+  const { isDocumentLoading, process, uploadDocument, closeProcess } =
+    useDocument();
 
   const handleDrop = async (files: File[]) => {
     const file = files[0];
     const fileName = file.name.split(".").slice(0, -1).join(".");
 
-    createForm.setFieldValue("file", file);
-    createForm.setFieldValue("title", fileName);
+    formik.setFieldValue("file", file);
+    formik.setFieldValue("title", fileName);
   };
+
+  const validationSchema = yup.object({
+    file: yup.string().required("File is required!"),
+    title: yup.string().required("Title is required!"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      file: undefined,
+      title: "",
+    },
+    validationSchema: validationSchema,
+    onSubmit: (values) => {
+      if (!values.file) return;
+
+      uploadDocument(values.title, values.file, "Draft", () => {
+        formik.resetForm();
+        closeProcess();
+      });
+    },
+  });
+
+  if (process.mode !== "upload") return null;
+
+  return (
+    <Dialog open={true} onOpenChange={(open) => !open && closeProcess()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Upload Document</DialogTitle>
+          <DialogDescription className="flex flex-col gap-2">
+            Upload a document to create a new document.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          noValidate
+          onSubmit={formik.handleSubmit}
+          className="flex flex-col gap-6"
+        >
+          <FieldGroup>
+            {formik.values.file && (
+              <Field>
+                <FieldLabel htmlFor="title">Title</FieldLabel>
+                <Input
+                  id="title"
+                  name="title"
+                  type="text"
+                  disabled={isDocumentLoading}
+                  value={formik.values.title}
+                  onChange={formik.handleChange}
+                  placeholder="Title"
+                />
+                {formik.touched.title && formik.errors.title && (
+                  <FieldError>{formik.errors.title}</FieldError>
+                )}
+              </Field>
+            )}
+            <Field>
+              <FieldLabel htmlFor="file">File</FieldLabel>
+              <Dropzone
+                accept={{
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                    [".docx"],
+                }}
+                maxFiles={1}
+                disabled={isDocumentLoading}
+                maxSize={1024 * 1024 * 50}
+                onDrop={handleDrop}
+                src={formik.values.file ? [formik.values.file] : undefined}
+              >
+                <DropzoneEmptyState />
+                <DropzoneContent />
+              </Dropzone>
+              {formik.touched.file && formik.errors.file && (
+                <FieldError>{formik.errors.file}</FieldError>
+              )}
+            </Field>
+          </FieldGroup>
+          <DialogFooter>
+            <DialogClose asChild disabled={isDocumentLoading}>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button type="submit" disabled={isDocumentLoading}>
+              {isDocumentLoading ? "Uploading..." : "Upload Document"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RenameDocumentDialog() {
+  const { isDocumentLoading, process, renameDocument, closeProcess } =
+    useDocument();
+
+  const validationSchema = yup.object({
+    title: yup.string().required("Title is required!"),
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      title: "",
+    },
+    validationSchema: validationSchema,
+    onSubmit: (values) => {
+      renameDocument(values.title, () => {
+        formik.resetForm();
+        closeProcess();
+      });
+    },
+  });
+
+  if (process.mode !== "rename") return null;
+
+  return (
+    <Dialog open={true} onOpenChange={(open) => !open && closeProcess()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Rename Document</DialogTitle>
+          <DialogDescription className="flex flex-col gap-2">
+            Change the title of your document.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          noValidate
+          onSubmit={formik.handleSubmit}
+          className="flex flex-col gap-6"
+        >
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="title">Title</FieldLabel>
+              <Input
+                id="title"
+                name="title"
+                type="text"
+                disabled={isDocumentLoading}
+                value={formik.values.title}
+                onChange={formik.handleChange}
+                placeholder="Title"
+              />
+              {formik.touched.title && formik.errors.title && (
+                <FieldError>{formik.errors.title}</FieldError>
+              )}
+            </Field>
+          </FieldGroup>
+          <DialogFooter>
+            <DialogClose asChild disabled={isDocumentLoading}>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button type="submit" disabled={isDocumentLoading}>
+              {isDocumentLoading ? "Renaming..." : "Rename Document"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeleteDocumentDialog() {
+  const { isDocumentLoading, process, deleteDocument, closeProcess } =
+    useDocument();
+
+  const handleSubmit = () => {
+    if (!process.documentID) return;
+
+    deleteDocument(() => {
+      closeProcess();
+    });
+  };
+
+  if (process.mode !== "delete") return null;
+
+  return (
+    <AlertDialog open={true} onOpenChange={(open) => !open && closeProcess()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your
+            document and remove it from the system.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDocumentLoading}>
+            Cancel
+          </AlertDialogCancel>
+          <Button
+            variant="destructive"
+            onClick={handleSubmit}
+            disabled={isDocumentLoading}
+          >
+            {isDocumentLoading ? "Deleting..." : "Continue"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function DocumentsSidebar() {
+  const { documents, openProcess, selectDocument, getDocuments } =
+    useDocument();
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const filteredDocuments = documents?.filter((document) =>
+    document.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
@@ -420,12 +658,13 @@ function DocumentsSidebar() {
                         <DropdownMenuContent className="w-40" align="end">
                           <DropdownMenuGroup>
                             <DropdownMenuItem
-                              textValue="edit"
+                              textValue="rename"
                               onSelect={() =>
-                                setDialog({
-                                  mode: "edit",
-                                  documentID: document.documentID,
-                                })
+                                openProcess(
+                                  "rename",
+                                  document.documentID,
+                                  "Draft"
+                                )
                               }
                             >
                               Rename
@@ -440,10 +679,11 @@ function DocumentsSidebar() {
                               variant="destructive"
                               textValue="delete"
                               onSelect={() =>
-                                setDialog({
-                                  mode: "delete",
-                                  documentID: document.documentID,
-                                })
+                                openProcess(
+                                  "delete",
+                                  document.documentID,
+                                  "Draft"
+                                )
                               }
                             >
                               Delete
@@ -473,131 +713,17 @@ function DocumentsSidebar() {
         </SidebarContent>
         <SidebarFooter className="border-t mt-2">
           <SidebarMenu className="p-2 md:p-0 md:pt-2">
-            <Dialog
-              open={dialog.mode === "create"}
-              onOpenChange={(open) => {
-                if (!open) {
-                  createForm.resetForm();
-                  setIsLoading(false);
-                }
-                setDialog((prev) => ({
-                  ...prev,
-                  mode: open ? "create" : null,
-                }));
-              }}
-            >
-              <DialogTrigger asChild>
-                <SidebarMenuItem>
-                  <Button className="w-full">Upload New Draft</Button>
-                </SidebarMenuItem>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Upload Draft</DialogTitle>
-                  <DialogDescription className="flex flex-col gap-2">
-                    Upload a document to create a new draft.
-                  </DialogDescription>
-                </DialogHeader>
-                <form
-                  noValidate
-                  onSubmit={createForm.handleSubmit}
-                  className="flex flex-col gap-6"
-                >
-                  <FieldGroup>
-                    {createForm.values.file && (
-                      <Field>
-                        <FieldLabel htmlFor="title">Title</FieldLabel>
-                        <Input
-                          id="title"
-                          name="title"
-                          type="text"
-                          disabled={isLoading}
-                          value={createForm.values.title}
-                          onChange={createForm.handleChange}
-                          placeholder="Title"
-                        />
-                        {createForm.touched.title &&
-                          createForm.errors.title && (
-                            <FieldError>{createForm.errors.title}</FieldError>
-                          )}
-                      </Field>
-                    )}
-                    <Field>
-                      <FieldLabel htmlFor="file">File</FieldLabel>
-                      <Dropzone
-                        accept={{
-                          "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                            [".docx"],
-                        }}
-                        maxFiles={1}
-                        disabled={isLoading}
-                        maxSize={1024 * 1024 * 50}
-                        onDrop={handleDrop}
-                        src={
-                          createForm.values.file
-                            ? [createForm.values.file]
-                            : undefined
-                        }
-                      >
-                        <DropzoneEmptyState />
-                        <DropzoneContent />
-                      </Dropzone>
-                      {createForm.touched.file && createForm.errors.file && (
-                        <FieldError>{createForm.errors.file}</FieldError>
-                      )}
-                    </Field>
-                  </FieldGroup>
-                  <DialogFooter>
-                    <DialogClose asChild disabled={isLoading}>
-                      <Button variant="outline">Cancel</Button>
-                    </DialogClose>
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading ? "Uploading..." : "Upload Document"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <SidebarMenuItem>
+              <Button
+                className="w-full"
+                onClick={() => openProcess("upload", null, "Draft")}
+              >
+                Upload New Draft
+              </Button>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-
-      <AlertDialog
-        open={dialog.mode === "delete"}
-        onOpenChange={(open) =>
-          !open && setDialog({ mode: null, documentID: null })
-        }
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              draft document and remove it from the system.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button
-              variant="outline"
-              disabled={isDocumentLoading}
-              onClick={() => setDialog({ mode: null, documentID: null })}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() =>
-                deleteDocument(dialog.documentID!, () =>
-                  setDialog({ mode: null, documentID: null })
-                )
-              }
-              disabled={isDocumentLoading}
-            >
-              {isDocumentLoading ? "Deleting..." : "Continue"}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

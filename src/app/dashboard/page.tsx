@@ -31,19 +31,19 @@ import {
 function Home() {
   const { POST } = useAPI();
   const { showNotification } = useNotification();
-  const { currentDocument } = useDocument();
+  const { selectedDocument } = useDocument();
 
   const [parameters, setParameters] = useState<any>({});
   const [isReady, setIsReady] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const isDocumentExist = currentDocument !== null;
+  const isDocumentedSelected = selectedDocument !== null;
 
   const completeDocument = () => {
-    if (!currentDocument || isLoading) return;
+    if (!selectedDocument || isLoading) return;
 
     const completeDocumentData = {
-      docID: currentDocument.documentID,
+      docID: selectedDocument.documentID,
       attachments: formik.values,
     };
 
@@ -65,11 +65,11 @@ function Home() {
     setParameters({});
     setIsReady(false);
     formik.resetForm();
-  }, [currentDocument]);
+  }, [selectedDocument]);
 
   return (
     <section className="relative w-full h-full gap-4 overflow-hidden flex justify-center items-center">
-      {isDocumentExist ? (
+      {isDocumentedSelected ? (
         <>
           {!isReady && (
             <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50" />
@@ -82,7 +82,7 @@ function Home() {
             <DocumentEditor
               id="docxEditor"
               documentServerUrl="https://384311e4.docs.onlyoffice.com"
-              config={currentDocument.config}
+              config={selectedDocument.config}
               events_onDocumentReady={() => setIsReady(true)}
             />
           </div>

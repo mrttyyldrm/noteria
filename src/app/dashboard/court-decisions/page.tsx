@@ -19,7 +19,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Search, Gavel } from "lucide-react";
+import { Search, Gavel, Trash2 } from "lucide-react";
 import {
   Empty,
   EmptyMedia,
@@ -28,6 +28,7 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty";
 import CourtDecisionsSkeleton from "./loading";
+import { useDocument } from "@/context/DocumentContext";
 
 interface IDecision {
   desicionID: number;
@@ -40,6 +41,7 @@ interface IDecision {
 
 function CourtDecisions() {
   const { GET } = useAPI();
+  const { openProcess } = useDocument();
 
   const [decisions, setDecisions] = useState<IDecision[] | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -72,7 +74,9 @@ function CourtDecisions() {
             className="pl-10"
           />
         </div>
-        <Button>Upload New Court Decision</Button>
+        <Button onClick={() => openProcess("upload", null, "Court")}>
+          Upload New Court Decision
+        </Button>
       </div>
       <Card className="overflow-x-auto">
         <Table className="p-1">
@@ -114,6 +118,15 @@ function CourtDecisions() {
                     <Link href={decision.docPath} target="_blank">
                       <Button variant="outline">Show Decision</Button>
                     </Link>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() =>
+                        openProcess("delete", decision.docID, "Court")
+                      }
+                    >
+                      <Trash2 />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
