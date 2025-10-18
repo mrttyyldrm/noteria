@@ -42,7 +42,7 @@ export function TranslationProvider({
   const [currentLanguage, setCurrentLanguage] = useState<LanguageKeys>(
     TranslationContextDefaultValues.currentLanguage
   );
-  const [translations, setTranslations] = useState<Record<string, string>>(
+  const [translations, setTranslations] = useState<Record<string, any>>(
     translation[TranslationContextDefaultValues.currentLanguage] || {}
   );
 
