@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger, SidebarMenuButton } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronsUpDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TranslationDropdown } from "@/context/TranslationContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+} from "@/components/ui/breadcrumb";
 import useAPI from "@/hooks/useAPI";
 
 interface IProfile {
@@ -34,13 +40,21 @@ const pages = [
 function SidebarNavigation() {
   const { GET } = useAPI();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [profile, setProfile] = useState<IProfile | null>(null);
+  const [page, setPage] = useState<string | null>(null);
 
   const logoutDashboard = () => {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     router.replace("/auth");
   };
+
+  useEffect(() => {
+    const currentPage = pages.find((page) => pathname === page.route);
+
+    setPage(currentPage?.name || null);
+  }, [pathname]);
 
   useEffect(() => {
     GET("GetProfile", {}, (data: IProfile) => {
@@ -50,7 +64,16 @@ function SidebarNavigation() {
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
-      <SidebarTrigger className="-ml-1" />
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="-ml-1" />
+        {page && (
+          <Breadcrumb className="hidden sm:block">
+            <BreadcrumbList>
+              <BreadcrumbItem>{page}</BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        )}
+      </div>
       <div className="flex items-center gap-2">
         {profile ? (
           <DropdownMenu>
@@ -96,6 +119,7 @@ function SidebarNavigation() {
               <DropdownMenuGroup>
                 {pages.map((page) => (
                   <DropdownMenuItem
+                    disabled={pathname === page.route}
                     key={page.route}
                     onSelect={() => router.push(page.route)}
                   >
@@ -112,6 +136,7 @@ function SidebarNavigation() {
         ) : (
           <Skeleton className="w-56 h-12" />
         )}
+        <TranslationDropdown />
       </div>
     </header>
   );

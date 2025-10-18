@@ -28,43 +28,16 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-function ParametersLoading() {
-  return (
-    <>
-      {Array.from({ length: 6 }).map((_, index) => (
-        <Field key={index}>
-          <FieldLabel>
-            <Skeleton className="w-12 h-3" />
-          </FieldLabel>
-          <Skeleton className="w-full h-9" />
-        </Field>
-      ))}
-    </>
-  );
-}
-
 function Home() {
-  const { GET, POST } = useAPI();
+  const { POST } = useAPI();
   const { showNotification } = useNotification();
   const { currentDocument } = useDocument();
 
   const [parameters, setParameters] = useState<any>({});
   const [isReady, setIsReady] = useState<boolean>(false);
-  const [isFetching, setIsFetching] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const isParametersExits = Object.entries(parameters).length > 0;
   const isDocumentExist = currentDocument !== null;
-
-  const getDocumentParameters = () => {
-    if (!currentDocument || isFetching || isParametersExits) return;
-
-    setIsFetching(true);
-    GET("GetDocParam", { DocID: currentDocument.documentID }, (data) => {
-      setParameters(data);
-      setIsFetching(false);
-    });
-  };
 
   const completeDocument = () => {
     if (!currentDocument || isLoading) return;
@@ -95,7 +68,7 @@ function Home() {
   }, [currentDocument]);
 
   return (
-    <div className="relative w-full h-full gap-4 overflow-hidden flex justify-center items-center">
+    <section className="relative w-full h-full gap-4 overflow-hidden flex justify-center items-center">
       {isDocumentExist ? (
         <>
           {!isReady && (
@@ -176,7 +149,7 @@ function Home() {
           </SheetFooter>
         </SheetContent>
       </Sheet> */}
-    </div>
+    </section>
   );
 }
 
