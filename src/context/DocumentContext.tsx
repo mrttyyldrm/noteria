@@ -215,12 +215,13 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     if (isDocumentLoading || !file) return;
 
     const reader = new FileReader();
+
     reader.onloadend = () => {
       const base64String = reader.result as string;
 
       const documentData = {
         FileName: title,
-        DocType: "Draft",
+        DocType: type,
         Content: base64String,
       };
 
@@ -239,26 +240,6 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     };
 
     reader.readAsDataURL(file);
-    const base64String = reader.result as string;
-
-    const newDocument = {
-      FileName: title,
-      DocType: type,
-      Content: base64String,
-    };
-
-    setIsDocumentLoading(true);
-    POST(
-      "UploadDoc",
-      newDocument,
-      () => {
-        getDocuments();
-        setIsDocumentLoading(false);
-        showNotification("Document uploaded successfully.", "success");
-        callback?.();
-      },
-      () => setIsDocumentLoading(false)
-    );
   };
 
   const renameDocument = (
@@ -352,7 +333,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <DocumentContext.Provider value={value}>
+    <DocumentContext.Provider key={value.process.mode} value={value}>
       <DocumentsSidebar />
       <DeleteDocumentDialog />
       <UploadDocumentDialog />
