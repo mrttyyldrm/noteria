@@ -170,11 +170,6 @@ export const DropzoneEmptyState = ({
 
   let caption = "";
 
-  if (accept) {
-    const readableTypes = Object.values(accept).map((extArray) => extArray[0]);
-    caption += "Accepts " + new Intl.ListFormat("en").format(readableTypes);
-  }
-
   if (minSize && maxSize) {
     caption += ` between ${renderBytes(minSize)} and ${renderBytes(maxSize)}`;
   } else if (minSize) {

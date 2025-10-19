@@ -50,7 +50,7 @@ export function NotificationProvider({
 
   const showNotification = (
     message: string,
-    type: NotificationTypes["type"] = "default"
+    type: NotificationTypes["type"] = "error"
   ) => {
     const newNotification = {
       message: message,

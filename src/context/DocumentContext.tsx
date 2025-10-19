@@ -443,8 +443,10 @@ function UploadDocumentDialog() {
               <FieldLabel htmlFor="file">File</FieldLabel>
               <Dropzone
                 accept={{
+                  "application/pdf": [".pdf"],
                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
                     [".docx"],
+                  "application/msword": [".doc"],
                 }}
                 maxFiles={1}
                 disabled={isDocumentLoading}

@@ -46,10 +46,14 @@ function CourtDecisions() {
   const [decisions, setDecisions] = useState<IDecision[] | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  useEffect(() => {
+  const getCourtDecisions = () => {
     GET("GetCourtList", {}, (data) => {
       setDecisions(data);
     });
+  };
+
+  useEffect(() => {
+    // getCourtDecisions();
   }, []);
 
   if (!decisions) {
@@ -100,23 +104,17 @@ function CourtDecisions() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <p className="truncate max-w-md">
-                          Lorem ipsum dolor sit amet, consectetur adipisicing
-                          elit. Eligendi non quae necessitatibus nesciunt porro
-                          alias tenetur fuga, soluta dolorem amet expedita dicta
-                          dolor nostrum vero.
+                          {decision.desisionSummary}
                         </p>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-lg">
-                        Lorem ipsum dolor sit amet, consectetur adipisicing
-                        elit. Eligendi non quae necessitatibus nesciunt porro
-                        alias tenetur fuga, soluta dolorem amet expedita dicta
-                        dolor nostrum vero. {decision.desisionSummary}
+                        {decision.desisionSummary}
                       </TooltipContent>
                     </Tooltip>
                   </TableCell>
                   <TableCell className="flex justify-end items-center gap-2">
                     <Link href={decision.docPath} target="_blank">
-                      <Button variant="outline">Show Decision</Button>
+                      <Button variant="outline">Download</Button>
                     </Link>
                     <Button
                       variant="destructive"
