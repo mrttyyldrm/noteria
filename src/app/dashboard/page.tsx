@@ -4,22 +4,9 @@ import { DocumentEditor } from "@onlyoffice/document-editor-react";
 import { useState, useEffect } from "react";
 import useAPI from "@/hooks/useAPI";
 import { useDocument } from "@/context/DocumentContext";
-import { useFormik } from "formik";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { File } from "lucide-react";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { useNotification } from "@/context/NotificationContext";
 import {
   Empty,
   EmptyDescription,
@@ -27,55 +14,51 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Card } from "@/components/ui/card";
+import { useNotification } from "@/context/NotificationContext";
+import { useSidebar } from "@/components/ui/sidebar";
 
-function Home() {
+function DocumentManagement() {
   const { POST } = useAPI();
+  const { setOpen } = useSidebar();
   const { showNotification } = useNotification();
-  const { selectedDocument } = useDocument();
+  const { selectedDocument, documents } = useDocument();
 
-  const [parameters, setParameters] = useState<any>({});
   const [isReady, setIsReady] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isDocumentSaved, setIsDocumentSaved] = useState<boolean>(false);
 
-  const isDocumentedSelected = selectedDocument !== null;
+  const isDocumentSelected = selectedDocument !== null;
 
   const completeDocument = () => {
-    if (!selectedDocument || isLoading) return;
+    if (!selectedDocument || isLoading || !isDocumentSaved) return;
 
-    const completeDocumentData = {
-      docID: selectedDocument.documentID,
-      attachments: formik.values,
-    };
+    // const completeDocumentData = {
+    //   docID: selectedDocument.documentID,
+    //   attachments: formik.values,
+    // };
 
     setIsLoading(true);
-    POST("CompleteDocument", completeDocumentData, (data) => {
+    POST("CompleteDocument", {}, (data) => {
       setIsLoading(false);
+      showNotification("Document completed successfully", "success");
     });
   };
 
-  const formik = useFormik({
-    initialValues: parameters,
-    enableReinitialize: true,
-    onSubmit: () => {
-      completeDocument();
-    },
-  });
-
   useEffect(() => {
-    setParameters({});
     setIsReady(false);
-    formik.resetForm();
+    setIsDocumentSaved(false);
   }, [selectedDocument]);
 
   return (
     <section className="relative w-full h-full gap-4 overflow-hidden flex justify-center items-center">
-      {isDocumentedSelected ? (
+      {isDocumentSelected ? (
         <>
           {!isReady && (
             <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50" />
           )}
           <div
-            className={`w-full h-full rounded-b-lg overflow-hidden ${
+            className={`relative w-full h-full flex flex-col rounded-b-lg overflow-hidden ${
               !isReady ? "opacity-0" : ""
             }`}
           >
@@ -84,73 +67,34 @@ function Home() {
               documentServerUrl="https://384311e4.docs.onlyoffice.com"
               config={selectedDocument.config}
               events_onDocumentReady={() => setIsReady(true)}
+              events_onRequestSaveAs={() => setIsDocumentSaved(true)}
             />
+            {isDocumentSaved && (
+              <Card className="p-4 absolute bottom-4 left-1/2 -translate-x-1/2 animate-fade-up">
+                <Button disabled={isLoading} onClick={completeDocument}>
+                  {isLoading ? "Completing..." : "Complete Document"}
+                </Button>
+              </Card>
+            )}
           </div>
         </>
       ) : (
-        <Empty className="p-2">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <File />
-            </EmptyMedia>
-            <EmptyTitle>No Draft Selected</EmptyTitle>
-            <EmptyDescription>
-              Please select a draft from the drafts section.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
+        documents !== null && (
+          <Empty className="p-2">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <File />
+              </EmptyMedia>
+              <EmptyTitle>No Draft Selected</EmptyTitle>
+              <EmptyDescription>
+                Please select a draft from the drafts section.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )
       )}
-      {/* <Sheet onOpenChange={(open) => open && getDocumentParameters()}>
-        {isDocumentExist && (
-          <SheetTrigger asChild className="absolute top-4 right-4 z-50">
-            <Button variant="outline">Show Parameters</Button>
-          </SheetTrigger>
-        )}
-        <SheetContent className="h-[calc(100svh-1rem)] top-2 right-2 rounded-lg border border-border">
-          <SheetHeader>
-            <SheetTitle>Document Parameters</SheetTitle>
-            <SheetDescription>
-              Fill in the required parameters for this document. Click save when
-              you&apos;re done.
-            </SheetDescription>
-          </SheetHeader>
-          <FieldGroup className="gap-4 px-4">
-            {isFetching ? (
-              <ParametersLoading />
-            ) : (
-              isParametersExits &&
-              Object.entries(parameters).map(([key, type]: [string, any]) => (
-                <Field key={key}>
-                  <FieldLabel htmlFor={key}>{key}</FieldLabel>
-                  <Input
-                    id={key}
-                    name={key}
-                    type={type}
-                    disabled={isLoading}
-                    placeholder={key}
-                    value={
-                      type === "file" ? undefined : formik.values[key] || ""
-                    }
-                    onChange={formik.handleChange}
-                  />
-                </Field>
-              ))
-            )}
-          </FieldGroup>
-          <SheetFooter>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-              onClick={() => formik.handleSubmit()}
-            >
-              {isLoading ? "Loading..." : "Save"}
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet> */}
     </section>
   );
 }
 
-export default Home;
+export default DocumentManagement;

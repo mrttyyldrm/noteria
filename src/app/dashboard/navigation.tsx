@@ -25,16 +25,28 @@ import {
 import useAPI from "@/hooks/useAPI";
 
 interface IProfile {
-  userType: string;
+  userType: "Clerk" | "Notary";
   noterLogo: string;
   noterName: string;
   fullName: string;
 }
 
 const pages = [
-  { name: "File Management", route: "/dashboard" },
-  { name: "User Management", route: "/dashboard/user-management" },
-  { name: "Court Decisions", route: "/dashboard/court-decisions" },
+  {
+    name: "File Management",
+    route: "/dashboard",
+    userTypes: ["Clerk", "Notary"],
+  },
+  {
+    name: "User Management",
+    route: "/dashboard/user-management",
+    userTypes: ["Notary"],
+  },
+  {
+    name: "Court Decisions",
+    route: "/dashboard/court-decisions",
+    userTypes: ["Clerk", "Notary"],
+  },
 ];
 
 function SidebarNavigation() {
@@ -117,15 +129,19 @@ function SidebarNavigation() {
             <DropdownMenuContent className="w-48" align="end">
               <DropdownMenuLabel>Modules</DropdownMenuLabel>
               <DropdownMenuGroup>
-                {pages.map((page) => (
-                  <DropdownMenuItem
-                    disabled={pathname === page.route}
-                    key={page.route}
-                    onSelect={() => router.push(page.route)}
-                  >
-                    {page.name}
-                  </DropdownMenuItem>
-                ))}
+                {pages.map((page) => {
+                  if (page.userTypes.includes(profile.userType)) {
+                    return (
+                      <DropdownMenuItem
+                        disabled={pathname === page.route}
+                        key={page.route}
+                        onSelect={() => router.push(page.route)}
+                      >
+                        {page.name}
+                      </DropdownMenuItem>
+                    );
+                  }
+                })}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem textValue="logout" onSelect={logoutDashboard}>

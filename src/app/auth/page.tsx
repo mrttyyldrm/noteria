@@ -20,6 +20,7 @@ import {
 import { useNotification } from "@/context/NotificationContext";
 import { useTranslation } from "@/context/TranslationContext";
 import { QRCodeCanvas } from "qrcode.react";
+import Link from "next/link";
 import useAPI from "@/hooks/useAPI";
 
 function Auth() {
@@ -261,6 +262,15 @@ function Auth() {
               </Field>
             </div>
           </>
+        )}
+        {currentStep > 1 && (
+          <Button
+            variant="ghost"
+            className="mx-auto"
+            onClick={() => setCurrentStep(1)}
+          >
+            Return to Login
+          </Button>
         )}
       </div>
     </div>

@@ -70,6 +70,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { useNotification } from "./NotificationContext";
+import { usePathname, useRouter } from "next/navigation";
 
 interface IDocument {
   documentID: number;
@@ -152,8 +153,12 @@ const DocumentContext = createContext<DocumentContextTypes>(
 
 export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const { GET, POST } = useAPI();
-  const { setOpenMobile } = useSidebar();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { setOpenMobile, setOpen } = useSidebar();
   const { showNotification } = useNotification();
+
+  const DASHBORAD_PATH = "/dashboard";
 
   const [documents, setDocuments] = useState<IDocument[] | null>(
     DocumentContextDefaultValues.documents
@@ -180,6 +185,9 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
     setSelectedDocument(document ?? null);
     setOpenMobile(document === undefined);
+    setOpen(document === undefined);
+
+    if (pathname !== DASHBORAD_PATH) router.replace(DASHBORAD_PATH);
   };
 
   const getDocuments = () => {
@@ -580,10 +588,21 @@ function DocumentsSidebar() {
     useDocument();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isRefreshed, setIsRefreshed] = useState<boolean>(false);
 
   const filteredDocuments = documents?.filter((document) =>
     document.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  useEffect(() => {
+    if (documents === null) return;
+
+    setIsRefreshed(true);
+
+    setTimeout(() => {
+      setIsRefreshed(false);
+    }, 500);
+  }, [getDocuments]);
 
   return (
     <>
@@ -624,7 +643,11 @@ function DocumentsSidebar() {
                 className={"ml-auto"}
                 onClick={() => getDocuments()}
               >
-                <RefreshCw />
+                <RefreshCw
+                  className={`${
+                    isRefreshed ? "animate-spin" : ""
+                  } transition-transform duration-500`}
+                />
               </Button>
             </SidebarGroupLabel>
             {documents === null ? (
