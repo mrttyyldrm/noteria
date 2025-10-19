@@ -56,11 +56,11 @@ function CourtDecisions() {
     // getCourtDecisions();
   }, []);
 
-  if (!decisions) {
-    return <CourtDecisionsSkeleton />;
-  }
+  // if (!decisions) {
+  //   return <CourtDecisionsSkeleton />;
+  // }
 
-  const filteredDecisions = decisions.filter(
+  const filteredDecisions = decisions?.filter(
     (decision) =>
       decision.personName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       decision.personalNumber.toLowerCase().includes(searchTerm.toLowerCase())
@@ -94,7 +94,7 @@ function CourtDecisions() {
             </TableRow>
           </TableHeader>
           <TableBody className="text-muted-foreground">
-            {filteredDecisions.length > 0 ? (
+            {filteredDecisions && filteredDecisions.length > 0 ? (
               filteredDecisions.map((decision, index) => (
                 <TableRow key={index}>
                   <TableCell className="pl-3">{decision.desicionID}</TableCell>
