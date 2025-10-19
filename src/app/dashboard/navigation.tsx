@@ -23,6 +23,7 @@ import {
   BreadcrumbItem,
 } from "@/components/ui/breadcrumb";
 import useAPI from "@/hooks/useAPI";
+import Image from "next/image";
 
 interface IProfile {
   userType: "Clerk" | "Notary";
@@ -36,16 +37,22 @@ const pages = [
     name: "File Management",
     route: "/dashboard",
     userTypes: ["Clerk", "Notary"],
+    showcase: "/file-management-showcase.png",
+    description: "Manage and organize all your files securely and efficiently.",
   },
   {
     name: "User Management",
     route: "/dashboard/user-management",
     userTypes: ["Notary"],
+    showcase: "/user-management-showcase.png",
+    description: "Add, edit, and control user access and permissions.",
   },
   {
     name: "Court Decisions",
     route: "/dashboard/court-decisions",
     userTypes: ["Clerk", "Notary"],
+    showcase: "/court-decisions-showcase.png",
+    description: "View and track court decisions relevant to your cases.",
   },
 ];
 
@@ -126,7 +133,7 @@ function SidebarNavigation() {
                 <ChevronsUpDown className="ml-2 size-4" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48" align="end">
+            <DropdownMenuContent className="w-3xs sm:w-xs" align="end">
               <DropdownMenuLabel>Modules</DropdownMenuLabel>
               <DropdownMenuGroup>
                 {pages.map((page) => {
@@ -136,8 +143,23 @@ function SidebarNavigation() {
                         disabled={pathname === page.route}
                         key={page.route}
                         onSelect={() => router.push(page.route)}
+                        className="items-start sm:items-center"
                       >
-                        {page.name}
+                        <Image
+                          src={page.showcase}
+                          alt={page.name}
+                          width={100}
+                          height={100}
+                          className="rounded-lg object-cover object-center mr-1 border border-border aspect-square w-12 sm:w-20 mt-1 sm:mt-0"
+                        />
+                        <div className="flex flex-col">
+                          <p className="text-sm font-semibold text-foreground">
+                            {page.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {page.description}
+                          </p>
+                        </div>
                       </DropdownMenuItem>
                     );
                   }

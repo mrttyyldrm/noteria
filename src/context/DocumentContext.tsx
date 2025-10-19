@@ -660,7 +660,7 @@ function DocumentsSidebar() {
                   <FieldLabel key={index} className="bg-white">
                     <Field orientation="horizontal">
                       <FieldContent className="overflow-hidden">
-                        <FieldTitle className="truncate text-foreground font-bold cursor-text">
+                        <FieldTitle className="truncate text-foreground font-semibold cursor-text">
                           {document.title}
                         </FieldTitle>
                         <FieldDescription className="truncate text-xs">
