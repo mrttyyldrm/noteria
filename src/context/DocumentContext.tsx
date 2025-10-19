@@ -396,9 +396,9 @@ function UploadDocumentDialog() {
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
-      if (!values.file) return;
+      if (!values.file || !process.documentType) return;
 
-      uploadDocument(values.title, values.file, "Draft", () => {
+      uploadDocument(values.title, values.file, process.documentType, () => {
         formik.resetForm();
         closeProcess();
       });
