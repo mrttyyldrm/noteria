@@ -1,6 +1,7 @@
 import { useTranslation } from "@/context/TranslationContext";
 import { useNotification } from "@/context/NotificationContext";
 import { useRouter } from "next/navigation";
+import { on } from "events";
 
 export const getCookie = (cookieName: string): string | null => {
     const name = `${cookieName}=`;
@@ -88,7 +89,10 @@ const useAPI = () => {
             credentials: "include",
         })
             .then(response => handleAPIResponse(response, onSuccess, onError))
-            .catch(() => showNotification(t("error.unknown")));
+            .catch(() => {
+                showNotification(t("error.unknown"))
+                onError?.();
+            });
     }
 
     const POST = (
@@ -111,7 +115,10 @@ const useAPI = () => {
             body: JSON.stringify(data)
         })
             .then(response => handleAPIResponse(response, onSuccess, onError))
-            .catch(() => showNotification(t("error.unknown")));
+            .catch(() => {
+                showNotification(t("error.unknown"))
+                onError?.();
+            });
     }
 
     return { GET, POST };

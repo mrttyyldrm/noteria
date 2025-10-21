@@ -571,21 +571,10 @@ function DocumentsSidebar() {
     useDocument();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [isRefreshed, setIsRefreshed] = useState<boolean>(false);
 
   const filteredDocuments = documents?.filter((document) =>
     document.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  useEffect(() => {
-    if (documents === null) return;
-
-    setIsRefreshed(true);
-
-    setTimeout(() => {
-      setIsRefreshed(false);
-    }, 500);
-  }, [getDocuments]);
 
   return (
     <>
@@ -626,11 +615,7 @@ function DocumentsSidebar() {
                 className={"ml-auto"}
                 onClick={() => getDocuments()}
               >
-                <RefreshCw
-                  className={`${
-                    isRefreshed ? "animate-spin" : ""
-                  } transition-transform duration-500`}
-                />
+                <RefreshCw />
               </Button>
             </SidebarGroupLabel>
             {documents === null ? (
