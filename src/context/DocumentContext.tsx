@@ -333,7 +333,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <DocumentContext.Provider key={value.process.mode} value={value}>
+    <DocumentContext.Provider value={value}>
       <DocumentsSidebar />
       <DeleteDocumentDialog />
       <UploadDocumentDialog />
@@ -658,11 +658,11 @@ function DocumentsSidebar() {
                                 )
                               }
                             >
-                              Rename
+                              Rename Draft
                             </DropdownMenuItem>
                             <Link href={document.url}>
                               <DropdownMenuItem textValue="download">
-                                Download
+                                Download Draft
                               </DropdownMenuItem>
                             </Link>
                             <DropdownMenuSeparator />
@@ -677,7 +677,7 @@ function DocumentsSidebar() {
                                 )
                               }
                             >
-                              Delete
+                              Delete Draft
                             </DropdownMenuItem>
                           </DropdownMenuGroup>
                         </DropdownMenuContent>
