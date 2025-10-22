@@ -15,7 +15,14 @@ import { Card } from "@/components/ui/card";
 import useAPI from "@/hooks/useAPI";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Gavel, EllipsisVertical, Trash2, X } from "lucide-react";
+import {
+  Search,
+  Gavel,
+  EllipsisVertical,
+  Trash2,
+  X,
+  Sparkles,
+} from "lucide-react";
 import {
   Empty,
   EmptyMedia,
@@ -52,6 +59,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatDate, isDatePast } from "@/lib/date";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNotification } from "@/context/NotificationContext";
 
 interface IDecision {
@@ -85,6 +93,7 @@ function CourtDecisions() {
   const { openProcess } = useDocument();
 
   const [decisions, setDecisions] = useState<IDecision[] | null>(null);
+  const [processes, setProcesses] = useState<string[] | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [dialog, setDialog] = useState<{
     process: "show" | "update" | null;
@@ -94,8 +103,20 @@ function CourtDecisions() {
   const getCourtDecisions = () => {
     GET("GetCourtList", {}, (data) => {
       setDecisions(data.orders);
+
+      if (processes === null) {
+        setProcesses(data.aiProcess);
+      }
     });
   };
+
+  useEffect(() => {
+    if (processes !== null) return;
+
+    setTimeout(() => {
+      setProcesses([]);
+    }, 3000);
+  }, [processes]);
 
   useEffect(() => {
     getCourtDecisions();
@@ -215,7 +236,7 @@ function CourtDecisions() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="bg-white">
+                <TableCell colSpan={6} className="bg-white">
                   <Empty className="p-2">
                     <EmptyHeader>
                       <EmptyMedia variant="icon">
@@ -230,6 +251,17 @@ function CourtDecisions() {
                 </TableCell>
               </TableRow>
             )}
+            {processes &&
+              processes.length > 0 &&
+              processes.map((process, index) => (
+                <TableRow key={index}>
+                  <TableCell colSpan={6} className="p-1 bg-white">
+                    <Skeleton className="p-3 flex justify-center items-center gap-2 text-center">
+                      <Sparkles className="size-4" /> {process} is processing
+                    </Skeleton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </Card>
@@ -356,7 +388,7 @@ function UpdateDecisionDialog({
         <form
           noValidate
           onSubmit={formik.handleSubmit}
-          className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto px-4"
+          className="flex flex-col gap-6 max-h-[50vh] md:max-h-[70vh] overflow-y-auto px-4"
         >
           <FieldGroup>
             <Field>
@@ -390,7 +422,7 @@ function UpdateDecisionDialog({
                 <FieldError>{formik.errors.summary}</FieldError>
               )}
             </Field>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field>
                 <FieldLabel htmlFor="startDate">Start Date</FieldLabel>
                 <Input
@@ -427,7 +459,7 @@ function UpdateDecisionDialog({
           </FieldGroup>
           <FieldSeparator />
           <FieldGroup>
-            <div className="flex justify-between items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <FieldLabel className="text-sm font-semibold">
                 Related People
               </FieldLabel>
@@ -450,10 +482,10 @@ function UpdateDecisionDialog({
               (typeof formik.errors.relatedPerson === "string" ? (
                 <FieldError>{formik.errors.relatedPerson}</FieldError>
               ) : null)}
-            <div className="grid grid-cols-[1fr_1fr_auto] items-start gap-4">
+            <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_1fr_auto] items-start gap-4">
               {formik.values.relatedPerson.map((_, index) => (
                 <Fragment key={index}>
-                  <Field>
+                  <Field className="col-span-2 sm:col-span-1">
                     <FieldLabel htmlFor={`relatedPerson.${index}.nameSurname`}>
                       Person {index} Full Name
                     </FieldLabel>
@@ -483,7 +515,7 @@ function UpdateDecisionDialog({
                     <Input
                       id={`relatedPerson.${index}.idNumber`}
                       name={`relatedPerson.${index}.idNumber`}
-                      type="string"
+                      type="number"
                       required={true}
                       disabled={isLoading}
                       value={formik.values.relatedPerson[index].idNumber ?? ""}
@@ -523,7 +555,7 @@ function UpdateDecisionDialog({
           </FieldGroup>
           <FieldSeparator />
           <FieldGroup>
-            <div className="flex justify-between items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <FieldLabel className="text-sm font-semibold">
                 Related Properties
               </FieldLabel>
@@ -546,124 +578,118 @@ function UpdateDecisionDialog({
               (typeof formik.errors.relatedProperties === "string" ? (
                 <FieldError>{formik.errors.relatedProperties}</FieldError>
               ) : null)}
-            <div className="grid grid-cols-[1fr_1fr_auto] items-start gap-4">
-              {formik.values.relatedProperties.map((_, index) => (
-                <Fragment key={index}>
-                  <Field>
-                    <FieldLabel
-                      htmlFor={`relatedProperties.${index}.propertyNumber`}
-                    >
-                      Property {index + 1} Number
-                    </FieldLabel>
-                    <Input
-                      id={`relatedProperties.${index}.propertyNumber`}
-                      name={`relatedProperties.${index}.propertyNumber`}
-                      type="text"
-                      required={true}
-                      disabled={isLoading}
-                      value={
-                        formik.values.relatedProperties[index].propertyNumber ??
-                        ""
-                      }
-                      onChange={formik.handleChange}
-                      placeholder="Property Number"
-                    />
-                    {formik.touched.relatedProperties?.[index]
-                      ?.propertyNumber &&
-                      typeof formik.errors.relatedProperties?.[index] ===
-                        "object" &&
-                      formik.errors.relatedProperties[index]
-                        ?.propertyNumber && (
-                        <FieldError>
-                          {
-                            formik.errors.relatedProperties?.[index]
-                              .propertyNumber
-                          }
-                        </FieldError>
-                      )}
-                  </Field>
-                  <Field>
-                    <FieldLabel
-                      htmlFor={`relatedProperties.${index}.ProperyType`}
-                    >
-                      Property {index + 1} Type
-                    </FieldLabel>
-                    <Input
-                      id={`relatedProperties.${index}.ProperyType`}
-                      name={`relatedProperties.${index}.ProperyType`}
-                      type="text"
-                      required={true}
-                      disabled={isLoading}
-                      value={formik.values.relatedProperties[index].ProperyType}
-                      onChange={formik.handleChange}
-                      placeholder="Property Type"
-                    />
-                    {formik.touched.relatedProperties?.[index]?.ProperyType &&
-                      typeof formik.errors.relatedProperties?.[index] ===
-                        "object" &&
-                      formik.errors.relatedProperties[index]?.ProperyType && (
-                        <FieldError>
-                          {formik.errors.relatedProperties?.[index].ProperyType}
-                        </FieldError>
-                      )}
-                  </Field>
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="mt-6"
-                    type="button"
-                    onClick={() =>
-                      formik.setFieldValue(
-                        "relatedProperties",
-                        formik.values.relatedProperties.filter(
-                          (_, i) => i !== index
-                        )
-                      )
-                    }
-                    disabled={isLoading}
-                    aria-label={`Remove property ${index + 1}`}
+            {formik.values.relatedProperties.map((_, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_1fr_auto] items-start gap-4"
+              >
+                <Field className="col-span-2 sm:col-span-1">
+                  <FieldLabel
+                    htmlFor={`relatedProperties.${index}.propertyNumber`}
                   >
-                    <Trash2 />
-                  </Button>
-                  <Field className="col-span-3">
-                    <FieldLabel
-                      htmlFor={`relatedProperties.${index}.propertyDesc`}
-                    >
-                      Property {index + 1} Description
-                    </FieldLabel>
-                    <Textarea
-                      id={`relatedProperties.${index}.propertyDesc`}
-                      name={`relatedProperties.${index}.propertyDesc`}
-                      required={true}
-                      disabled={isLoading}
-                      value={
-                        formik.values.relatedProperties[index].propertyDesc
-                      }
-                      onChange={formik.handleChange}
-                      placeholder="Property Description"
-                    />
-                    {formik.touched.relatedProperties?.[index]?.propertyDesc &&
-                      typeof formik.errors.relatedProperties?.[index] ===
-                        "object" &&
-                      formik.errors.relatedProperties[index]?.propertyDesc && (
-                        <FieldError>
-                          {
-                            formik.errors.relatedProperties?.[index]
-                              .propertyDesc
-                          }
-                        </FieldError>
-                      )}
-                  </Field>
-                </Fragment>
-              ))}
-            </div>
+                    Property {index + 1} Number
+                  </FieldLabel>
+                  <Input
+                    id={`relatedProperties.${index}.propertyNumber`}
+                    name={`relatedProperties.${index}.propertyNumber`}
+                    type="number"
+                    required={true}
+                    disabled={isLoading}
+                    value={
+                      formik.values.relatedProperties[index].propertyNumber ??
+                      ""
+                    }
+                    onChange={formik.handleChange}
+                    placeholder="Property Number"
+                  />
+                  {formik.touched.relatedProperties?.[index]?.propertyNumber &&
+                    typeof formik.errors.relatedProperties?.[index] ===
+                      "object" &&
+                    formik.errors.relatedProperties[index]?.propertyNumber && (
+                      <FieldError>
+                        {
+                          formik.errors.relatedProperties?.[index]
+                            .propertyNumber
+                        }
+                      </FieldError>
+                    )}
+                </Field>
+                <Field className="order-last sm:order-[initial]">
+                  <FieldLabel
+                    htmlFor={`relatedProperties.${index}.ProperyType`}
+                  >
+                    Property {index + 1} Type
+                  </FieldLabel>
+                  <Input
+                    id={`relatedProperties.${index}.ProperyType`}
+                    name={`relatedProperties.${index}.ProperyType`}
+                    type="text"
+                    required={true}
+                    disabled={isLoading}
+                    value={formik.values.relatedProperties[index].ProperyType}
+                    onChange={formik.handleChange}
+                    placeholder="Property Type"
+                  />
+                  {formik.touched.relatedProperties?.[index]?.ProperyType &&
+                    typeof formik.errors.relatedProperties?.[index] ===
+                      "object" &&
+                    formik.errors.relatedProperties[index]?.ProperyType && (
+                      <FieldError>
+                        {formik.errors.relatedProperties?.[index].ProperyType}
+                      </FieldError>
+                    )}
+                </Field>
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="mt-6 order-last sm:order-[initial]"
+                  type="button"
+                  onClick={() =>
+                    formik.setFieldValue(
+                      "relatedProperties",
+                      formik.values.relatedProperties.filter(
+                        (_, i) => i !== index
+                      )
+                    )
+                  }
+                  disabled={isLoading}
+                  aria-label={`Remove property ${index + 1}`}
+                >
+                  <Trash2 />
+                </Button>
+                <Field className="col-span-2 sm:col-span-3">
+                  <FieldLabel
+                    htmlFor={`relatedProperties.${index}.propertyDesc`}
+                  >
+                    Property {index + 1} Description
+                  </FieldLabel>
+                  <Textarea
+                    id={`relatedProperties.${index}.propertyDesc`}
+                    name={`relatedProperties.${index}.propertyDesc`}
+                    required={true}
+                    disabled={isLoading}
+                    value={formik.values.relatedProperties[index].propertyDesc}
+                    onChange={formik.handleChange}
+                    placeholder="Property Description"
+                  />
+                  {formik.touched.relatedProperties?.[index]?.propertyDesc &&
+                    typeof formik.errors.relatedProperties?.[index] ===
+                      "object" &&
+                    formik.errors.relatedProperties[index]?.propertyDesc && (
+                      <FieldError>
+                        {formik.errors.relatedProperties?.[index].propertyDesc}
+                      </FieldError>
+                    )}
+                </Field>
+              </div>
+            ))}
           </FieldGroup>
           <FieldSeparator />
           <FieldGroup>
-            <div className="grid grid-cols-[1fr_auto] items-start gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] items-start gap-4">
               <FieldLabel
                 htmlFor="keyword"
-                className="text-sm font-semibold col-span-2"
+                className="text-sm font-semibold sm:col-span-2"
               >
                 Search Keywords
               </FieldLabel>
@@ -744,12 +770,12 @@ function ShowDecisionDialog({
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg p-0">
         <DialogHeader className="p-4 pb-0">
-          <DialogTitle className="flex items-center gap-2">
-            Case {decision.caseNumber}
+          <DialogTitle className="flex flex-col sm:flex-row items-center gap-2 truncate">
+            <p>Case {decision.caseNumber}</p>
             <Badge variant="outline">{formatDate(decision.recordDate)}</Badge>
           </DialogTitle>
         </DialogHeader>
-        <FieldGroup className="max-h-[70vh] overflow-y-auto px-4">
+        <FieldGroup className="max-h-[50vh] md:max-h-[70vh] overflow-y-auto px-4">
           <div className="grid grid-cols-2 gap-4">
             <Field className="col-span-2">
               <FieldLabel htmlFor="description">Summary</FieldLabel>
