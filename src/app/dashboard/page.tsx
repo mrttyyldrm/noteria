@@ -52,7 +52,7 @@ function DocumentManagement() {
 
   return (
     <section className="relative w-full h-full gap-4 overflow-hidden flex justify-center items-center">
-      {isDocumentSelected ? (
+      {isDocumentSelected && selectedDocument.config ? (
         <>
           {!isReady && (
             <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50" />

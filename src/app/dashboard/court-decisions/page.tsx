@@ -16,6 +16,11 @@ import useAPI from "@/hooks/useAPI";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  AlertDialog,
+  AlertDialogTitle,
+  AlertDialogContent,
+} from "@radix-ui/react-alert-dialog";
+import {
   Search,
   Gavel,
   EllipsisVertical,
@@ -61,6 +66,12 @@ import {
 import { formatDate, isDatePast } from "@/lib/date";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNotification } from "@/context/NotificationContext";
+import {
+  AlertDialogCancel,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from "@/components/ui/alert-dialog";
 
 interface IDecision {
   caseOrderID: number;
@@ -82,7 +93,7 @@ interface IDecision {
   searchKeywords: string[];
 }
 
-interface ShowAndUpdateDecisionDialogProps {
+interface DecisionDialogProps {
   decision: IDecision;
   onClose: () => void;
   onSubmit: () => void;
@@ -96,7 +107,7 @@ function CourtDecisions() {
   const [processes, setProcesses] = useState<string[] | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [dialog, setDialog] = useState<{
-    process: "show" | "update" | null;
+    process: "show" | "update" | "delete" | null;
     decision: IDecision | null;
   }>({ process: null, decision: null });
 
@@ -163,6 +174,17 @@ function CourtDecisions() {
             </TableRow>
           </TableHeader>
           <TableBody className="text-muted-foreground">
+            {processes &&
+              processes.length > 0 &&
+              processes.map((process, index) => (
+                <TableRow key={index}>
+                  <TableCell colSpan={6} className="p-1 bg-white">
+                    <Skeleton className="p-3 flex justify-center items-center gap-2 text-center">
+                      <Sparkles className="size-4" /> {process} is processing
+                    </Skeleton>
+                  </TableCell>
+                </TableRow>
+              ))}
             {filteredDecisions && filteredDecisions.length > 0 ? (
               filteredDecisions.map((decision, index) => (
                 <TableRow key={index}>
@@ -217,7 +239,7 @@ function CourtDecisions() {
                         >
                           Update Decision
                         </DropdownMenuItem>
-                        <Link href={decision.r2Path}>
+                        <Link href={decision.r2Path} target="_blank">
                           <DropdownMenuItem>Download Decision</DropdownMenuItem>
                         </Link>
                         <DropdownMenuSeparator />
@@ -251,17 +273,6 @@ function CourtDecisions() {
                 </TableCell>
               </TableRow>
             )}
-            {processes &&
-              processes.length > 0 &&
-              processes.map((process, index) => (
-                <TableRow key={index}>
-                  <TableCell colSpan={6} className="p-1 bg-white">
-                    <Skeleton className="p-3 flex justify-center items-center gap-2 text-center">
-                      <Sparkles className="size-4" /> {process} is processing
-                    </Skeleton>
-                  </TableCell>
-                </TableRow>
-              ))}
           </TableBody>
         </Table>
       </Card>
@@ -283,6 +294,14 @@ function CourtDecisions() {
           onSubmit={() => getCourtDecisions()}
         />
       )}
+
+      {dialog.process === "delete" && dialog.decision && (
+        <DeleteDecisionDialog
+          decision={dialog.decision}
+          onClose={() => setDialog({ process: null, decision: null })}
+          onSubmit={() => getCourtDecisions()}
+        />
+      )}
     </section>
   );
 }
@@ -291,7 +310,7 @@ function UpdateDecisionDialog({
   decision,
   onClose,
   onSubmit,
-}: ShowAndUpdateDecisionDialogProps) {
+}: DecisionDialogProps) {
   const { POST } = useAPI();
   const { showNotification } = useNotification();
 
@@ -314,6 +333,9 @@ function UpdateDecisionDialog({
   };
 
   const updateDecision = (decision: IDecision) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
     POST(
       "UpdateOrder",
       decision,
@@ -765,7 +787,7 @@ function ShowDecisionDialog({
   decision,
   onSubmit,
   onClose,
-}: ShowAndUpdateDecisionDialogProps) {
+}: DecisionDialogProps) {
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg p-0">
@@ -844,6 +866,59 @@ function ShowDecisionDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DeleteDecisionDialog({
+  decision,
+  onSubmit,
+  onClose,
+}: DecisionDialogProps) {
+  const { GET } = useAPI();
+  const { showNotification } = useNotification();
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const deleteDocument = () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    GET(
+      "DeleteOrder",
+      { courtOrderID: decision.caseOrderID },
+      () => {
+        showNotification("Court decision deleted successfully!");
+        setIsLoading(false);
+
+        onSubmit();
+        onClose();
+      },
+      () => setIsLoading(false)
+    );
+  };
+
+  return (
+    <AlertDialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your
+            document and remove it from the system.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+          <Button
+            variant="destructive"
+            onClick={deleteDocument}
+            disabled={isLoading}
+          >
+            {isLoading ? "Deleting..." : "Continue"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

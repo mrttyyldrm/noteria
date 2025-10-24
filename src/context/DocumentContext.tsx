@@ -72,48 +72,61 @@ import Link from "next/link";
 import { useNotification } from "./NotificationContext";
 import { usePathname, useRouter } from "next/navigation";
 
-interface IDocument {
+interface IDocuments {
+  directories: string[];
+  files: IFile[];
+}
+
+interface IFile {
   documentID: number;
   title: string;
+  bucketName: string;
+  extension: string;
   url: string;
-  config: {
-    type: string;
-    document: {
-      fileType: string;
-      title: string;
-      url: string;
-      key: string;
-      permissions: {
-        edit: boolean;
-        download: boolean;
-        print: boolean;
-      };
-    };
-    editorConfig: {
-      mode: string;
-      callbackUrl: string;
-    };
-    token: string;
-  };
+  config?: IDocumentConfig;
 }
+
+interface IDocumentConfig {
+  type: string;
+  document: {
+    fileType: string;
+    title: string;
+    url: string;
+    key: string;
+    permissions: {
+      edit: boolean;
+      download: boolean;
+      print: boolean;
+    };
+  };
+  editorConfig: {
+    mode: string;
+    callbackUrl: string;
+  };
+  token: string;
+}
+
+type IMode = "delete" | "rename" | "upload";
 
 interface INewDocument {
   fileName: string;
-  docType: "Draft" | "Court";
+  path: string;
   content: string;
 }
 
 interface DocumentContextTypes {
-  selectedDocument: IDocument | null;
+  path: string[];
+  setPath: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedDocument: IFile | null;
   process: {
-    mode: "delete" | "rename" | "upload" | null;
+    mode: IMode | null;
     documentID: number | null;
-    documentType: "Draft" | "Court" | null;
+    path: string | null;
   };
   openProcess: (
-    mode: "delete" | "rename" | "upload",
+    mode: IMode,
     documentID: number | null,
-    documentType: "Draft" | "Court" | null
+    path: string | null
   ) => void;
   closeProcess: () => void;
   selectDocument: (documentID: number | null) => void;
@@ -121,7 +134,7 @@ interface DocumentContextTypes {
   uploadDocument: (
     title: INewDocument["fileName"],
     file: Blob,
-    type: INewDocument["docType"],
+    path: INewDocument["path"],
     callback?: () => void
   ) => void;
   renameDocument: (
@@ -129,13 +142,16 @@ interface DocumentContextTypes {
     callback?: () => void
   ) => void;
   deleteDocument: (callback?: () => void) => void;
-  documents: IDocument[] | null;
+  documents: IDocuments | null;
   isDocumentLoading: boolean;
+  createFolder: () => void;
+  renameFolder: (oldName: string, newName: string) => void;
+  deleteFolder: (folderName: string) => void;
 }
 
 const DocumentContextDefaultValues: DocumentContextTypes = {
   selectedDocument: null,
-  process: { mode: null, documentID: null, documentType: null },
+  process: { mode: null, documentID: null, path: null },
   openProcess: () => {},
   closeProcess: () => {},
   selectDocument: () => {},
@@ -143,8 +159,13 @@ const DocumentContextDefaultValues: DocumentContextTypes = {
   uploadDocument: () => {},
   deleteDocument: () => {},
   renameDocument: () => {},
+  path: [],
+  setPath: () => {},
   documents: null,
   isDocumentLoading: false,
+  createFolder: () => {},
+  renameFolder: () => {},
+  deleteFolder: () => {},
 };
 
 const DocumentContext = createContext<DocumentContextTypes>(
@@ -160,18 +181,94 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
   const DASHBORAD_PATH = "/dashboard";
 
-  const [documents, setDocuments] = useState<IDocument[] | null>(
+  const [path, setPath] = useState<DocumentContextTypes["path"]>(
+    DocumentContextDefaultValues.path
+  );
+  const [documents, setDocuments] = useState<DocumentContextTypes["documents"]>(
     DocumentContextDefaultValues.documents
   );
-  const [isDocumentLoading, setIsDocumentLoading] = useState<boolean>(
-    DocumentContextDefaultValues.isDocumentLoading
-  );
+  const [isDocumentLoading, setIsDocumentLoading] = useState<
+    DocumentContextTypes["isDocumentLoading"]
+  >(DocumentContextDefaultValues.isDocumentLoading);
   const [process, setProcess] = useState<DocumentContextTypes["process"]>(
     DocumentContextDefaultValues.process
   );
-  const [selectedDocument, setSelectedDocument] = useState<IDocument | null>(
-    DocumentContextDefaultValues.selectedDocument
-  );
+  const [selectedDocument, setSelectedDocument] = useState<
+    DocumentContextTypes["selectedDocument"]
+  >(DocumentContextDefaultValues.selectedDocument);
+
+  const getDocuments = () => {
+    if (isDocumentLoading) return;
+
+    setDocuments(null);
+    setIsDocumentLoading(true);
+    GET(
+      "GetDirectory",
+      { Path: path },
+      (data: IDocuments) => {
+        setDocuments(data);
+        setIsDocumentLoading(false);
+      },
+      () => setIsDocumentLoading(false)
+    );
+  };
+
+  const createFolder = () => {
+    if (isDocumentLoading) return;
+
+    const FOLDER_NAME = "New Folder";
+
+    setDocuments((prev) => {
+      const prevDirectories = prev?.directories ?? [];
+      let newName = FOLDER_NAME;
+      if (prevDirectories.includes(newName)) {
+        let i = 1;
+        while (prevDirectories.includes(`${FOLDER_NAME}(${i})`)) {
+          i++;
+        }
+        newName = `${FOLDER_NAME}(${i})`;
+      }
+
+      return {
+        directories: [...prevDirectories, newName],
+        files: prev?.files ?? [],
+      };
+    });
+  };
+
+  const renameFolder = (oldName: string, newName: string) => {
+    if (isDocumentLoading) return;
+
+    setDocuments((prev) => {
+      const prevDirectories = prev?.directories ?? [];
+
+      if (!prevDirectories.includes(oldName)) return prev;
+
+      return {
+        directories: prevDirectories.map((directory) =>
+          directory === oldName ? newName : directory
+        ),
+        files: prev?.files ?? [],
+      };
+    });
+  };
+
+  const deleteFolder = (folderName: string) => {
+    if (isDocumentLoading) return;
+
+    setDocuments((prev) => {
+      const prevDirectories = prev?.directories ?? [];
+
+      if (!prevDirectories.includes(folderName)) return prev;
+
+      return {
+        directories: prevDirectories.filter(
+          (directory) => directory !== folderName
+        ),
+        files: prev?.files ?? [],
+      };
+    });
+  };
 
   const selectDocument = (documentID: number | null) => {
     if (documentID === null || !documents) {
@@ -179,7 +276,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const document = documents.find(
+    const document = documents.files.find(
       (document) => document.documentID === documentID
     );
 
@@ -190,16 +287,14 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     if (pathname !== DASHBORAD_PATH) router.replace(DASHBORAD_PATH);
   };
 
-  const getDocuments = () => {
-    if (isDocumentLoading) return;
+  const getDocumentConfig = () => {
+    if (isDocumentLoading || !selectedDocument) return;
 
-    setDocuments(null);
-    setIsDocumentLoading(true);
     GET(
-      "GetDrafts",
-      {},
-      (data: IDocument[]) => {
-        setDocuments(data);
+      "GetDocConfig",
+      { DocID: selectedDocument?.documentID },
+      (data: IDocumentConfig) => {
+        setSelectedDocument({ ...selectedDocument, config: data });
         setIsDocumentLoading(false);
       },
       () => setIsDocumentLoading(false)
@@ -209,7 +304,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const uploadDocument = (
     title: INewDocument["fileName"],
     file: Blob,
-    type: INewDocument["docType"],
+    path: INewDocument["path"],
     callback?: () => void
   ) => {
     if (isDocumentLoading || !file) return;
@@ -221,7 +316,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
       const documentData = {
         FileName: title,
-        DocType: type,
+        Path: path.toLowerCase(),
         Content: base64String,
       };
 
@@ -262,13 +357,14 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
           setSelectedDocument({ ...selectedDocument, title });
         }
 
-        setDocuments(
-          documents.map((document) =>
+        setDocuments({
+          ...documents,
+          files: documents.files.map((document) =>
             document.documentID !== process.documentID
               ? { ...document, title }
               : document
-          )
-        );
+          ),
+        });
         setIsDocumentLoading(false);
         showNotification("Document renamed successfully.", "success");
         callback?.();
@@ -288,12 +384,12 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         if (selectedDocument?.documentID === process.documentID) {
           setSelectedDocument(null);
         }
-
-        setDocuments(
-          documents.filter(
+        setDocuments({
+          ...documents,
+          files: documents.files.filter(
             (document) => document.documentID !== process.documentID
-          )
-        );
+          ),
+        });
         setIsDocumentLoading(false);
         showNotification("Document deleted successfully.", "success");
         callback?.();
@@ -303,20 +399,26 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   };
 
   const openProcess = (
-    mode: "delete" | "rename" | "upload",
+    mode: IMode,
     documentID: number | null,
-    documentType: "Draft" | "Court" | null
+    path: string | null
   ) => {
-    setProcess({ mode, documentID, documentType });
+    setProcess({ mode, documentID, path });
   };
 
   const closeProcess = () => {
-    setProcess({ mode: null, documentID: null, documentType: null });
+    setProcess({ mode: null, documentID: null, path: null });
   };
 
   useEffect(() => {
+    if (!selectedDocument) return;
+
+    getDocumentConfig();
+  }, [selectedDocument]);
+
+  useEffect(() => {
     getDocuments();
-  }, []);
+  }, [path]);
 
   const value = {
     selectedDocument,
@@ -328,16 +430,21 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     uploadDocument,
     deleteDocument,
     renameDocument,
+    path,
+    setPath,
     documents,
     isDocumentLoading,
+    createFolder,
+    renameFolder,
+    deleteFolder,
   };
 
   return (
     <DocumentContext.Provider value={value}>
       <DocumentsSidebar />
-      <DeleteDocumentDialog />
-      <UploadDocumentDialog />
-      <RenameDocumentDialog />
+      {process.mode === "delete" && <DeleteDocumentDialog />}
+      {process.mode === "upload" && <UploadDocumentDialog />}
+      {process.mode === "rename" && <RenameDocumentDialog />}
       {children}
     </DocumentContext.Provider>
   );
@@ -377,16 +484,14 @@ function UploadDocumentDialog() {
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
-      if (!values.file || !process.documentType) return;
+      if (!values.file || !process.path) return;
 
-      uploadDocument(values.title, values.file, process.documentType, () => {
+      uploadDocument(values.title, values.file, process.path, () => {
         formik.resetForm();
         closeProcess();
       });
     },
   });
-
-  if (process.mode !== "upload") return null;
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && closeProcess()}>
@@ -478,8 +583,6 @@ function RenameDocumentDialog() {
     },
   });
 
-  if (process.mode !== "rename") return null;
-
   return (
     <Dialog open={true} onOpenChange={(open) => !open && closeProcess()}>
       <DialogContent className="sm:max-w-md">
@@ -537,8 +640,6 @@ function DeleteDocumentDialog() {
     });
   };
 
-  if (process.mode !== "delete") return null;
-
   return (
     <AlertDialog open={true} onOpenChange={(open) => !open && closeProcess()}>
       <AlertDialogContent>
@@ -567,14 +668,33 @@ function DeleteDocumentDialog() {
 }
 
 function DocumentsSidebar() {
-  const { documents, openProcess, selectDocument, getDocuments } =
-    useDocument();
+  const {
+    path,
+    setPath,
+    documents,
+    openProcess,
+    selectDocument,
+    getDocuments,
+  } = useDocument();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const filteredDocuments = documents?.filter((document) =>
-    document.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredFiles = documents?.files.filter((file) =>
+    file.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const filteredFolders = documents?.directories.filter((directory) =>
+    directory.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredDocuments: IDocuments = {
+    directories: filteredFolders || [],
+    files: filteredFiles || [],
+  };
+
+  const isFilteredDocumentsEmpty =
+    filteredDocuments.directories.length === 0 &&
+    filteredDocuments.files.length === 0;
 
   return (
     <>
@@ -608,7 +728,7 @@ function DocumentsSidebar() {
           </div>
           <SidebarGroup className="space-y-2 px-4 md:px-2">
             <SidebarGroupLabel className="p-0 text-foreground text-sm">
-              Drafts
+              {path[path.length - 1] || "Root"}
               <Button
                 variant="outline"
                 size="icon-sm"
@@ -624,77 +744,147 @@ function DocumentsSidebar() {
               <RadioGroup
                 onValueChange={(value) => selectDocument(Number(value))}
               >
-                {filteredDocuments?.map((document, index) => (
-                  <FieldLabel key={index} className="bg-white">
-                    <Field orientation="horizontal">
-                      <FieldContent className="overflow-hidden">
-                        <FieldTitle className="truncate text-foreground font-semibold cursor-text">
-                          {document.title}
-                        </FieldTitle>
-                        <FieldDescription className="truncate text-xs">
-                          {document.config.document.fileType.toUpperCase()} File
-                        </FieldDescription>
-                      </FieldContent>
-                      <RadioGroupItem
-                        value={document.documentID.toString()}
-                        id={`document-${document.documentID}`}
-                        className="hidden"
-                      />
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="icon-sm">
-                            <EllipsisVertical />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-40" align="end">
-                          <DropdownMenuGroup>
-                            <DropdownMenuItem
-                              textValue="rename"
-                              onSelect={() =>
-                                openProcess(
-                                  "rename",
-                                  document.documentID,
-                                  "Draft"
-                                )
-                              }
-                            >
-                              Rename Draft
-                            </DropdownMenuItem>
-                            <Link href={document.url}>
-                              <DropdownMenuItem textValue="download">
-                                Download Draft
-                              </DropdownMenuItem>
-                            </Link>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              variant="destructive"
-                              textValue="delete"
-                              onSelect={() =>
-                                openProcess(
-                                  "delete",
-                                  document.documentID,
-                                  "Draft"
-                                )
-                              }
-                            >
-                              Delete Draft
-                            </DropdownMenuItem>
-                          </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </Field>
-                  </FieldLabel>
-                ))}
+                {!isFilteredDocumentsEmpty && (
+                  <>
+                    {filteredDocuments.directories.map((directory, index) => (
+                      <FieldLabel
+                        key={index}
+                        className="bg-white cursor-pointer"
+                        onClick={() => setPath([...path, directory])}
+                      >
+                        <Field orientation="horizontal">
+                          <FieldContent className="overflow-hidden">
+                            <FieldTitle className="truncate text-foreground font-semibold cursor-text">
+                              {directory}
+                            </FieldTitle>
+                            <FieldDescription className="truncate text-xs">
+                              File Folder
+                            </FieldDescription>
+                          </FieldContent>
+                          <RadioGroupItem
+                            value={`directory-${index}`}
+                            id={`directory-${index}`}
+                            className="hidden"
+                          />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="icon-sm">
+                                <EllipsisVertical />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-40" align="end">
+                              {/* <DropdownMenuGroup>
+                                <DropdownMenuItem
+                                  textValue="rename"
+                                  onSelect={() =>
+                                    openProcess(
+                                      "rename",
+                                      directory.,
+                                      "Draft"
+                                    )
+                                  }
+                                >
+                                  Rename Draft
+                                </DropdownMenuItem>
+                                <Link href={document.url}>
+                                  <DropdownMenuItem textValue="download">
+                                    Download Draft
+                                  </DropdownMenuItem>
+                                </Link>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  textValue="delete"
+                                  onSelect={() =>
+                                    openProcess(
+                                      "delete",
+                                      document.documentID,
+                                      "Draft"
+                                    )
+                                  }
+                                >
+                                  Delete Draft
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup> */}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </Field>
+                      </FieldLabel>
+                    ))}
+
+                    {filteredDocuments.files.map((file, index) => (
+                      <FieldLabel key={index} className="bg-white">
+                        <Field orientation="horizontal">
+                          <FieldContent className="overflow-hidden">
+                            <FieldTitle className="truncate text-foreground font-semibold cursor-text">
+                              {file.title}
+                            </FieldTitle>
+                            <FieldDescription className="truncate text-xs">
+                              {file.extension} File
+                            </FieldDescription>
+                          </FieldContent>
+                          <RadioGroupItem
+                            value={file.documentID.toString()}
+                            id={`document-${file.documentID}`}
+                            className="hidden"
+                          />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="icon-sm">
+                                <EllipsisVertical />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-40" align="end">
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem
+                                  textValue="rename"
+                                  onSelect={() =>
+                                    openProcess(
+                                      "rename",
+                                      file.documentID,
+                                      "Draft"
+                                    )
+                                  }
+                                >
+                                  Rename Draft
+                                </DropdownMenuItem>
+                                <Link href={file.url}>
+                                  <DropdownMenuItem textValue="download">
+                                    Download Draft
+                                  </DropdownMenuItem>
+                                </Link>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  textValue="delete"
+                                  onSelect={() =>
+                                    openProcess(
+                                      "delete",
+                                      file.documentID,
+                                      "Draft"
+                                    )
+                                  }
+                                >
+                                  Delete Draft
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </Field>
+                      </FieldLabel>
+                    ))}
+                  </>
+                )}
               </RadioGroup>
             )}
           </SidebarGroup>
-          {filteredDocuments?.length === 0 && (
+          {isFilteredDocumentsEmpty && (
             <Empty className="p-2">
               <EmptyHeader>
                 <EmptyMedia variant="icon">
                   <File />
                 </EmptyMedia>
-                <EmptyTitle>No Drafts Found</EmptyTitle>
+                <EmptyTitle>No Folder/Files Found</EmptyTitle>
                 <EmptyDescription>
                   Try creating a new draft or uploading an existing one.
                 </EmptyDescription>

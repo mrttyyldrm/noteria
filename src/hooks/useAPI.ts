@@ -56,7 +56,7 @@ const useAPI = () => {
 
         if (response.status === 202) {
             return response.json().then((error) => {
-                showNotification?.(error.m);
+                showNotification(error.m);
                 onError?.();
             });
         }
