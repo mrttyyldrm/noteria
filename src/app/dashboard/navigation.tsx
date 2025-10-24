@@ -35,7 +35,7 @@ interface IProfile {
 const pages = [
   {
     name: "File Management",
-    route: "/dashboard",
+    route: "/dashboard/file-management",
     userTypes: ["Clerk", "Notary"],
     showcase: "/file-management-showcase.png",
     description: "Manage and organize all your files securely and efficiently.",

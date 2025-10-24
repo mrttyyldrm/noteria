@@ -411,7 +411,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (!selectedDocument) return;
+    if (selectedDocument?.config) return;
 
     getDocumentConfig();
   }, [selectedDocument]);

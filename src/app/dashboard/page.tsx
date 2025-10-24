@@ -28,7 +28,8 @@ function DocumentManagement() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDocumentSaved, setIsDocumentSaved] = useState<boolean>(false);
 
-  const isDocumentSelected = selectedDocument !== null;
+  const isDocumentSelected =
+    selectedDocument !== null && selectedDocument.config;
 
   const completeDocument = () => {
     if (!selectedDocument || isLoading || !isDocumentSaved) return;
@@ -48,6 +49,8 @@ function DocumentManagement() {
   useEffect(() => {
     setIsReady(false);
     setIsDocumentSaved(false);
+
+    console.log("TEST", selectedDocument);
   }, [selectedDocument]);
 
   return (

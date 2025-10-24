@@ -30,8 +30,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
-  Pencil,
-  X,
+  Save,
 } from "lucide-react";
 import {
   Empty,
@@ -78,6 +77,7 @@ function FileManagement() {
     index: number;
   } | null>(null);
   const [history, setHistory] = useState<string[][]>([]);
+  const [renameInput, setRenameInput] = useState<string>("");
 
   const goBack = () => {
     setPath((prevPath) => {
@@ -123,9 +123,14 @@ function FileManagement() {
             className="pl-10"
           />
         </div>
-        <Button onClick={() => openProcess("upload", null, "Draft")}>
-          Upload New Document
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => createFolder()}>
+            Create New Folder
+          </Button>
+          <Button onClick={() => openProcess("upload", null, "Draft")}>
+            Upload New Document
+          </Button>
+        </div>
       </div>
       <Card className="overflow-x-auto">
         <Table className="p-1">
@@ -198,28 +203,56 @@ function FileManagement() {
             {!isDocumentLoading ? (
               !isDocumentsEmpty ? (
                 <>
+                  {path.length > 0 && (
+                    <TableRow
+                      className="cursor-pointer h-11"
+                      onClick={() => goBack()}
+                    >
+                      <TableCell colSpan={3} className="pl-3">
+                        <div className="flex items-center gap-2 transition-colors duration-300 hover:underline hover:text-foreground tracking-widest">
+                          <Folder className="size-5" />
+                          ..
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+
                   {documents?.directories.map((directory, index) => (
                     <TableRow key={index}>
-                      <TableCell
-                        className="pl-3 cursor-pointer"
-                        onClick={() => setPath((prev) => [...prev, directory])}
-                      >
+                      <TableCell className="pl-3">
                         <div className="flex items-center gap-2">
+                          <Folder className="size-5" />
                           {rename?.status && rename.index === index ? (
-                            <Input />
+                            <Input
+                              name="renameInput"
+                              value={renameInput}
+                              onChange={(e) => setRenameInput(e.target.value)}
+                              className="max-w-40"
+                            />
                           ) : (
-                            <>
-                              <Folder className="size-5" />
+                            <p
+                              className="transition-all duration-300 hover:underline hover:text-foreground cursor-pointer"
+                              onClick={() =>
+                                !rename?.status &&
+                                rename?.index !== index &&
+                                setPath((prev) => [...prev, directory])
+                              }
+                            >
                               {directory}
-                            </>
+                            </p>
                           )}
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            onClick={() => setRename({ status: true, index })}
-                          >
-                            {rename?.status ? <X /> : <Pencil />}
-                          </Button>
+                          {rename?.status && rename.index === index && (
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => {
+                                setRename(null);
+                                renameFolder(directory, renameInput);
+                              }}
+                            >
+                              <Save />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>File Folder</TableCell>
@@ -230,13 +263,18 @@ function FileManagement() {
                               <EllipsisVertical />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-40" align="end">
+                          <DropdownMenuContent
+                            className="w-40"
+                            align="end"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuGroup>
                               <DropdownMenuItem
-                                onSelect={() =>
-                                  setRename({ status: true, index })
-                                }
+                                onSelect={() => {
+                                  setRename({ status: true, index });
+                                  setRenameInput(directory);
+                                }}
                               >
                                 Rename Folder
                               </DropdownMenuItem>
@@ -248,15 +286,14 @@ function FileManagement() {
                   ))}
 
                   {documents?.files.map((file, index) => (
-                    <TableRow
-                      key={index}
-                      className="cursor-pointer"
-                      onClick={() => selectDocument(file.documentID)}
-                    >
+                    <TableRow key={index}>
                       <TableCell className="pl-3 ">
                         <div className="flex items-center gap-2">
                           <File className="size-5" />
-                          {`${file.title}.${file.extension}`}
+                          <p
+                            className="transition-all duration-300 hover:underline hover:text-foreground cursor-pointer"
+                            onClick={() => selectDocument(file.documentID)}
+                          >{`${file.title}.${file.extension}`}</p>
                         </div>
                       </TableCell>
                       <TableCell>{file.extension.toUpperCase()} File</TableCell>
