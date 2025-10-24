@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import useAPI from "@/hooks/useAPI";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EllipsisVertical, Search, UserRound } from "lucide-react";
+import { EllipsisVertical, RefreshCw, Search, UserRound } from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Dialog,
@@ -66,6 +66,16 @@ interface IUser {
   mfaActive: boolean;
 }
 
+function UserManagementLoading() {
+  return Array.from({ length: 5 }).map((_, index) => (
+    <TableRow key={index}>
+      <TableCell colSpan={7} className="p-1 bg-white">
+        <Skeleton className="h-11" />
+      </TableCell>
+    </TableRow>
+  ));
+}
+
 function UserManagement() {
   const { GET } = useAPI();
   const { showNotification } = useNotification();
@@ -76,15 +86,25 @@ function UserManagement() {
     process: "reset" | "status" | "password" | "update" | "create" | null;
     userID: number | null;
   }>({ process: null, userID: null });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [dialog, setDialog] = useState<{
     process: "update" | "create" | null;
     user: IUser | null;
   }>({ process: null, user: null });
 
   const getUsers = () => {
-    GET("GetAllUsers", {}, (data) => {
-      setUsers(data);
-    });
+    if (isLoading) return;
+
+    setIsLoading(true);
+    GET(
+      "GetAllUsers",
+      {},
+      (data) => {
+        setUsers(data);
+        setIsLoading(false);
+      },
+      () => setIsLoading(false)
+    );
   };
 
   const toggleAccountStatus = (userID: number, status: boolean) => {
@@ -193,11 +213,21 @@ function UserManagement() {
               <TableHead>User Type</TableHead>
               <TableHead>Account Status</TableHead>
               <TableHead>MFA Status</TableHead>
-              <TableHead className="min-w-20"></TableHead>
+              <TableHead className="min-w-20 flex justify-end items-center">
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => getUsers()}
+                >
+                  <RefreshCw />
+                </Button>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="text-muted-foreground">
-            {filteredUsers.length > 0 ? (
+            {isLoading ? (
+              <UserManagementLoading />
+            ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user, index) => (
                 <TableRow key={index}>
                   <TableCell className="pl-3">{user.userID}</TableCell>
@@ -325,11 +355,17 @@ function CreateOrUpdateUserDialog({
     null
   );
 
-  const emptyInitialValues: Partial<IUser> = {
-    fullName: "",
-    email: "",
-    userType: { key: -1, value: "" },
-  };
+  const initialValues = user
+    ? {
+        fullName: user.fullName,
+        email: user.email,
+        userType: user.userType,
+      }
+    : {
+        fullName: "",
+        email: "",
+        userType: { key: -1, value: "" },
+      };
 
   const getUserTypes = () => {
     if (userTypes) return;
@@ -381,13 +417,7 @@ function CreateOrUpdateUserDialog({
   });
 
   const formik = useFormik({
-    initialValues: user
-      ? {
-          fullName: user.fullName,
-          email: user.email,
-          userType: user.userType,
-        }
-      : emptyInitialValues,
+    initialValues: { ...initialValues, userID: user?.userID },
     enableReinitialize: true,
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -478,7 +508,7 @@ function CreateOrUpdateUserDialog({
                   ))}
                 </ButtonGroup>
                 {formik.touched.userType && formik.errors.userType && (
-                  <FieldError>{formik.errors.userType}</FieldError>
+                  <FieldError>{formik.errors.userType.key}</FieldError>
                 )}
               </Field>
             ) : (
