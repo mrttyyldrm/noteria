@@ -27,6 +27,7 @@ import {
   Trash2,
   X,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
 import {
   Empty,
@@ -75,20 +76,20 @@ import {
 
 interface IDecision {
   caseOrderID: number;
-  caseNumber: string;
-  summary: string;
-  startDate: string;
-  expireDate: string;
-  recordDate: string;
+  caseNumber: string | null;
+  summary: string | null;
+  startDate: string | null;
+  expireDate: string | null;
+  recordDate: string | null;
   r2Path: string;
   relatedPerson: {
-    nameSurname: string;
+    nameSurname: string | null;
     idNumber: string | null;
   }[];
   relatedProperties: {
     propertyNumber: string | null;
-    propertyDesc: string;
-    ProperyType: string;
+    propertyDesc: string | null;
+    ProperyType: string | null;
   }[];
   searchKeywords: string[];
 }
@@ -99,11 +100,33 @@ interface DecisionDialogProps {
   onSubmit: () => void;
 }
 
+function CourtDecisionsLoading() {
+  return Array.from({ length: 5 }).map((_, index) => (
+    <TableRow key={index}>
+      <TableCell colSpan={6} className="p-1 bg-white">
+        <Skeleton className="h-11" />
+      </TableCell>
+    </TableRow>
+  ));
+}
+
+const checkIsMissing = (value: any, content: () => React.ReactNode) => {
+  if (!value || (Array.isArray(value) && value.length === 0)) {
+    return (
+      <div>
+        <Badge variant="destructive">Missing Data</Badge>
+      </div>
+    );
+  }
+  return content();
+};
+
 function CourtDecisions() {
   const { GET } = useAPI();
   const { openProcess } = useDocument();
 
   const [decisions, setDecisions] = useState<IDecision[] | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [processes, setProcesses] = useState<string[] | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [dialog, setDialog] = useState<{
@@ -112,13 +135,22 @@ function CourtDecisions() {
   }>({ process: null, decision: null });
 
   const getCourtDecisions = () => {
-    GET("GetCourtList", {}, (data) => {
-      setDecisions(data.orders);
+    if (isLoading) return;
 
-      if (processes === null) {
-        setProcesses(data.aiProcess);
-      }
-    });
+    setIsLoading(true);
+    GET(
+      "GetCourtList",
+      {},
+      (data) => {
+        setDecisions(data.orders);
+
+        if (processes === null) {
+          setProcesses(data.aiProcess);
+        }
+        setIsLoading(false);
+      },
+      () => setIsLoading(false)
+    );
   };
 
   useEffect(() => {
@@ -126,7 +158,7 @@ function CourtDecisions() {
 
     setTimeout(() => {
       setProcesses([]);
-    }, 3000);
+    }, 5000);
   }, [processes]);
 
   useEffect(() => {
@@ -170,108 +202,145 @@ function CourtDecisions() {
               <TableHead>Related People</TableHead>
               <TableHead>Related Properties</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead></TableHead>
+              <TableHead className="flex justify-end items-center">
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => getCourtDecisions()}
+                >
+                  <RefreshCw />
+                </Button>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="text-muted-foreground">
-            {processes &&
-              processes.length > 0 &&
-              processes.map((process, index) => (
-                <TableRow key={index}>
-                  <TableCell colSpan={6} className="p-1 bg-white">
-                    <Skeleton className="p-3 flex justify-center items-center gap-2 text-center">
-                      <Sparkles className="size-4" /> {process} is processing
-                    </Skeleton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            {filteredDecisions && filteredDecisions.length > 0 ? (
-              filteredDecisions.map((decision, index) => (
-                <TableRow key={index}>
-                  <TableCell className="pl-3">{decision.caseNumber}</TableCell>
-                  <TableCell>
-                    {formatDate(decision.startDate)} -{" "}
-                    {formatDate(decision.expireDate)}
-                  </TableCell>
-                  <TableCell>
-                    {decision.relatedPerson
-                      .map((person) => person.nameSurname)
-                      .join(", ")}
-                  </TableCell>
-                  <TableCell>
-                    {decision.relatedProperties
-                      .map((property) => property.ProperyType)
-                      .join(", ")}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        isDatePast(decision.expireDate)
-                          ? "destructive"
-                          : "default"
-                      }
-                    >
-                      {isDatePast(decision.expireDate) ? "Expired" : "Active"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="flex justify-end items-center gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon" disabled={false}>
-                          <EllipsisVertical />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-40" align="end">
-                        <DropdownMenuItem
-                          onSelect={() =>
-                            setDialog({
-                              process: "show",
-                              decision,
-                            })
-                          }
-                        >
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() =>
-                            setDialog({ process: "update", decision })
-                          }
-                        >
-                          Update Decision
-                        </DropdownMenuItem>
-                        <Link href={decision.r2Path} target="_blank">
-                          <DropdownMenuItem>Download Decision</DropdownMenuItem>
-                        </Link>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onSelect={() =>
-                            openProcess("delete", decision.caseOrderID, "Court")
-                          }
-                        >
-                          Delete Decision
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+            {isLoading ? (
+              <CourtDecisionsLoading />
             ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="bg-white">
-                  <Empty className="p-2">
-                    <EmptyHeader>
-                      <EmptyMedia variant="icon">
-                        <Gavel />
-                      </EmptyMedia>
-                      <EmptyTitle>No Court Decision Found</EmptyTitle>
-                      <EmptyDescription>
-                        Try creating a new draft or uploading an existing one.
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                </TableCell>
-              </TableRow>
+              <>
+                {processes &&
+                  processes.length > 0 &&
+                  processes.map((process, index) => (
+                    <TableRow key={index}>
+                      <TableCell colSpan={6} className="p-1 bg-white">
+                        <Skeleton className="p-3 flex justify-center items-center gap-2 text-center">
+                          <Sparkles className="size-4" /> {process} is
+                          processing
+                        </Skeleton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                {filteredDecisions && filteredDecisions.length > 0 ? (
+                  filteredDecisions.map((decision, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="pl-3">
+                        {checkIsMissing(decision.caseNumber, () => (
+                          <>{decision.caseNumber}</>
+                        ))}
+                      </TableCell>
+                      <TableCell>
+                        {checkIsMissing(
+                          decision.startDate && decision.expireDate,
+                          () =>
+                            `${formatDate(decision.startDate)} - ${formatDate(
+                              decision.expireDate
+                            )}`
+                        )}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {checkIsMissing(decision.relatedPerson, () => (
+                          <>{decision.relatedPerson.length} People</>
+                        ))}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {checkIsMissing(decision.relatedProperties, () => (
+                          <>{decision.relatedProperties.length} Properties</>
+                        ))}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            isDatePast(decision.expireDate)
+                              ? "destructive"
+                              : "default"
+                          }
+                        >
+                          {isDatePast(decision.expireDate)
+                            ? "Expired"
+                            : "Active"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="flex justify-end items-center gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              disabled={false}
+                            >
+                              <EllipsisVertical />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-40" align="end">
+                            <DropdownMenuItem
+                              onSelect={() =>
+                                setDialog({
+                                  process: "show",
+                                  decision,
+                                })
+                              }
+                            >
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onSelect={() =>
+                                setDialog({ process: "update", decision })
+                              }
+                            >
+                              Update Decision
+                            </DropdownMenuItem>
+                            <Link href={decision.r2Path} target="_blank">
+                              <DropdownMenuItem>
+                                Download Decision
+                              </DropdownMenuItem>
+                            </Link>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onSelect={() =>
+                                openProcess(
+                                  "delete",
+                                  decision.caseOrderID,
+                                  "Court"
+                                )
+                              }
+                            >
+                              Delete Decision
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="bg-white">
+                      <Empty className="p-2">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon">
+                            <Gavel />
+                          </EmptyMedia>
+                          <EmptyTitle>No Court Decision Found</EmptyTitle>
+                          <EmptyDescription>
+                            Try creating a new draft or uploading an existing
+                            one.
+                          </EmptyDescription>
+                        </EmptyHeader>
+                      </Empty>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             )}
           </TableBody>
         </Table>
@@ -303,6 +372,118 @@ function CourtDecisions() {
         />
       )}
     </section>
+  );
+}
+
+function ShowDecisionDialog({
+  decision,
+  onSubmit,
+  onClose,
+}: DecisionDialogProps) {
+  return (
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg p-0">
+        <DialogHeader className="p-4 pb-0">
+          <DialogTitle className="flex flex-col sm:flex-row items-center gap-2 truncate">
+            {checkIsMissing(decision.caseNumber, () => (
+              <p>Case {decision.caseNumber}</p>
+            ))}
+            <Badge variant="outline">{formatDate(decision.recordDate)}</Badge>
+          </DialogTitle>
+        </DialogHeader>
+        <FieldGroup className="max-h-[50vh] md:max-h-[70vh] overflow-y-auto px-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Field className="col-span-2">
+              <FieldLabel htmlFor="description">Summary</FieldLabel>
+              {checkIsMissing(decision.summary, () => (
+                <p className="text-sm text-muted-foreground text-justify">
+                  {decision.summary}
+                </p>
+              ))}
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="description">Start Date</FieldLabel>
+              {checkIsMissing(decision.startDate, () => (
+                <p className="text-sm text-muted-foreground text-justify">
+                  {formatDate(decision.startDate)}
+                </p>
+              ))}
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="description">Expire Date</FieldLabel>
+              {checkIsMissing(decision.expireDate, () => (
+                <p className="text-sm text-muted-foreground text-justify">
+                  {formatDate(decision.expireDate)}
+                </p>
+              ))}
+            </Field>
+            <Field className="col-span-2">
+              <FieldLabel htmlFor="description">Related People</FieldLabel>
+              {checkIsMissing(decision.relatedPerson, () =>
+                decision.relatedPerson.map((person, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    {checkIsMissing(person.nameSurname, () => (
+                      <h4 className="text-sm font-semibold text-foreground">
+                        {person.nameSurname}
+                      </h4>
+                    ))}
+                    {checkIsMissing(person.idNumber, () => (
+                      <Badge variant="outline">{person.idNumber}</Badge>
+                    ))}
+                  </div>
+                ))
+              )}
+            </Field>
+            <Field className="col-span-2">
+              <FieldLabel htmlFor="description">Related Properties</FieldLabel>
+              {checkIsMissing(decision.relatedProperties, () =>
+                decision.relatedProperties.map((property, index) => (
+                  <div key={index} className="flex flex-col gap-1">
+                    <div key={index} className="flex items-center gap-3">
+                      {checkIsMissing(property.ProperyType, () => (
+                        <h4 className="text-sm font-semibold text-foreground">
+                          {property.ProperyType}
+                        </h4>
+                      ))}
+                      {checkIsMissing(property.propertyNumber, () => (
+                        <Badge variant="outline">
+                          {property.propertyNumber}
+                        </Badge>
+                      ))}
+                    </div>
+                    {checkIsMissing(property.propertyDesc, () => (
+                      <p className="text-sm text-muted-foreground text-justify">
+                        {property.propertyDesc}
+                      </p>
+                    ))}
+                  </div>
+                ))
+              )}
+            </Field>
+            <Field className="col-span-2">
+              <FieldLabel htmlFor="description">Keywords</FieldLabel>
+              <div className="flex items-center flex-wrap gap-1">
+                {checkIsMissing(decision.searchKeywords, () =>
+                  decision.searchKeywords.map((keyword, index) => (
+                    <Badge key={index} variant="outline">
+                      {keyword}
+                    </Badge>
+                  ))
+                )}
+              </div>
+            </Field>
+          </div>
+        </FieldGroup>
+        <DialogFooter className="p-4">
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+          <Button type="submit" onClick={() => onSubmit()}>
+            Update Decision
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -393,6 +574,7 @@ function UpdateDecisionDialog({
     initialValues: decision,
     enableReinitialize: true,
     validationSchema: validationSchema,
+    validateOnMount: true,
     onSubmit: (values) => {
       updateDecision(values);
     },
@@ -421,11 +603,11 @@ function UpdateDecisionDialog({
                 type="text"
                 required={true}
                 disabled={isLoading}
-                value={formik.values.caseNumber}
+                value={formik.values.caseNumber ?? ""}
                 onChange={formik.handleChange}
                 placeholder="Case"
               />
-              {formik.touched.caseNumber && formik.errors.caseNumber && (
+              {formik.errors.caseNumber && (
                 <FieldError>{formik.errors.caseNumber}</FieldError>
               )}
             </Field>
@@ -436,11 +618,11 @@ function UpdateDecisionDialog({
                 name="summary"
                 required={true}
                 disabled={isLoading}
-                value={formik.values.summary}
+                value={formik.values.summary ?? ""}
                 onChange={formik.handleChange}
                 placeholder="Summary"
               />
-              {formik.touched.summary && formik.errors.summary && (
+              {formik.errors.summary && (
                 <FieldError>{formik.errors.summary}</FieldError>
               )}
             </Field>
@@ -453,11 +635,11 @@ function UpdateDecisionDialog({
                   type="date"
                   required={true}
                   disabled={isLoading}
-                  value={formik.values.startDate}
+                  value={formik.values.startDate ?? ""}
                   onChange={formik.handleChange}
                   placeholder="Start Date"
                 />
-                {formik.touched.startDate && formik.errors.startDate && (
+                {formik.errors.startDate && (
                   <FieldError>{formik.errors.startDate}</FieldError>
                 )}
               </Field>
@@ -469,11 +651,11 @@ function UpdateDecisionDialog({
                   type="date"
                   required={true}
                   disabled={isLoading}
-                  value={formik.values.expireDate}
+                  value={formik.values.expireDate ?? ""}
                   onChange={formik.handleChange}
                   placeholder="Expire Date"
                 />
-                {formik.touched.expireDate && formik.errors.expireDate && (
+                {formik.errors.expireDate && (
                   <FieldError>{formik.errors.expireDate}</FieldError>
                 )}
               </Field>
@@ -499,8 +681,7 @@ function UpdateDecisionDialog({
                 Add Person
               </Button>
             </div>
-            {formik.touched.relatedPerson &&
-              formik.errors.relatedPerson &&
+            {formik.errors.relatedPerson &&
               (typeof formik.errors.relatedPerson === "string" ? (
                 <FieldError>{formik.errors.relatedPerson}</FieldError>
               ) : null)}
@@ -517,13 +698,13 @@ function UpdateDecisionDialog({
                       type="text"
                       required={true}
                       disabled={isLoading}
-                      value={formik.values.relatedPerson[index].nameSurname}
+                      value={
+                        formik.values.relatedPerson[index].nameSurname ?? ""
+                      }
                       onChange={formik.handleChange}
                       placeholder="Name Surname"
                     />
-                    {formik.touched.relatedPerson?.[index]?.nameSurname &&
-                      typeof formik.errors.relatedPerson?.[index] ===
-                        "object" &&
+                    {typeof formik.errors.relatedPerson?.[index] === "object" &&
                       formik.errors.relatedPerson[index]?.nameSurname && (
                         <FieldError>
                           {formik.errors.relatedPerson?.[index].nameSurname}
@@ -544,9 +725,7 @@ function UpdateDecisionDialog({
                       onChange={formik.handleChange}
                       placeholder="ID Number"
                     />
-                    {formik.touched.relatedPerson?.[index]?.idNumber &&
-                      typeof formik.errors.relatedPerson?.[index] ===
-                        "object" &&
+                    {typeof formik.errors.relatedPerson?.[index] === "object" &&
                       formik.errors.relatedPerson[index]?.idNumber && (
                         <FieldError>
                           {formik.errors.relatedPerson?.[index].idNumber}
@@ -595,8 +774,7 @@ function UpdateDecisionDialog({
                 Add Property
               </Button>
             </div>
-            {formik.touched.relatedProperties &&
-              formik.errors.relatedProperties &&
+            {formik.errors.relatedProperties &&
               (typeof formik.errors.relatedProperties === "string" ? (
                 <FieldError>{formik.errors.relatedProperties}</FieldError>
               ) : null)}
@@ -624,9 +802,8 @@ function UpdateDecisionDialog({
                     onChange={formik.handleChange}
                     placeholder="Property Number"
                   />
-                  {formik.touched.relatedProperties?.[index]?.propertyNumber &&
-                    typeof formik.errors.relatedProperties?.[index] ===
-                      "object" &&
+                  {typeof formik.errors.relatedProperties?.[index] ===
+                    "object" &&
                     formik.errors.relatedProperties[index]?.propertyNumber && (
                       <FieldError>
                         {
@@ -648,13 +825,14 @@ function UpdateDecisionDialog({
                     type="text"
                     required={true}
                     disabled={isLoading}
-                    value={formik.values.relatedProperties[index].ProperyType}
+                    value={
+                      formik.values.relatedProperties[index].ProperyType ?? ""
+                    }
                     onChange={formik.handleChange}
                     placeholder="Property Type"
                   />
-                  {formik.touched.relatedProperties?.[index]?.ProperyType &&
-                    typeof formik.errors.relatedProperties?.[index] ===
-                      "object" &&
+                  {typeof formik.errors.relatedProperties?.[index] ===
+                    "object" &&
                     formik.errors.relatedProperties[index]?.ProperyType && (
                       <FieldError>
                         {formik.errors.relatedProperties?.[index].ProperyType}
@@ -690,13 +868,14 @@ function UpdateDecisionDialog({
                     name={`relatedProperties.${index}.propertyDesc`}
                     required={true}
                     disabled={isLoading}
-                    value={formik.values.relatedProperties[index].propertyDesc}
+                    value={
+                      formik.values.relatedProperties[index].propertyDesc ?? ""
+                    }
                     onChange={formik.handleChange}
                     placeholder="Property Description"
                   />
-                  {formik.touched.relatedProperties?.[index]?.propertyDesc &&
-                    typeof formik.errors.relatedProperties?.[index] ===
-                      "object" &&
+                  {typeof formik.errors.relatedProperties?.[index] ===
+                    "object" &&
                     formik.errors.relatedProperties[index]?.propertyDesc && (
                       <FieldError>
                         {formik.errors.relatedProperties?.[index].propertyDesc}
@@ -733,8 +912,7 @@ function UpdateDecisionDialog({
                 Add Keyword
               </Button>
             </div>
-            {formik.touched.searchKeywords &&
-              formik.errors.searchKeywords &&
+            {formik.errors.searchKeywords &&
               (typeof formik.errors.searchKeywords === "string" ? (
                 <FieldError>{formik.errors.searchKeywords}</FieldError>
               ) : null)}
@@ -776,92 +954,6 @@ function UpdateDecisionDialog({
             onClick={() => formik.handleSubmit()}
           >
             {isLoading ? "Updating..." : "Update"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function ShowDecisionDialog({
-  decision,
-  onSubmit,
-  onClose,
-}: DecisionDialogProps) {
-  return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg p-0">
-        <DialogHeader className="p-4 pb-0">
-          <DialogTitle className="flex flex-col sm:flex-row items-center gap-2 truncate">
-            <p>Case {decision.caseNumber}</p>
-            <Badge variant="outline">{formatDate(decision.recordDate)}</Badge>
-          </DialogTitle>
-        </DialogHeader>
-        <FieldGroup className="max-h-[50vh] md:max-h-[70vh] overflow-y-auto px-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="description">Summary</FieldLabel>
-              <p className="text-sm text-muted-foreground text-justify">
-                {decision.summary}
-              </p>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="description">Start Date</FieldLabel>
-              <p className="text-sm text-muted-foreground text-justify">
-                {formatDate(decision.startDate)}
-              </p>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="description">Expire Date</FieldLabel>
-              <p className="text-sm text-muted-foreground text-justify">
-                {formatDate(decision.expireDate)}
-              </p>
-            </Field>
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="description">Related People</FieldLabel>
-              {decision.relatedPerson.map((person, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <h4 className="text-sm font-semibold text-foreground">
-                    {person.nameSurname}
-                  </h4>
-                  <Badge variant="outline">{person.idNumber}</Badge>
-                </div>
-              ))}
-            </Field>
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="description">Related Properties</FieldLabel>
-              {decision.relatedProperties.map((property, index) => (
-                <div key={index} className="flex flex-col gap-1">
-                  <div key={index} className="flex items-center gap-3">
-                    <h4 className="text-sm font-semibold text-foreground">
-                      {property.ProperyType}
-                    </h4>
-                    <Badge variant="outline">{property.propertyNumber}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground text-justify">
-                    {property.propertyDesc}
-                  </p>
-                </div>
-              ))}
-            </Field>
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="description">Keywords</FieldLabel>
-              <div className="flex items-center flex-wrap gap-1">
-                {decision.searchKeywords.map((keyword, index) => (
-                  <Badge key={index} variant="outline">
-                    {keyword}
-                  </Badge>
-                ))}
-              </div>
-            </Field>
-          </div>
-        </FieldGroup>
-        <DialogFooter className="p-4">
-          <DialogClose asChild>
-            <Button variant="outline">Close</Button>
-          </DialogClose>
-          <Button type="submit" onClick={() => onSubmit()}>
-            Update Decision
           </Button>
         </DialogFooter>
       </DialogContent>
