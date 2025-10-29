@@ -16,11 +16,9 @@ import {
 } from "@/components/ui/empty";
 import { Card } from "@/components/ui/card";
 import { useNotification } from "@/context/NotificationContext";
-import { useSidebar } from "@/components/ui/sidebar";
 
 function DocumentManagement() {
   const { POST } = useAPI();
-  const { setOpen } = useSidebar();
   const { showNotification } = useNotification();
   const { selectedDocument, documents } = useDocument();
 
@@ -40,7 +38,7 @@ function DocumentManagement() {
     // };
 
     setIsLoading(true);
-    POST("CompleteDocument", {}, (data) => {
+    POST("CompleteDocument", {}, () => {
       setIsLoading(false);
       showNotification("Document completed successfully", "success");
     });

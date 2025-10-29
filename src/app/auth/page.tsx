@@ -17,15 +17,12 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { useNotification } from "@/context/NotificationContext";
 import { useTranslation } from "@/context/TranslationContext";
 import { QRCodeCanvas } from "qrcode.react";
-import Link from "next/link";
 import useAPI from "@/hooks/useAPI";
 
 function Auth() {
   const router = useRouter();
-  const { showNotification } = useNotification();
   const { t } = useTranslation();
   const { GET, POST } = useAPI();
 

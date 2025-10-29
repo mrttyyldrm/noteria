@@ -158,7 +158,7 @@ export const DropzoneEmptyState = ({
   children,
   className,
 }: DropzoneEmptyStateProps) => {
-  const { src, accept, maxSize, minSize, maxFiles } = useDropzoneContext();
+  const { src, maxSize, minSize, maxFiles } = useDropzoneContext();
 
   if (src) {
     return null;

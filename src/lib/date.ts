@@ -8,7 +8,9 @@ export const formatDate = (dateString?: string | null): string => {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
 
-    return `${day}.${month}.${year}`;
+    const hasTime = dateString.includes("T");
+
+    return `${day}.${month}.${year} ${hasTime ? date.toLocaleTimeString() : ""}`;
 };
 
 export const isDatePast = (dateString?: string | null): boolean => {

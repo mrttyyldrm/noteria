@@ -1,7 +1,6 @@
 import { useTranslation } from "@/context/TranslationContext";
 import { useNotification } from "@/context/NotificationContext";
 import { useRouter } from "next/navigation";
-import { on } from "events";
 
 export const getCookie = (cookieName: string): string | null => {
     const name = `${cookieName}=`;

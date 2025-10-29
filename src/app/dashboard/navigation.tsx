@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger, SidebarMenuButton } from "@/components/ui/sidebar";
+import {
+  SidebarTrigger,
+  SidebarMenuButton,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronsUpDown } from "lucide-react";
@@ -32,13 +36,22 @@ interface IProfile {
   fullName: string;
 }
 
-const pages = [
+interface IPage {
+  name: string;
+  route: string;
+  userTypes: ("Clerk" | "Notary")[];
+  showcase: string;
+  description: string;
+}
+
+const pages: IPage[] = [
   {
-    name: "File Management",
-    route: "/dashboard/file-management",
+    name: "Document Management",
+    route: "/dashboard/document-management",
     userTypes: ["Clerk", "Notary"],
-    showcase: "/file-management-showcase.png",
-    description: "Manage and organize all your files securely and efficiently.",
+    showcase: "/document-management-showcase.png",
+    description:
+      "Manage and organize all your documents securely and efficiently.",
   },
   {
     name: "User Management",
@@ -60,9 +73,10 @@ function SidebarNavigation() {
   const { GET } = useAPI();
   const router = useRouter();
   const pathname = usePathname();
+  const { setOpen } = useSidebar();
 
   const [profile, setProfile] = useState<IProfile | null>(null);
-  const [page, setPage] = useState<string | null>(null);
+  const [page, setPage] = useState<IPage | null>(null);
 
   const logoutDashboard = () => {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -72,7 +86,11 @@ function SidebarNavigation() {
   useEffect(() => {
     const currentPage = pages.find((page) => pathname === page.route);
 
-    setPage(currentPage?.name || null);
+    setPage(currentPage || null);
+
+    if (currentPage?.route === pages[0].route) {
+      setOpen(false);
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -84,11 +102,14 @@ function SidebarNavigation() {
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
       <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1" />
+        <SidebarTrigger
+          className="-ml-1"
+          disabled={page?.route === pages[0].route}
+        />
         {page && (
           <Breadcrumb className="hidden sm:block">
             <BreadcrumbList>
-              <BreadcrumbItem>{page}</BreadcrumbItem>
+              <BreadcrumbItem>{page.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         )}
