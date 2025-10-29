@@ -550,8 +550,8 @@ export function useDocument() {
 const TableRowSkeleton = () => {
   return (
     <TableRow>
-      <TableCell colSpan={3} className="p-1 bg-white">
-        <Skeleton className="h-11" />
+      <TableCell colSpan={3} className="p-2 bg-white">
+        <Skeleton className="h-10" />
       </TableCell>
     </TableRow>
   );

@@ -12,6 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronsUpDown,
   FileSearch2,
+  Search,
   SearchIcon,
   SearchX,
   TextSearch,
@@ -56,6 +57,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Button } from "@/components/ui/button";
 
 interface IProfile {
   userType: "Clerk" | "Notary";
@@ -114,7 +116,7 @@ function SidebarNavigation() {
   const { GET } = useAPI();
   const router = useRouter();
   const pathname = usePathname();
-  const { setOpen } = useSidebar();
+  const { setOpen, open, isMobile } = useSidebar();
 
   const [profile, setProfile] = useState<IProfile | null>(null);
   const [page, setPage] = useState<IPage | null>(null);
@@ -191,35 +193,42 @@ function SidebarNavigation() {
   }, [search]);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-4 px-4 border-b border-ring">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
       <div className="flex items-center gap-2 shrink-0">
         <SidebarTrigger
           className="-ml-1"
           disabled={page?.route === pages[0].route}
         />
-        {page && (
+        {page && !open && (
           <Breadcrumb className="shrink-0 hidden sm:block">
             <BreadcrumbList>
-              <BreadcrumbItem>{page.name}</BreadcrumbItem>
+              <BreadcrumbItem>
+                <p className="max-w-44 truncate">{page.name}</p>
+              </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         )}
       </div>
-      <InputGroup className="max-w-2xs" onClick={() => setIsCommandOpen(true)}>
-        <InputGroupInput
-          readOnly={true}
-          placeholder="Search..."
-          className="cursor-pointer"
-        />
-        <InputGroupAddon>
-          <SearchIcon />
-        </InputGroupAddon>
-        <InputGroupAddon align="inline-end">
-          <Kbd>⌘</Kbd>
-          <Kbd>K</Kbd>
-        </InputGroupAddon>
-      </InputGroup>
-      <div className="flex items-center gap-2">
+      {!open && (
+        <InputGroup
+          className="max-w-2xs hidden md:flex"
+          onClick={() => setIsCommandOpen(true)}
+        >
+          <InputGroupInput
+            readOnly={true}
+            placeholder="Search..."
+            className="cursor-pointer"
+          />
+          <InputGroupAddon>
+            <SearchIcon />
+          </InputGroupAddon>
+          <InputGroupAddon align="inline-end">
+            <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd>
+          </InputGroupAddon>
+        </InputGroup>
+      )}
+      <div className="md:shrink-0 flex items-center gap-2">
         {profile ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -238,7 +247,14 @@ function SidebarNavigation() {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight max-w-44 overflow-hidden ml-1 sm:ml-0">
                   <span className="truncate font-medium text-foreground flex items-center gap-0.5">
-                    {profile.fullName || "Unknown User"}
+                    {isMobile
+                      ? (() => {
+                          const parts = profile.fullName.split(" ") || [];
+                          if (parts.length === 0) return "Unknown User";
+                          if (parts.length === 1) return parts[0];
+                          return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+                        })()
+                      : profile.fullName || "Unknown User"}
                     <Badge
                       className={`scale-90 ${
                         profile.userType === "Notary"
@@ -298,8 +314,16 @@ function SidebarNavigation() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Skeleton className="w-56 h-12" />
+          <Skeleton className="w-44 md:w-56 h-12" />
         )}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setIsCommandOpen(true)}
+          className="md:hidden"
+        >
+          <Search />
+        </Button>
         <TranslationDropdown />
       </div>
 
