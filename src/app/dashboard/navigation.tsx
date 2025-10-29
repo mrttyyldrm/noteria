@@ -192,6 +192,8 @@ function SidebarNavigation() {
     };
   }, [search]);
 
+  console.log("IS MOBILE", isMobile);
+
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
       <div className="flex items-center gap-2 shrink-0">
@@ -199,8 +201,8 @@ function SidebarNavigation() {
           className="-ml-1"
           disabled={page?.route === pages[0].route}
         />
-        {page && !open && (
-          <Breadcrumb className="shrink-0 hidden sm:block">
+        {page && (
+          <Breadcrumb className="shrink-0 hidden md:block">
             <BreadcrumbList>
               <BreadcrumbItem>
                 <p className="max-w-44 truncate">{page.name}</p>
@@ -209,26 +211,24 @@ function SidebarNavigation() {
           </Breadcrumb>
         )}
       </div>
-      {!open && (
-        <InputGroup
-          className="max-w-2xs hidden md:flex"
-          onClick={() => setIsCommandOpen(true)}
-        >
-          <InputGroupInput
-            readOnly={true}
-            placeholder="Search..."
-            className="cursor-pointer"
-          />
-          <InputGroupAddon>
-            <SearchIcon />
-          </InputGroupAddon>
-          <InputGroupAddon align="inline-end">
-            <Kbd>⌘</Kbd>
-            <Kbd>K</Kbd>
-          </InputGroupAddon>
-        </InputGroup>
-      )}
-      <div className="md:shrink-0 flex items-center gap-2">
+      <InputGroup
+        className="max-w-2xs hidden lg:flex"
+        onClick={() => setIsCommandOpen(true)}
+      >
+        <InputGroupInput
+          readOnly={true}
+          placeholder="Search..."
+          className="cursor-pointer"
+        />
+        <InputGroupAddon>
+          <SearchIcon />
+        </InputGroupAddon>
+        <InputGroupAddon align="inline-end">
+          <Kbd>⌘</Kbd>
+          <Kbd>K</Kbd>
+        </InputGroupAddon>
+      </InputGroup>
+      <div className="lg:shrink-0 flex items-center gap-2">
         {profile ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -250,11 +250,10 @@ function SidebarNavigation() {
                     {isMobile
                       ? (() => {
                           const parts = profile.fullName.split(" ") || [];
-                          if (parts.length === 0) return "Unknown User";
                           if (parts.length === 1) return parts[0];
                           return `${parts[0]} ${parts[parts.length - 1][0]}.`;
                         })()
-                      : profile.fullName || "Unknown User"}
+                      : profile.fullName}
                     <Badge
                       className={`scale-90 ${
                         profile.userType === "Notary"
@@ -320,7 +319,7 @@ function SidebarNavigation() {
           variant="outline"
           size="icon"
           onClick={() => setIsCommandOpen(true)}
-          className="md:hidden"
+          className="lg:hidden"
         >
           <Search />
         </Button>
