@@ -9,7 +9,13 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronsUpDown } from "lucide-react";
+import {
+  ChevronsUpDown,
+  FileSearch2,
+  SearchIcon,
+  SearchX,
+  TextSearch,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TranslationDropdown } from "@/context/TranslationContext";
 import {
@@ -21,6 +27,15 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import * as React from "react";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -28,6 +43,19 @@ import {
 } from "@/components/ui/breadcrumb";
 import useAPI from "@/hooks/useAPI";
 import Image from "next/image";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Kbd } from "@/components/ui/kbd";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 interface IProfile {
   userType: "Clerk" | "Notary";
@@ -69,6 +97,19 @@ const pages: IPage[] = [
   },
 ];
 
+const dummyData = [
+  { text: "Document Management", route: "/dashboard/document-management" },
+  { text: "User Management", route: "/dashboard/user-management" },
+  { text: "Court Decisions", route: "/dashboard/court-decisions" },
+  { text: "Profile Settings", route: "/dashboard/profile" },
+  { text: "Billing Information", route: "/dashboard/billing" },
+  { text: "Calendar View", route: "/dashboard/calendar" },
+  { text: "Notifications", route: "/dashboard/notifications" },
+  { text: "Reports", route: "/dashboard/reports" },
+  { text: "Help Center", route: "/dashboard/help" },
+  { text: "Logout", route: "/auth" },
+];
+
 function SidebarNavigation() {
   const { GET } = useAPI();
   const router = useRouter();
@@ -77,10 +118,38 @@ function SidebarNavigation() {
 
   const [profile, setProfile] = useState<IProfile | null>(null);
   const [page, setPage] = useState<IPage | null>(null);
+  const [isCommandOpen, setIsCommandOpen] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>("");
+  const [isSearchLoading, setIsSearchLoading] = useState<boolean>(false);
+  const [searchSuggestions, setSearchSuggestions] = useState<any[] | null>(
+    null
+  );
 
   const logoutDashboard = () => {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     router.replace("/auth");
+  };
+
+  const getProfile = () => {
+    GET("GetProfile", {}, (data: IProfile) => {
+      setProfile(data);
+    });
+  };
+
+  const getSearchOptions = () => {
+    if (isSearchLoading) return;
+
+    setIsSearchLoading(true);
+    GET(
+      "GetProfile",
+      { Query: search },
+      (data) => {
+        // setSearchOptions(data);
+        setSearchSuggestions(dummyData);
+        setIsSearchLoading(false);
+      },
+      () => setIsSearchLoading(false)
+    );
   };
 
   useEffect(() => {
@@ -94,26 +163,62 @@ function SidebarNavigation() {
   }, [pathname]);
 
   useEffect(() => {
-    GET("GetProfile", {}, (data: IProfile) => {
-      setProfile(data);
-    });
+    getProfile();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "k") {
+        e.preventDefault();
+        setIsCommandOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (!isCommandOpen) return;
+
+    const timer = window.setTimeout(() => {
+      if (search.trim().length <= 3) return;
+      getSearchOptions();
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      setSearchSuggestions(null);
+    };
+  }, [search]);
+
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
-      <div className="flex items-center gap-2">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-4 px-4 border-b border-ring">
+      <div className="flex items-center gap-2 shrink-0">
         <SidebarTrigger
           className="-ml-1"
           disabled={page?.route === pages[0].route}
         />
         {page && (
-          <Breadcrumb className="hidden sm:block">
+          <Breadcrumb className="shrink-0 hidden sm:block">
             <BreadcrumbList>
               <BreadcrumbItem>{page.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         )}
       </div>
+      <InputGroup className="max-w-2xs" onClick={() => setIsCommandOpen(true)}>
+        <InputGroupInput
+          readOnly={true}
+          placeholder="Search..."
+          className="cursor-pointer"
+        />
+        <InputGroupAddon>
+          <SearchIcon />
+        </InputGroupAddon>
+        <InputGroupAddon align="inline-end">
+          <Kbd>⌘</Kbd>
+          <Kbd>K</Kbd>
+        </InputGroupAddon>
+      </InputGroup>
       <div className="flex items-center gap-2">
         {profile ? (
           <DropdownMenu>
@@ -197,6 +302,70 @@ function SidebarNavigation() {
         )}
         <TranslationDropdown />
       </div>
+
+      <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
+        <CommandInput
+          placeholder="Search anything..."
+          value={search}
+          onValueChange={setSearch}
+        />
+        <CommandList>
+          {!isSearchLoading ? (
+            searchSuggestions && searchSuggestions.length > 0 ? (
+              <>
+                <CommandGroup heading="Suggestions">
+                  {searchSuggestions.map((suggesion, index) => (
+                    <CommandItem
+                      key={index}
+                      onSelect={() => {
+                        router.push(suggesion.route);
+                        setIsCommandOpen(false);
+                      }}
+                    >
+                      {suggesion.text}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+                <CommandEmpty>
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <SearchX />
+                      </EmptyMedia>
+                      <EmptyTitle>No Search Results Found</EmptyTitle>
+                      <EmptyDescription>
+                        Try adjusting your search terms or check for typos.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </CommandEmpty>
+              </>
+            ) : (
+              <div className="p-4">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <FileSearch2 />
+                    </EmptyMedia>
+                    <EmptyTitle>Search for files or folders</EmptyTitle>
+                    <EmptyDescription>
+                      Use the search bar to quickly find everything you need.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </div>
+            )
+          ) : (
+            <div className="flex flex-col gap-2 p-2">
+              <Skeleton className="w-full h-11" />
+              <Skeleton className="w-full h-11" />
+              <Skeleton className="w-full h-11" />
+              <Skeleton className="w-full h-11" />
+              <Skeleton className="w-full h-11" />
+            </div>
+          )}
+        </CommandList>
+      </CommandDialog>
     </header>
   );
 }
