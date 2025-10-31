@@ -73,6 +73,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
+import { useSearchParams } from "next/navigation";
 
 interface IDecision {
   caseOrderID: number;
@@ -103,8 +104,8 @@ interface DecisionDialogProps {
 function CourtDecisionsLoading() {
   return Array.from({ length: 5 }).map((_, index) => (
     <TableRow key={index}>
-      <TableCell colSpan={6} className="p-1 bg-white">
-        <Skeleton className="h-11" />
+      <TableCell colSpan={6} className="p-2 bg-white">
+        <Skeleton className="h-8" />
       </TableCell>
     </TableRow>
   ));
@@ -124,11 +125,13 @@ const checkIsMissing = (value: any, content: () => React.ReactNode) => {
 function CourtDecisions() {
   const { GET } = useAPI();
   const { openProcess } = useDocument();
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("filter");
 
   const [decisions, setDecisions] = useState<IDecision[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [processes, setProcesses] = useState<string[] | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>(filter ?? "");
   const [dialog, setDialog] = useState<{
     process: "show" | "update" | "delete" | null;
     decision: IDecision | null;
@@ -273,11 +276,7 @@ function CourtDecisions() {
                       <TableCell className="flex justify-end items-center gap-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              disabled={false}
-                            >
+                            <Button variant="outline" size="icon-sm">
                               <EllipsisVertical />
                             </Button>
                           </DropdownMenuTrigger>
@@ -332,7 +331,7 @@ function CourtDecisions() {
                           </EmptyMedia>
                           <EmptyTitle>No Court Decision Found</EmptyTitle>
                           <EmptyDescription>
-                            Try creating a new draft or uploading an existing
+                            Try creating a new decision or uploading an existing
                             one.
                           </EmptyDescription>
                         </EmptyHeader>

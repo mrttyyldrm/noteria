@@ -102,6 +102,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface IDocuments {
   directories: string[];
@@ -114,6 +115,7 @@ interface IFile {
   bucketName: string;
   extension: string;
   url: string;
+  editable: boolean;
   config?: IDocumentConfig;
 }
 
@@ -361,13 +363,21 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const selectDocument = (documentID: number | null) => {
-    if (documentID === null || !documents) {
+  const selectDocument = (documentID: number | IFile | null) => {
+    if (documentID === null) {
       setSelectedDocument(null);
+      setOpen(true);
       return;
     }
 
-    const document = documents.files.find(
+    if (typeof documentID !== "number") {
+      setSelectedDocument(documentID);
+      setOpenMobile(false);
+      setOpen(false);
+      return;
+    }
+
+    const document = documents?.files.find(
       (document) => document.documentID === documentID
     );
 
@@ -375,7 +385,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     setOpenMobile(document === undefined);
     setOpen(document === undefined);
 
-    if (pathname !== DASHBORAD_PATH) router.replace(DASHBORAD_PATH);
+    if (pathname !== DASHBORAD_PATH) router.push(DASHBORAD_PATH);
   };
 
   const getDocumentConfig = () => {
@@ -504,7 +514,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (selectedDocument?.config) return;
+    if (selectedDocument?.config || !selectedDocument?.editable) return;
 
     getDocumentConfig();
   }, [selectedDocument]);
@@ -551,7 +561,7 @@ const TableRowSkeleton = () => {
   return (
     <TableRow>
       <TableCell colSpan={3} className="p-2 bg-white">
-        <Skeleton className="h-10" />
+        <Skeleton className="h-8" />
       </TableCell>
     </TableRow>
   );
@@ -561,6 +571,7 @@ export function DocumentManager({ filter }: { filter: string }) {
   const { GET } = useAPI();
   const {
     path,
+    selectedDocument,
     setPath,
     loading,
     documents,
@@ -751,7 +762,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                           <TableCell className="flex justify-end items-center">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="icon">
+                                <Button variant="outline" size="icon-sm">
                                   <EllipsisVertical />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -802,74 +813,94 @@ export function DocumentManager({ filter }: { filter: string }) {
                       loading.documentType === "folder" &&
                       !loading.id && <TableRowSkeleton />}
 
-                    {filteredDocuments.files.map((file, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="pl-3">
-                          <div className="flex items-center gap-2">
-                            <File className="size-5 shrink-0" />
-                            <p
-                              className="transition-all duration-300 hover:underline hover:text-foreground cursor-pointer"
-                              onClick={() => selectDocument(file.documentID)}
-                            >{`${file.title}.${file.extension}`}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="flex justify-end items-center">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="icon">
-                                <EllipsisVertical />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              className="w-40"
-                              align="end"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuGroup>
-                                <DropdownMenuItem
-                                  onSelect={() =>
-                                    getDocumentHistory(file.documentID)
-                                  }
-                                >
-                                  View History
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onSelect={() =>
-                                    selectDocument(file.documentID)
-                                  }
-                                >
-                                  Open Document
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  textValue="rename"
-                                  onSelect={() =>
-                                    openProcess("rename", file.documentID)
-                                  }
-                                >
-                                  Rename Document
-                                </DropdownMenuItem>
-                                <Link href={file.url}>
-                                  <DropdownMenuItem textValue="download">
-                                    Download Document
+                    {filteredDocuments.files.map((file, index) => {
+                      const isSelected =
+                        file.documentID === selectedDocument?.documentID;
+
+                      return (
+                        <TableRow
+                          key={index}
+                          className={cn("transition-colors duration-300", {
+                            "bg-primary/10 hover:bg-primary/10": isSelected,
+                          })}
+                        >
+                          <TableCell className="pl-3">
+                            <div className="flex items-center gap-2">
+                              <File
+                                className={cn("size-5 shrink-0", {
+                                  "text-primary": isSelected,
+                                })}
+                              />
+                              <p
+                                className={cn({
+                                  "text-primary font-medium": isSelected,
+                                  "hover:underline hover:text-foreground cursor-pointer":
+                                    !isSelected,
+                                })}
+                                onClick={() =>
+                                  !isSelected && selectDocument(file.documentID)
+                                }
+                              >{`${file.title}.${file.extension}`}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="flex justify-end items-center">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon-sm">
+                                  <EllipsisVertical />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                className="w-40"
+                                align="end"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuGroup>
+                                  <DropdownMenuItem
+                                    onSelect={() =>
+                                      getDocumentHistory(file.documentID)
+                                    }
+                                  >
+                                    View History
                                   </DropdownMenuItem>
-                                </Link>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  variant="destructive"
-                                  textValue="delete"
-                                  onSelect={() =>
-                                    openProcess("delete", file.documentID)
-                                  }
-                                >
-                                  Delete Document
-                                </DropdownMenuItem>
-                              </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                                  <DropdownMenuItem
+                                    onSelect={() =>
+                                      selectDocument(file.documentID)
+                                    }
+                                  >
+                                    Open Document
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    textValue="rename"
+                                    onSelect={() =>
+                                      openProcess("rename", file.documentID)
+                                    }
+                                  >
+                                    Rename Document
+                                  </DropdownMenuItem>
+                                  <Link href={file.url}>
+                                    <DropdownMenuItem textValue="download">
+                                      Download Document
+                                    </DropdownMenuItem>
+                                  </Link>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    variant="destructive"
+                                    textValue="delete"
+                                    onSelect={() =>
+                                      openProcess("delete", file.documentID)
+                                    }
+                                  >
+                                    Delete Document
+                                  </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </>
                 ) : (
                   <TableRow>
@@ -885,7 +916,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                             get started.
                           </EmptyDescription>
                           <EmptyContent>
-                            <div className="flex flex-col sm:flex-row-reverse items-center gap-2 sm:gap-4 mt-4">
+                            <div className="flex flex-col items-center gap-2 mt-4">
                               {path.length > 0 && (
                                 <Button
                                   onClick={() =>
@@ -1258,21 +1289,21 @@ function DocumentsSidebar() {
           <SidebarMenu className="p-2 md:p-0 md:pt-2 flex flex-col gap-2">
             <SidebarMenuItem>
               <Button
+                onClick={() => openProcess("upload", null)}
+                className="w-full"
+                disabled={path.length === 0}
+              >
+                Upload New File
+              </Button>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Button
                 variant="outline"
                 disabled={loading.status && loading.documentType === "folder"}
                 onClick={() => createFolder()}
                 className="w-full"
               >
                 Create New Folder
-              </Button>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Button
-                onClick={() => openProcess("upload", null)}
-                className="w-full"
-                disabled={path.length === 0}
-              >
-                Upload New File
               </Button>
             </SidebarMenuItem>
           </SidebarMenu>

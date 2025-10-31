@@ -8,14 +8,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { usePathname, useRouter } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import {
   ChevronsUpDown,
   FileSearch2,
+  Gavel,
   Search,
   SearchIcon,
   SearchX,
-  TextSearch,
+  File,
+  User,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TranslationDropdown } from "@/context/TranslationContext";
@@ -58,6 +60,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Button } from "@/components/ui/button";
+import { useDocument } from "@/context/DocumentContext";
 
 interface IProfile {
   userType: "Clerk" | "Notary";
@@ -72,6 +75,12 @@ interface IPage {
   userTypes: ("Clerk" | "Notary")[];
   showcase: string;
   description: string;
+}
+
+interface ISuggestion {
+  resultText: string;
+  resultType: "Document" | "Person" | "Court";
+  detail: any;
 }
 
 const pages: IPage[] = [
@@ -99,33 +108,28 @@ const pages: IPage[] = [
   },
 ];
 
-const dummyData = [
-  { text: "Document Management", route: "/dashboard/document-management" },
-  { text: "User Management", route: "/dashboard/user-management" },
-  { text: "Court Decisions", route: "/dashboard/court-decisions" },
-  { text: "Profile Settings", route: "/dashboard/profile" },
-  { text: "Billing Information", route: "/dashboard/billing" },
-  { text: "Calendar View", route: "/dashboard/calendar" },
-  { text: "Notifications", route: "/dashboard/notifications" },
-  { text: "Reports", route: "/dashboard/reports" },
-  { text: "Help Center", route: "/dashboard/help" },
-  { text: "Logout", route: "/auth" },
-];
+const suggestionIcons: { [key in ISuggestion["resultType"]]: React.ReactNode } =
+  {
+    Document: <File />,
+    Person: <User />,
+    Court: <Gavel />,
+  };
 
 function SidebarNavigation() {
   const { GET } = useAPI();
   const router = useRouter();
   const pathname = usePathname();
-  const { setOpen, open, isMobile } = useSidebar();
+  const { setOpen, isMobile } = useSidebar();
+  const { selectDocument } = useDocument();
 
   const [profile, setProfile] = useState<IProfile | null>(null);
   const [page, setPage] = useState<IPage | null>(null);
   const [isCommandOpen, setIsCommandOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
   const [isSearchLoading, setIsSearchLoading] = useState<boolean>(false);
-  const [searchSuggestions, setSearchSuggestions] = useState<any[] | null>(
-    null
-  );
+  const [searchSuggestions, setSearchSuggestions] = useState<
+    ISuggestion[] | null
+  >(null);
 
   const logoutDashboard = () => {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -143,15 +147,34 @@ function SidebarNavigation() {
 
     setIsSearchLoading(true);
     GET(
-      "GetProfile",
+      "Search",
       { Query: search },
       (data) => {
-        // setSearchOptions(data);
-        setSearchSuggestions(dummyData);
+        setSearchSuggestions(data);
         setIsSearchLoading(false);
       },
       () => setIsSearchLoading(false)
     );
+  };
+
+  const redirectSuggestion = (suggestion: ISuggestion) => {
+    switch (suggestion.resultType) {
+      case "Document":
+        selectDocument(suggestion.detail);
+        break;
+      case "Person":
+        router.push(`/dashboard/person/${suggestion.detail.profileID}`);
+        break;
+      case "Court":
+        router.push(
+          `/dashboard/court-decisions?filter=${suggestion.detail.courtOrderID}`
+        );
+        break;
+    }
+
+    setIsCommandOpen(false);
+    setSearch("");
+    setSearchSuggestions(null);
   };
 
   useEffect(() => {
@@ -163,20 +186,6 @@ function SidebarNavigation() {
       setOpen(false);
     }
   }, [pathname]);
-
-  useEffect(() => {
-    getProfile();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === "k") {
-        e.preventDefault();
-        setIsCommandOpen(true);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   useEffect(() => {
     if (!isCommandOpen) return;
@@ -192,7 +201,19 @@ function SidebarNavigation() {
     };
   }, [search]);
 
-  console.log("IS MOBILE", isMobile);
+  useEffect(() => {
+    getProfile();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "k") {
+        e.preventDefault();
+        setIsCommandOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
@@ -337,15 +358,14 @@ function SidebarNavigation() {
             searchSuggestions && searchSuggestions.length > 0 ? (
               <>
                 <CommandGroup heading="Suggestions">
-                  {searchSuggestions.map((suggesion, index) => (
+                  {searchSuggestions.map((suggestion: ISuggestion, index) => (
                     <CommandItem
                       key={index}
-                      onSelect={() => {
-                        router.push(suggesion.route);
-                        setIsCommandOpen(false);
-                      }}
+                      value={suggestion.resultText}
+                      onSelect={() => redirectSuggestion(suggestion)}
                     >
-                      {suggesion.text}
+                      {suggestionIcons[suggestion.resultType]}
+                      {suggestion.resultText}
                     </CommandItem>
                   ))}
                 </CommandGroup>

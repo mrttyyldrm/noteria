@@ -250,7 +250,7 @@ function UserManagement() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          size="icon"
+                          size="icon-sm"
                           disabled={
                             loading.process === null &&
                             loading.userID === user.userID

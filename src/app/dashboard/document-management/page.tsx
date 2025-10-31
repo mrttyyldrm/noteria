@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { useDocument, DocumentManager } from "@/context/DocumentContext";
 import FileManagementSkeleton from "./loading";
+import { useSearchParams } from "next/navigation";
 
 function DocumentManagement() {
   const { path, loading, documents, openProcess, createFolder } = useDocument();
   useDocument();
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("filter");
 
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>(filter ?? "");
 
   if (!documents) {
     return <FileManagementSkeleton />;
