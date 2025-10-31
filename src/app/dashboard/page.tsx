@@ -76,7 +76,7 @@ function Dashboard() {
                   id="docxEditor"
                   documentServerUrl="https://384311e4.docs.onlyoffice.com"
                   config={selectedDocument.config}
-                  events_onDocumentReady={() => setIsReady(true)}
+                  events_onAppReady={() => setIsReady(true)}
                   onLoadComponentError={(_, message) =>
                     showNotification(message, "error")
                   }
@@ -102,8 +102,8 @@ function Dashboard() {
                   className="w-full h-full"
                   onLoad={() => setIsReady(true)}
                 />
-                <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 text-muted-foreground">
-                  <Info />
+                <Card className="p-2 pr-4 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 text-muted-foreground">
+                  <Info className="shrink" />
                   <p className="text-sm">
                     You are currently in preview mode and editing is not
                     available.

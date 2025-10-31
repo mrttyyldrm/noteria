@@ -417,7 +417,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
       const base64String = reader.result as string;
 
       const documentData = {
-        FileName: title,
+        FileName: title.replace(/\./g, ""),
         Path: path.toLowerCase(),
         Content: base64String,
       };
@@ -514,7 +514,11 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (selectedDocument?.config || !selectedDocument?.editable) return;
+    if (!selectedDocument) return;
+
+    GET("OpenDoc", { DocID: selectedDocument?.documentID });
+
+    if (selectedDocument.config || !selectedDocument.editable) return;
 
     getDocumentConfig();
   }, [selectedDocument]);
