@@ -3,16 +3,14 @@ import { notFound } from "next/navigation";
 
 interface ResetLayoutTypes {
   children: React.ReactNode;
-  params: {
-    hash: string;
-  };
+  params: Promise<{ hash: string }>;
 }
 
 const hashRegex =
   /^([0-9A-Fa-f]{8}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{4}-?[0-9A-Fa-f]{12})$/;
 
-function ResetLayout({ children, params }: ResetLayoutTypes) {
-  const hash = params.hash;
+async function ResetLayout({ children, params }: ResetLayoutTypes) {
+  const { hash } = await params;
 
   if (!hashRegex.test(hash)) {
     notFound();

@@ -119,7 +119,7 @@ interface IFile {
   config?: IDocumentConfig;
 }
 
-interface IDocumentConfig {
+export interface IDocumentConfig {
   type: string;
   document: {
     fileType: string;
@@ -1025,8 +1025,11 @@ export function DocumentManager({ filter }: { filter: string }) {
                       href={`/dashboard/compare?old=${encodeURIComponent(
                         history.oldPath
                       )}&new=${encodeURIComponent(history.newPath)}`}
+                      target="_blank"
                     >
-                      <Button variant="outline">Compare Changes</Button>
+                      <Button size="sm" variant="outline">
+                        Compare Changes
+                      </Button>
                     </Link>
                   )}
                 </div>
