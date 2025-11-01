@@ -139,7 +139,7 @@ function UserManagement() {
 
     setLoading({ process: "password", userID });
     GET(
-      "ResetPass",
+      "ForgotPassword",
       { userID },
       () => {
         showNotification(

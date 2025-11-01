@@ -34,7 +34,7 @@ function Auth() {
   const [code, setCode] = useState<string>("");
   const [isOTPInvalid, setIsOTPInvalid] = useState<boolean>(false);
 
-  const Auth = () => {
+  const auth = () => {
     if (isLoading) return;
 
     const authData = {
@@ -99,7 +99,7 @@ function Auth() {
     },
     validationSchema: validationSchema,
     onSubmit: () => {
-      Auth();
+      auth();
     },
   });
 
