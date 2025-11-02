@@ -13,10 +13,11 @@ import {
   Folder,
   RefreshCw,
   Save,
-  Search,
   X,
   EllipsisVertical,
   File,
+  SearchIcon,
+  FolderRoot,
 } from "lucide-react";
 import {
   Sidebar,
@@ -103,16 +104,20 @@ import {
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 interface IDocuments {
   directories: string[];
   files: IFile[];
 }
 
-interface IFile {
+export interface IFile {
   documentID: number;
   title: string;
-  bucketName: string;
   extension: string;
   url: string;
   editable: boolean;
@@ -164,9 +169,13 @@ interface DocumentContextTypes {
     documentID: number | null;
     path: string | null;
   };
-  openProcess: (mode: IMode, documentID: number | null, path?: string) => void;
+  openProcess: (
+    mode: IMode,
+    documentID: number | null,
+    initialPath?: string
+  ) => void;
   closeProcess: () => void;
-  selectDocument: (documentID: number | null) => void;
+  selectDocument: (documentID: number | IFile | null) => void;
   getDocuments: () => void;
   uploadDocument: (
     title: INewDocument["fileName"],
@@ -374,6 +383,8 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
       setSelectedDocument(documentID);
       setOpenMobile(false);
       setOpen(false);
+
+      if (pathname !== DASHBORAD_PATH) router.push(DASHBORAD_PATH);
       return;
     }
 
@@ -504,9 +515,9 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const openProcess = (
     mode: IMode,
     documentID: number | null,
-    _path?: string
+    initialPath?: string
   ) => {
-    setProcess({ mode, documentID, path: _path || path.join("/") });
+    setProcess({ mode, documentID, path: initialPath ?? path.join("/") });
   };
 
   const closeProcess = () => {
@@ -622,6 +633,12 @@ export function DocumentManager({ filter }: { filter: string }) {
     setPath((prev) => [...prev, folderName]);
   };
 
+  const handleRenameInput = (value: string) => {
+    const sanitized = value.replace(/[^a-zA-Z0-9 _-]/g, "");
+
+    setRenameInput(sanitized);
+  };
+
   const filteredDocuments = {
     directories:
       documents?.directories.filter((directory) =>
@@ -652,7 +669,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                   <BreadcrumbList className="sm:gap-1">
                     <BreadcrumbItem>
                       <BreadcrumbLink asChild>
-                        <Folder
+                        <FolderRoot
                           className="size-4 cursor-pointer"
                           onClick={() => setPath([])}
                         />
@@ -728,7 +745,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                                   name="renameInput"
                                   value={renameInput}
                                   onChange={(e) =>
-                                    setRenameInput(e.target.value)
+                                    handleRenameInput(e.target.value)
                                   }
                                   className="max-w-40"
                                 />
@@ -920,16 +937,10 @@ export function DocumentManager({ filter }: { filter: string }) {
                             get started.
                           </EmptyDescription>
                           <EmptyContent>
-                            <div className="flex flex-col items-center gap-2 mt-4">
+                            <div className="flex flex-col items-center gap-2">
                               {path.length > 0 && (
                                 <Button
-                                  onClick={() =>
-                                    openProcess(
-                                      "upload",
-                                      null,
-                                      path[path.length - 1]
-                                    )
-                                  }
+                                  onClick={() => openProcess("upload", null)}
                                 >
                                   Upload New File
                                 </Button>
@@ -1043,8 +1054,7 @@ export function DocumentManager({ filter }: { filter: string }) {
 }
 
 function UploadDocumentDialog() {
-  const { path, loading, process, uploadDocument, closeProcess } =
-    useDocument();
+  const { loading, process, uploadDocument, closeProcess } = useDocument();
 
   const handleDrop = async (files: File[]) => {
     const file = files[0];
@@ -1068,15 +1078,10 @@ function UploadDocumentDialog() {
     onSubmit: (values) => {
       if (!values.file || !process.path) return;
 
-      uploadDocument(
-        values.title,
-        values.file,
-        process.path ?? path.join("/"),
-        () => {
-          formik.resetForm();
-          closeProcess();
-        }
-      );
+      uploadDocument(values.title, values.file, process.path, () => {
+        formik.resetForm();
+        closeProcess();
+      });
     },
   });
 
@@ -1087,6 +1092,12 @@ function UploadDocumentDialog() {
           <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription className="flex flex-col gap-2">
             Upload a document to create a new document.
+          </DialogDescription>
+          <DialogDescription asChild>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">Source Path:</p>
+              <Badge variant="outline">/{process.path?.toLowerCase()}</Badge>
+            </div>
           </DialogDescription>
         </DialogHeader>
         <form
@@ -1281,15 +1292,16 @@ function DocumentsSidebar() {
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent className="flex flex-col h-full px-4 sm:p-2 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
+          <InputGroup className="bg-white">
+            <InputGroupInput
               placeholder="Search folders or files..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
             />
-          </div>
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
+          </InputGroup>
           <DocumentManager filter={searchTerm} />
         </SidebarContent>
         <SidebarFooter className="border-t mt-2">

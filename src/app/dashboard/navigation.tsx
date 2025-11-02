@@ -310,8 +310,8 @@ function SidebarNavigation() {
                         <Image
                           src={page.showcase}
                           alt={page.name}
-                          width={100}
-                          height={100}
+                          width={200}
+                          height={200}
                           className="rounded-lg object-cover object-center mr-1 border border-border aspect-square w-12 sm:w-20 mt-1 sm:mt-0"
                         />
                         <div className="flex flex-col">

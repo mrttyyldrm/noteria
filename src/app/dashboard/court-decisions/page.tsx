@@ -28,6 +28,8 @@ import {
   X,
   Sparkles,
   RefreshCw,
+  SearchIcon,
+  CircleAlert,
 } from "lucide-react";
 import {
   Empty,
@@ -74,8 +76,18 @@ import {
   AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
 import { useSearchParams } from "next/navigation";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-interface IDecision {
+export interface IDecision {
   caseOrderID: number;
   caseNumber: string | null;
   summary: string | null;
@@ -111,15 +123,34 @@ function CourtDecisionsLoading() {
   ));
 }
 
-const checkIsMissing = (value: any, content: () => React.ReactNode) => {
-  if (!value || (Array.isArray(value) && value.length === 0)) {
-    return (
+const checkIsMissing = (
+  value: any,
+  content?: () => React.ReactNode,
+  error?: () => React.ReactNode
+) => {
+  const hasMissingData = (val: any): boolean => {
+    if (val === null || val === undefined || val === "") return true;
+
+    if (Array.isArray(val)) return val.length === 0 || val.some(hasMissingData);
+
+    if (typeof val === "object") {
+      return Object.values(val).some(hasMissingData);
+    }
+
+    return false;
+  };
+
+  if (hasMissingData(value)) {
+    return error ? (
+      error()
+    ) : (
       <div>
-        <Badge variant="destructive">Missing Data</Badge>
+        <Badge variant="secondary">Missing Data</Badge>
       </div>
     );
   }
-  return content();
+
+  return content?.();
 };
 
 function CourtDecisions() {
@@ -183,15 +214,16 @@ function CourtDecisions() {
   return (
     <section className="w-full h-full flex flex-col gap-4 p-4">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
+        <InputGroup className="sm:max-w-3xs">
+          <InputGroupInput
             placeholder="Search decisions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
           />
-        </div>
+          <InputGroupAddon>
+            <SearchIcon />
+          </InputGroupAddon>
+        </InputGroup>
         <Button onClick={() => openProcess("upload", null, "Court")}>
           Upload New Court Decision
         </Button>
@@ -236,10 +268,24 @@ function CourtDecisions() {
                 {filteredDecisions && filteredDecisions.length > 0 ? (
                   filteredDecisions.map((decision, index) => (
                     <TableRow key={index}>
-                      <TableCell className="pl-3">
-                        {checkIsMissing(decision.caseNumber, () => (
-                          <>{decision.caseNumber}</>
+                      <TableCell className="pl-3 flex items-center gap-2">
+                        {checkIsMissing(decision, undefined, () => (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="destructive" className="p-1">
+                                <CircleAlert />
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              This record has missing data. Please review and
+                              update the information.
+                            </TooltipContent>
+                          </Tooltip>
                         ))}
+                        {checkIsMissing(
+                          decision.caseNumber,
+                          () => decision.caseNumber
+                        )}
                       </TableCell>
                       <TableCell>
                         {checkIsMissing(

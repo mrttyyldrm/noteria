@@ -14,7 +14,13 @@ import { Card } from "@/components/ui/card";
 import useAPI from "@/hooks/useAPI";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EllipsisVertical, RefreshCw, Search, UserRound } from "lucide-react";
+import {
+  EllipsisVertical,
+  RefreshCw,
+  Search,
+  SearchIcon,
+  UserRound,
+} from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Dialog,
@@ -52,6 +58,11 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 interface IUser {
   userID: number;
@@ -189,15 +200,16 @@ function UserManagement() {
   return (
     <section className="w-full h-full flex flex-col gap-4 p-4">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
+        <InputGroup className="sm:max-w-3xs">
+          <InputGroupInput
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
           />
-        </div>
+          <InputGroupAddon>
+            <SearchIcon />
+          </InputGroupAddon>
+        </InputGroup>
         <Button onClick={() => setDialog({ process: "create", user: null })}>
           Create New User
         </Button>
@@ -303,7 +315,7 @@ function UserManagement() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="bg-white">
+                <TableCell colSpan={7} className="bg-white">
                   <Empty className="p-2">
                     <EmptyHeader>
                       <EmptyMedia variant="icon">

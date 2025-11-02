@@ -3,10 +3,15 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, SearchIcon } from "lucide-react";
 import { useDocument, DocumentManager } from "@/context/DocumentContext";
 import FileManagementSkeleton from "./loading";
 import { useSearchParams } from "next/navigation";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 function DocumentManagement() {
   const { path, loading, documents, openProcess, createFolder } = useDocument();
@@ -23,16 +28,17 @@ function DocumentManagement() {
   return (
     <section className="w-full h-full flex flex-col gap-4 p-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search document..."
+        <InputGroup className="sm:max-w-3xs">
+          <InputGroupInput
+            placeholder="Search folders or files..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
           />
-        </div>
-        <div className="grid grid-cols-2 sm:flex items-center gap-2">
+          <InputGroupAddon>
+            <SearchIcon />
+          </InputGroupAddon>
+        </InputGroup>
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:flex items-center gap-2">
           <Button
             variant="outline"
             disabled={loading.status && loading.documentType === "folder"}

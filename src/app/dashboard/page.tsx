@@ -6,7 +6,7 @@ import useAPI from "@/hooks/useAPI";
 import { useDocument } from "@/context/DocumentContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { File, FileClock, Info } from "lucide-react";
+import { File, FileClock, FileUp, Info } from "lucide-react";
 import {
   Empty,
   EmptyDescription,
@@ -16,6 +16,18 @@ import {
 } from "@/components/ui/empty";
 import { Card } from "@/components/ui/card";
 import { useNotification } from "@/context/NotificationContext";
+import { Tooltip } from "@radix-ui/react-tooltip";
+import { TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function Dashboard() {
   const { GET } = useAPI();
@@ -24,17 +36,30 @@ function Dashboard() {
 
   const [isReady, setIsReady] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCompleting, setIsCompleting] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   const completeDocument = () => {
     if (!selectedDocument || isLoading) return;
 
+    setOpen(false);
+    setIsCompleting(true);
     setIsLoading(true);
-    GET("CheckDoc", { DocID: selectedDocument.documentID }, () => {
-      setIsLoading(false);
-      setCurrentStep(2);
-      showNotification("Document checked successfully!", "success");
-    });
+    GET(
+      "CheckDoc",
+      { DocID: selectedDocument.documentID },
+      () => {
+        setCurrentStep(2);
+        showNotification("Document completed successfully!", "success");
+        setIsLoading(false);
+        setIsCompleting(false);
+      },
+      () => {
+        setIsLoading(false);
+        setIsCompleting(false);
+      }
+    );
   };
 
   const calcPrice = () => {
@@ -65,52 +90,70 @@ function Dashboard() {
               </Empty>
             </Skeleton>
           )}
+          {isCompleting && (
+            <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50 flex justify-center items-center">
+              <Empty className="p-2">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon" className="bg-white/20">
+                    <FileUp />
+                  </EmptyMedia>
+                  <EmptyTitle>Document is Completing</EmptyTitle>
+                  <EmptyDescription>
+                    Please wait while the document is being completed.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            </Skeleton>
+          )}
           <div
             className={`relative w-full h-full flex flex-col rounded-b-lg overflow-hidden ${
-              !isReady ? "opacity-0" : ""
+              !isReady || isCompleting ? "opacity-0" : ""
             }`}
           >
             {selectedDocument.editable && selectedDocument.config && (
-              <>
-                <DocumentEditor
-                  id="docxEditor"
-                  documentServerUrl="https://384311e4.docs.onlyoffice.com"
-                  config={selectedDocument.config}
-                  events_onAppReady={() => setIsReady(true)}
-                  onLoadComponentError={(_, message) =>
-                    showNotification(message, "error")
-                  }
-                />
-                <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => selectDocument(null)}
-                  >
-                    Close Document
-                  </Button>
-                  <Button disabled={isLoading} onClick={completeDocument}>
-                    {isLoading ? "Completing..." : "Complete Document"}
-                  </Button>
-                </Card>
-              </>
+              <DocumentEditor
+                id="docxEditor"
+                documentServerUrl="https://384311e4.docs.onlyoffice.com"
+                config={selectedDocument.config}
+                events_onAppReady={() => setIsReady(true)}
+                onLoadComponentError={(_, message) =>
+                  showNotification(message, "error")
+                }
+              />
             )}
 
             {!selectedDocument.editable && (
-              <>
-                <iframe
-                  src={selectedDocument.url}
-                  className="w-full h-full"
-                  onLoad={() => setIsReady(true)}
-                />
-                <Card className="p-2 pr-4 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 text-muted-foreground">
-                  <Info className="shrink" />
-                  <p className="text-sm">
+              <iframe
+                src={selectedDocument.url}
+                className="w-full h-full"
+                onLoad={() => setIsReady(true)}
+              />
+            )}
+
+            <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
+              <Button variant="outline" onClick={() => selectDocument(null)}>
+                Close Document
+              </Button>
+              {selectedDocument.editable && selectedDocument.config && (
+                <Button disabled={isLoading} onClick={() => setOpen(true)}>
+                  {isLoading ? "Completing..." : "Complete Document"}
+                </Button>
+              )}
+
+              {!selectedDocument.editable && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Info />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
                     You are currently in preview mode and editing is not
                     available.
-                  </p>
-                </Card>
-              </>
-            )}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </Card>
           </div>
         </>
       ) : (
@@ -128,6 +171,26 @@ function Dashboard() {
           </Empty>
         )
       )}
+
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you saved the document?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              If you complete the document without saving, your changes may be
+              lost. Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={completeDocument}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
