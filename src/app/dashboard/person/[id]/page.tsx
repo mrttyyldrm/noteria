@@ -1,8 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import PersonSkeleton from "./loading";
+import type { IDecision } from "@/app/dashboard/court-decisions/page";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Field, FieldLabel, FieldContent } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Table,
   TableBody,
@@ -11,46 +21,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Field, FieldLabel, FieldContent } from "@/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { SearchIcon, File } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { formatDate, isDatePast } from "@/lib/date";
 import { useDocument, type IFile } from "@/context/DocumentContext";
-import type { IDecision } from "@/app/dashboard/court-decisions/page";
 import useAPI from "@/hooks/useAPI";
+import { formatDate, isDatePast } from "@/lib/date";
+import { SearchIcon, File } from "lucide-react";
 import Link from "next/link";
-
-const decisions = [
-  {
-    caseNumber: "Case 001",
-    startDate: "2023-01-01",
-    expireDate: "2024-01-01",
-    relatedPerson: ["Person A", "Person B"],
-    relatedProperties: ["Property 1", "Property 2", "Property 3"],
-  },
-  {
-    caseNumber: "Case 002",
-    startDate: "2023-02-01",
-    expireDate: "2023-12-31",
-    relatedPerson: ["Person C"],
-    relatedProperties: ["Property 4"],
-  },
-  {
-    caseNumber: "Case 003",
-    startDate: "2023-03-01",
-    expireDate: "2025-03-01",
-    relatedPerson: ["Person D", "Person E", "Person F"],
-    relatedProperties: ["Property 5", "Property 6"],
-  },
-];
+import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 interface IPersonProfile {
   personalInfo: {
@@ -69,7 +46,7 @@ function Person() {
 
   const [profile, setProfile] = useState<IPersonProfile | null>(null);
   const [navigation, setNavigation] = useState<"document" | "court">(
-    "document"
+    "document",
   );
 
   const { GET } = useAPI();
@@ -87,11 +64,11 @@ function Person() {
   }, []);
 
   if (!profile) {
-    return null;
+    return <PersonSkeleton />;
   }
 
   return (
-    <section className="w-full h-full gap-4 overflow-hidden grid grid-cols-1 lg:grid-cols-[20rem_1fr] items-start p-4">
+    <section className="w-full lg:h-full gap-4 overflow-hidden grid grid-cols-1 lg:grid-cols-[20rem_1fr] items-start p-4 ">
       <Card className="p-0">
         <CardHeader className="p-4 pb-0 space-y-2">
           <CardTitle className="flex flex-col items-center gap-2">
@@ -142,7 +119,7 @@ function Person() {
           </Field>
         </CardContent>
       </Card>
-      <div className="flex flex-col gap-4 h-full">
+      <div className="flex flex-col gap-4 h-full overflow-hidden">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputGroup className="w-full sm:max-w-3xs">
             <InputGroupInput
@@ -156,7 +133,7 @@ function Person() {
           </InputGroup>
           <ButtonGroup
             orientation={"horizontal"}
-            className="w-full grid grid-cols-2 sm:w-auto"
+            className="w-full grid grid-cols-2 sm:w-auto shrink-0"
           >
             <Button
               variant="outline"
@@ -227,7 +204,7 @@ function Person() {
                     </TableCell>
                     <TableCell>
                       {`${formatDate(decision.startDate)} - ${formatDate(
-                        decision.expireDate
+                        decision.expireDate,
                       )}`}
                     </TableCell>
                     <TableCell className="max-w-xs truncate">

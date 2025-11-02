@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr-TR">
+    <html>
       <body>
         <TranslationProvider>
           <NotificationProvider>{children}</NotificationProvider>
