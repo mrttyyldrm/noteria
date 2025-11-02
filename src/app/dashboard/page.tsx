@@ -1,23 +1,5 @@
 "use client";
 
-import { DocumentEditor } from "@onlyoffice/document-editor-react";
-import { useState, useEffect } from "react";
-import useAPI from "@/hooks/useAPI";
-import { useDocument } from "@/context/DocumentContext";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { File, FileClock, FileUp, Info } from "lucide-react";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import { Card } from "@/components/ui/card";
-import { useNotification } from "@/context/NotificationContext";
-import { Tooltip } from "@radix-ui/react-tooltip";
-import { TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +10,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useDocument } from "@/context/DocumentContext";
+import { useNotification } from "@/context/NotificationContext";
+import useAPI from "@/hooks/useAPI";
+import { DocumentEditor } from "@onlyoffice/document-editor-react";
+import { Tooltip } from "@radix-ui/react-tooltip";
+import { File, FileClock, FileUp, Info } from "lucide-react";
+import { useState, useEffect } from "react";
 
 function Dashboard() {
   const { GET } = useAPI();
@@ -58,7 +58,7 @@ function Dashboard() {
       () => {
         setIsLoading(false);
         setIsCompleting(false);
-      }
+      },
     );
   };
 

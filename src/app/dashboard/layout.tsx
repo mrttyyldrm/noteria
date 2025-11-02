@@ -1,6 +1,6 @@
-import { DocumentProvider } from "@/context/DocumentContext";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import SidebarNavigation from "./navigation";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { DocumentProvider } from "@/context/DocumentContext";
 
 export default function DashboardLayout({
   children,

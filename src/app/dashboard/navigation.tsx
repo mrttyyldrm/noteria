@@ -1,14 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Kbd } from "@/components/ui/kbd";
 import {
   SidebarTrigger,
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { redirect, usePathname, useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDocument } from "@/context/DocumentContext";
+import { TranslationDropdown } from "@/context/TranslationContext";
+import useAPI from "@/hooks/useAPI";
 import {
   ChevronsUpDown,
   FileSearch2,
@@ -19,48 +57,10 @@ import {
   File,
   User,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { TranslationDropdown } from "@/context/TranslationContext";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuSeparator,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
-import * as React from "react";
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-} from "@/components/ui/breadcrumb";
-import useAPI from "@/hooks/useAPI";
 import Image from "next/image";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { Kbd } from "@/components/ui/kbd";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import { Button } from "@/components/ui/button";
-import { useDocument } from "@/context/DocumentContext";
+import { redirect, usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import * as React from "react";
 
 interface IProfile {
   userType: "Clerk" | "Notary";
@@ -153,7 +153,7 @@ function SidebarNavigation() {
         setSearchSuggestions(data);
         setIsSearchLoading(false);
       },
-      () => setIsSearchLoading(false)
+      () => setIsSearchLoading(false),
     );
   };
 
@@ -167,7 +167,7 @@ function SidebarNavigation() {
         break;
       case "Court":
         router.push(
-          `/dashboard/court-decisions?filter=${suggestion.detail.courtOrderID}`
+          `/dashboard/court-decisions?filter=${suggestion.detail.courtOrderID}`,
         );
         break;
     }

@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import FileManagementSkeleton from "./loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, SearchIcon } from "lucide-react";
-import { useDocument, DocumentManager } from "@/context/DocumentContext";
-import FileManagementSkeleton from "./loading";
-import { useSearchParams } from "next/navigation";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { useDocument, DocumentManager } from "@/context/DocumentContext";
+import { Search, SearchIcon } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import React, { useState } from "react";
 
 function DocumentManagement() {
   const { path, loading, documents, openProcess, createFolder } = useDocument();

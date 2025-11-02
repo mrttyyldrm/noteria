@@ -1,27 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import useAPI from "@/hooks/useAPI";
+import UserManagementSkeleton from "./loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  EllipsisVertical,
-  RefreshCw,
-  Search,
-  SearchIcon,
-  UserRound,
-} from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -47,22 +30,39 @@ import {
   EmptyHeader,
   EmptyDescription,
 } from "@/components/ui/empty";
-import UserManagementSkeleton from "./loading";
-import { useNotification } from "@/context/NotificationContext";
-import { useFormik } from "formik";
-import * as yup from "yup";
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useNotification } from "@/context/NotificationContext";
+import useAPI from "@/hooks/useAPI";
+import { useFormik } from "formik";
+import {
+  EllipsisVertical,
+  RefreshCw,
+  Search,
+  SearchIcon,
+  UserRound,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import * as yup from "yup";
 
 interface IUser {
   userID: number;
@@ -113,7 +113,7 @@ function UserManagement() {
         setUsers(data);
         setIsLoading(false);
       },
-      () => setIsLoading(false)
+      () => setIsLoading(false),
     );
   };
 
@@ -132,16 +132,16 @@ function UserManagement() {
       () => {
         setUsers((prev) =>
           prev.map((user) =>
-            user.userID === userID ? { ...user, userActive: status } : user
-          )
+            user.userID === userID ? { ...user, userActive: status } : user,
+          ),
         );
         showNotification(
           `User has been ${status ? "enabled" : "disabled"} successfully.`,
-          "success"
+          "success",
         );
         setLoading({ process: null, userID: null });
       },
-      () => setLoading({ process: null, userID: null })
+      () => setLoading({ process: null, userID: null }),
     );
   };
 
@@ -155,11 +155,11 @@ function UserManagement() {
       () => {
         showNotification(
           "The user's password has been successfully reset. A password reset link has been sent to the user's registered email address. Please check the email.",
-          "success"
+          "success",
         );
         setLoading({ process: null, userID: null });
       },
-      () => setLoading({ process: null, userID: null })
+      () => setLoading({ process: null, userID: null }),
     );
   };
 
@@ -173,13 +173,13 @@ function UserManagement() {
       () => {
         setUsers((prev) =>
           prev.map((user) =>
-            user.userID === userID ? { ...user, mfaActive: false } : user
-          )
+            user.userID === userID ? { ...user, mfaActive: false } : user,
+          ),
         );
         showNotification(`User's MFA has been reset successfully.`, "success");
         setLoading({ process: null, userID: null });
       },
-      () => setLoading({ process: null, userID: null })
+      () => setLoading({ process: null, userID: null }),
     );
   };
 
@@ -190,7 +190,7 @@ function UserManagement() {
   const filteredUsers = users.filter(
     (user) =>
       user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (!users || (users.length === 0 && searchTerm === "")) {
@@ -363,7 +363,7 @@ function CreateOrUpdateUserDialog({
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userTypes, setUserTypes] = useState<Record<number, string> | null>(
-    null
+    null,
   );
 
   const initialValues = user
@@ -398,7 +398,7 @@ function CreateOrUpdateUserDialog({
         onSubmit();
         onClose();
       },
-      () => onClose()
+      () => onClose(),
     );
   };
 
@@ -414,7 +414,7 @@ function CreateOrUpdateUserDialog({
         onSubmit();
         onClose();
       },
-      () => onClose()
+      () => onClose(),
     );
   };
 
@@ -536,8 +536,8 @@ function CreateOrUpdateUserDialog({
                   ? "Updating..."
                   : "Creating..."
                 : user
-                ? "Update"
-                : "Create"}
+                  ? "Update"
+                  : "Create"}
             </Button>
           </DialogFooter>
         </form>

@@ -1,7 +1,5 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
-import translation from "@/locales/translation.json";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,7 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import translation from "@/locales/translation.json";
 import { Globe } from "lucide-react";
+import { createContext, useContext, useState } from "react";
 
 export type LanguageKeys = keyof typeof translation;
 
@@ -31,7 +31,7 @@ const TranslationContextDefaultValues: TranslationContextTypes = {
 };
 
 const TranslationContext = createContext<TranslationContextTypes>(
-  TranslationContextDefaultValues
+  TranslationContextDefaultValues,
 );
 
 export function TranslationProvider({
@@ -40,10 +40,10 @@ export function TranslationProvider({
   children: React.ReactNode;
 }) {
   const [currentLanguage, setCurrentLanguage] = useState<LanguageKeys>(
-    TranslationContextDefaultValues.currentLanguage
+    TranslationContextDefaultValues.currentLanguage,
   );
   const [translations, setTranslations] = useState<Record<string, any>>(
-    translation[TranslationContextDefaultValues.currentLanguage] || {}
+    translation[TranslationContextDefaultValues.currentLanguage] || {},
   );
 
   const changeLanguage = (newLanguage: LanguageKeys) => {

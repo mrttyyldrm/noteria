@@ -1,5 +1,5 @@
-import React from "react";
 import { notFound } from "next/navigation";
+import React from "react";
 
 interface ResetLayoutTypes {
   children: React.ReactNode;

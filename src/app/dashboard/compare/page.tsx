@@ -1,21 +1,21 @@
 "use client";
 
-import { DocumentEditor } from "@onlyoffice/document-editor-react";
-import React, { useEffect, useState } from "react";
-import { notFound, useSearchParams } from "next/navigation";
-import type { IDocumentConfig } from "@/context/DocumentContext";
 import CompareManagementsSkeleton from "./loading";
-import useAPI from "@/hooks/useAPI";
+import { Button } from "@/components/ui/button";
+import { Card, CardTitle } from "@/components/ui/card";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useSidebar } from "@/components/ui/sidebar";
+import type { IDocumentConfig } from "@/context/DocumentContext";
 import { useNotification } from "@/context/NotificationContext";
-import { Card, CardTitle } from "@/components/ui/card";
+import useAPI from "@/hooks/useAPI";
+import { DocumentEditor } from "@onlyoffice/document-editor-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { notFound, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 function CompareDocuments() {
   const { GET } = useAPI();
@@ -39,7 +39,7 @@ function CompareDocuments() {
       { OldPath: oldDocumentPath, NewPath: newDocumentPath },
       (data) => {
         setdocuments(data);
-      }
+      },
     );
   };
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Item,
@@ -10,6 +9,7 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { CircleCheck, CircleAlert, Info, X } from "lucide-react";
+import { createContext, useContext, useState } from "react";
 
 interface NotificationTypes {
   message: string;
@@ -20,7 +20,7 @@ interface NotificationContextTypes {
   notifications: NotificationTypes[];
   showNotification: (
     message: string,
-    type?: "success" | "error" | "default"
+    type?: "success" | "error" | "default",
   ) => void;
   removeNotification: (index: number) => void;
   clearAllNotifications: () => void;
@@ -34,7 +34,7 @@ const NotificationContextDefaultValues: NotificationContextTypes = {
 };
 
 const NotificationContext = createContext<NotificationContextTypes>(
-  NotificationContextDefaultValues
+  NotificationContextDefaultValues,
 );
 
 export function NotificationProvider({
@@ -50,7 +50,7 @@ export function NotificationProvider({
 
   const showNotification = (
     message: string,
-    type: NotificationTypes["type"] = "error"
+    type: NotificationTypes["type"] = "error",
   ) => {
     const newNotification = {
       message: message,

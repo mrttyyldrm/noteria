@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { TranslationDropdown } from "@/context/TranslationContext";
+import Image from "next/image";
 
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

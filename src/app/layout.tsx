@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
-import { TranslationProvider } from "@/context/TranslationContext";
 import { NotificationProvider } from "@/context/NotificationContext";
+import { TranslationProvider } from "@/context/TranslationContext";
 import "@/style/globals.css";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Noteria | Kosovo's AI Powered Notary App",

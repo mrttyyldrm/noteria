@@ -1,15 +1,11 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Field,
+  FieldError,
   FieldGroup,
   FieldLabel,
-  FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,8 +14,12 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useTranslation } from "@/context/TranslationContext";
-import { QRCodeCanvas } from "qrcode.react";
 import useAPI from "@/hooks/useAPI";
+import { useFormik } from "formik";
+import { useRouter } from "next/navigation";
+import { QRCodeCanvas } from "qrcode.react";
+import { useEffect, useRef, useState } from "react";
+import * as Yup from "yup";
 
 function Auth() {
   const router = useRouter();
@@ -46,16 +46,16 @@ function Auth() {
     POST(
       "Auth",
       authData,
-      (response: any) => {
-        formik.setFieldValue("requestID", response.requestID);
-        setCurrentStep(response.mfaqr ? 2 : 3);
-        setQrLink(response.mfaqr || "");
+      (data) => {
+        formik.setFieldValue("requestID", data.requestID);
+        setCurrentStep(data.mfaqr ? 2 : 3);
+        setQrLink(data.mfaqr || "");
         setIsLoading(false);
       },
       () => {
         formik.resetForm();
         setIsLoading(false);
-      }
+      },
     );
   };
 
@@ -82,7 +82,7 @@ function Auth() {
         setTimeout(() => {
           setIsOTPInvalid(false);
         }, 2000);
-      }
+      },
     );
   };
 

@@ -1,6 +1,52 @@
 "use client";
 
-import React, { Fragment, useEffect, useState } from "react";
+import CourtDecisionsSkeleton from "./loading";
+import {
+  AlertDialogCancel,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Empty,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyHeader,
+  EmptyDescription,
+} from "@/components/ui/empty";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -9,17 +55,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useDocument } from "@/context/DocumentContext";
+import { useNotification } from "@/context/NotificationContext";
 import useAPI from "@/hooks/useAPI";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { formatDate, isDatePast } from "@/lib/date";
 import {
   AlertDialog,
   AlertDialogTitle,
   AlertDialogContent,
 } from "@radix-ui/react-alert-dialog";
+import { useFormik } from "formik";
 import {
   Search,
   Gavel,
@@ -31,61 +82,10 @@ import {
   SearchIcon,
   CircleAlert,
 } from "lucide-react";
-import {
-  Empty,
-  EmptyMedia,
-  EmptyTitle,
-  EmptyHeader,
-  EmptyDescription,
-} from "@/components/ui/empty";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import CourtDecisionsSkeleton from "./loading";
-import { useDocument } from "@/context/DocumentContext";
-import { useFormik } from "formik";
-import * as yup from "yup";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { formatDate, isDatePast } from "@/lib/date";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useNotification } from "@/context/NotificationContext";
-import {
-  AlertDialogCancel,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-} from "@/components/ui/alert-dialog";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import React, { Fragment, useEffect, useState } from "react";
+import * as yup from "yup";
 
 export interface IDecision {
   caseOrderID: number;
@@ -126,7 +126,7 @@ function CourtDecisionsLoading() {
 const checkIsMissing = (
   value: any,
   content?: () => React.ReactNode,
-  error?: () => React.ReactNode
+  error?: () => React.ReactNode,
 ) => {
   const hasMissingData = (val: any): boolean => {
     if (val === null || val === undefined || val === "") return true;
@@ -183,7 +183,7 @@ function CourtDecisions() {
         }
         setIsLoading(false);
       },
-      () => setIsLoading(false)
+      () => setIsLoading(false),
     );
   };
 
@@ -207,7 +207,7 @@ function CourtDecisions() {
     const search = searchTerm.toLowerCase();
 
     return decision.searchKeywords.some((k) =>
-      k.toLowerCase().includes(search)
+      k.toLowerCase().includes(search),
     );
   });
 
@@ -284,7 +284,7 @@ function CourtDecisions() {
                         ))}
                         {checkIsMissing(
                           decision.caseNumber,
-                          () => decision.caseNumber
+                          () => decision.caseNumber,
                         )}
                       </TableCell>
                       <TableCell>
@@ -292,8 +292,8 @@ function CourtDecisions() {
                           decision.startDate && decision.expireDate,
                           () =>
                             `${formatDate(decision.startDate)} - ${formatDate(
-                              decision.expireDate
-                            )}`
+                              decision.expireDate,
+                            )}`,
                         )}
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
@@ -356,7 +356,7 @@ function CourtDecisions() {
                                 openProcess(
                                   "delete",
                                   decision.caseOrderID,
-                                  "Court"
+                                  "Court",
                                 )
                               }
                             >
@@ -476,7 +476,7 @@ function ShowDecisionDialog({
                       <Badge variant="outline">{person.idNumber}</Badge>
                     ))}
                   </div>
-                ))
+                )),
               )}
             </Field>
             <Field className="col-span-2">
@@ -502,7 +502,7 @@ function ShowDecisionDialog({
                       </p>
                     ))}
                   </div>
-                ))
+                )),
               )}
             </Field>
             <Field className="col-span-2">
@@ -513,7 +513,7 @@ function ShowDecisionDialog({
                     <Badge key={index} variant="outline">
                       {keyword}
                     </Badge>
-                  ))
+                  )),
                 )}
               </div>
             </Field>
@@ -572,7 +572,7 @@ function UpdateDecisionDialog({
         onSubmit();
         onClose();
       },
-      () => setIsLoading(false)
+      () => setIsLoading(false),
     );
   };
 
@@ -590,7 +590,7 @@ function UpdateDecisionDialog({
         yup.object({
           nameSurname: yup.string().required("Name Surname is required!"),
           idNumber: yup.string().nullable().required("ID Number is required!"),
-        })
+        }),
       )
       .min(1, "At least 1 person are required!")
       .required("Related Person is required!"),
@@ -606,7 +606,7 @@ function UpdateDecisionDialog({
             .string()
             .required("Property Description is required!"),
           ProperyType: yup.string().required("Property Type is required!"),
-        })
+        }),
       )
       .required("Related Properties is required!"),
     searchKeywords: yup
@@ -786,8 +786,8 @@ function UpdateDecisionDialog({
                       formik.setFieldValue(
                         "relatedPerson",
                         formik.values.relatedPerson.filter(
-                          (_, i) => i !== index
-                        )
+                          (_, i) => i !== index,
+                        ),
                       )
                     }
                     disabled={isLoading}
@@ -893,8 +893,8 @@ function UpdateDecisionDialog({
                     formik.setFieldValue(
                       "relatedProperties",
                       formik.values.relatedProperties.filter(
-                        (_, i) => i !== index
-                      )
+                        (_, i) => i !== index,
+                      ),
                     )
                   }
                   disabled={isLoading}
@@ -977,8 +977,8 @@ function UpdateDecisionDialog({
                       formik.setFieldValue(
                         "searchKeywords",
                         formik.values.searchKeywords.filter(
-                          (_keyword) => _keyword !== keyword
-                        )
+                          (_keyword) => _keyword !== keyword,
+                        ),
                       )
                     }
                   >
@@ -1030,7 +1030,7 @@ function DeleteDecisionDialog({
         onSubmit();
         onClose();
       },
-      () => setIsLoading(false)
+      () => setIsLoading(false),
     );
   };
 

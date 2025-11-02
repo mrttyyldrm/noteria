@@ -1,9 +1,5 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -13,9 +9,13 @@ import {
   FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useParams } from "next/navigation";
-import useAPI from "@/hooks/useAPI";
 import { useNotification } from "@/context/NotificationContext";
+import useAPI from "@/hooks/useAPI";
+import { useFormik } from "formik";
+import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import React, { useState, useRef, useEffect } from "react";
+import * as Yup from "yup";
 
 function Reset() {
   const router = useRouter();
@@ -40,7 +40,7 @@ function Reset() {
       () => {
         showNotification(
           "Your password has been successfully changed!",
-          "success"
+          "success",
         );
         router.replace("/auth");
         setIsLoading(false);
@@ -48,7 +48,7 @@ function Reset() {
       () => {
         formik.resetForm();
         setIsLoading(false);
-      }
+      },
     );
   };
 

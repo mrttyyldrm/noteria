@@ -1,14 +1,93 @@
 "use client";
 
+import { useNotification } from "./NotificationContext";
 import {
-  createContext,
-  Fragment,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import Image from "next/image";
-import Link from "next/link";
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dropzone,
+  DropzoneContent,
+  DropzoneEmptyState,
+} from "@/components/ui/dropzone";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import useAPI from "@/hooks/useAPI";
+import { formatDate } from "@/lib/date";
+import { cn } from "@/lib/utils";
+import { useFormik } from "formik";
 import {
   Folder,
   RefreshCw,
@@ -19,96 +98,17 @@ import {
   SearchIcon,
   FolderRoot,
 } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import {
-  Dropzone,
-  DropzoneContent,
-  DropzoneEmptyState,
-} from "@/components/ui/dropzone";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import useAPI from "@/hooks/useAPI";
-import { useSidebar } from "@/components/ui/sidebar";
-import { useFormik } from "formik";
-import * as yup from "yup";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
-import { useNotification } from "./NotificationContext";
+import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { formatDate } from "@/lib/date";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+  createContext,
+  Fragment,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import * as yup from "yup";
 
 interface IDocuments {
   directories: string[];
@@ -172,7 +172,7 @@ interface DocumentContextTypes {
   openProcess: (
     mode: IMode,
     documentID: number | null,
-    initialPath?: string
+    initialPath?: string,
   ) => void;
   closeProcess: () => void;
   selectDocument: (documentID: number | IFile | null) => void;
@@ -181,11 +181,11 @@ interface DocumentContextTypes {
     title: INewDocument["fileName"],
     file: Blob,
     path: INewDocument["path"],
-    callback?: () => void
+    callback?: () => void,
   ) => void;
   renameDocument: (
     title: INewDocument["fileName"],
-    callback?: () => void
+    callback?: () => void,
   ) => void;
   deleteDocument: (callback?: () => void) => void;
   documents: IDocuments | null;
@@ -223,7 +223,7 @@ const DocumentContextDefaultValues: DocumentContextTypes = {
 };
 
 const DocumentContext = createContext<DocumentContextTypes>(
-  DocumentContextDefaultValues
+  DocumentContextDefaultValues,
 );
 
 export function DocumentProvider({ children }: { children: React.ReactNode }) {
@@ -236,16 +236,16 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const DASHBORAD_PATH = "/dashboard";
 
   const [path, setPath] = useState<DocumentContextTypes["path"]>(
-    DocumentContextDefaultValues.path
+    DocumentContextDefaultValues.path,
   );
   const [documents, setDocuments] = useState<DocumentContextTypes["documents"]>(
-    DocumentContextDefaultValues.documents
+    DocumentContextDefaultValues.documents,
   );
   const [loading, setLoading] = useState<DocumentContextTypes["loading"]>(
-    DocumentContextDefaultValues.loading
+    DocumentContextDefaultValues.loading,
   );
   const [process, setProcess] = useState<DocumentContextTypes["process"]>(
-    DocumentContextDefaultValues.process
+    DocumentContextDefaultValues.process,
   );
   const [selectedDocument, setSelectedDocument] = useState<
     DocumentContextTypes["selectedDocument"]
@@ -253,7 +253,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
   const activateLoading = (
     type: DocumentContextTypes["loading"]["documentType"],
-    id: DocumentContextTypes["loading"]["id"] = null
+    id: DocumentContextTypes["loading"]["id"] = null,
   ) => {
     setLoading({
       documentType: type,
@@ -278,7 +278,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         setDocuments(data);
         deactivateLoading();
       },
-      () => deactivateLoading()
+      () => deactivateLoading(),
     );
   };
 
@@ -317,7 +317,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         deactivateLoading();
         showNotification("Folder created successfully.", "success");
       },
-      () => deactivateLoading()
+      () => deactivateLoading(),
     );
   };
 
@@ -327,7 +327,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     activateLoading("folder", oldName);
 
     const newDirectories = documents?.directories.map((directory) =>
-      directory === oldName ? newName : directory
+      directory === oldName ? newName : directory,
     );
 
     GET(
@@ -344,7 +344,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         deactivateLoading();
         showNotification("Folder renamed successfully.", "success");
       },
-      () => deactivateLoading()
+      () => deactivateLoading(),
     );
   };
 
@@ -354,7 +354,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     activateLoading("folder", folderName);
 
     const newDirectories = documents?.directories.filter(
-      (directory) => directory !== folderName
+      (directory) => directory !== folderName,
     );
 
     GET(
@@ -368,7 +368,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         deactivateLoading();
         showNotification("Folder deleted successfully.", "success");
       },
-      () => deactivateLoading()
+      () => deactivateLoading(),
     );
   };
 
@@ -389,7 +389,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     }
 
     const document = documents?.files.find(
-      (document) => document.documentID === documentID
+      (document) => document.documentID === documentID,
     );
 
     setSelectedDocument(document ?? null);
@@ -410,7 +410,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         setSelectedDocument({ ...selectedDocument, config: data });
         deactivateLoading();
       },
-      () => deactivateLoading()
+      () => deactivateLoading(),
     );
   };
 
@@ -418,7 +418,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     title: INewDocument["fileName"],
     file: Blob,
     path: INewDocument["path"],
-    callback?: () => void
+    callback?: () => void,
   ) => {
     if (loading.status || !file) return;
 
@@ -443,7 +443,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
           showNotification("Document uploaded successfully.", "success");
           callback?.();
         },
-        () => deactivateLoading()
+        () => deactivateLoading(),
       );
     };
 
@@ -452,7 +452,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
   const renameDocument = (
     title: INewDocument["fileName"],
-    callback?: () => void
+    callback?: () => void,
   ) => {
     if (!documents || loading.status) return;
 
@@ -476,14 +476,14 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
           files: documents.files.map((document) =>
             document.documentID !== process.documentID
               ? { ...document, title }
-              : document
+              : document,
           ),
         });
         deactivateLoading();
         showNotification("Document renamed successfully.", "success");
         callback?.();
       },
-      () => deactivateLoading()
+      () => deactivateLoading(),
     );
   };
 
@@ -501,21 +501,21 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         setDocuments({
           ...documents,
           files: documents.files.filter(
-            (document) => document.documentID !== process.documentID
+            (document) => document.documentID !== process.documentID,
           ),
         });
         deactivateLoading();
         showNotification("Document deleted successfully.", "success");
         callback?.();
       },
-      () => deactivateLoading()
+      () => deactivateLoading(),
     );
   };
 
   const openProcess = (
     mode: IMode,
     documentID: number | null,
-    initialPath?: string
+    initialPath?: string,
   ) => {
     setProcess({ mode, documentID, path: initialPath ?? path.join("/") });
   };
@@ -623,7 +623,7 @@ export function DocumentManager({ filter }: { filter: string }) {
         setHistories(data);
         setIsHistoryLoading(false);
       },
-      () => setIsHistoryLoading(false)
+      () => setIsHistoryLoading(false),
     );
   };
 
@@ -642,11 +642,11 @@ export function DocumentManager({ filter }: { filter: string }) {
   const filteredDocuments = {
     directories:
       documents?.directories.filter((directory) =>
-        directory.toLowerCase().includes(filter.toLowerCase())
+        directory.toLowerCase().includes(filter.toLowerCase()),
       ) || [],
     files:
       documents?.files.filter((file) =>
-        file.title.toLowerCase().includes(filter.toLowerCase())
+        file.title.toLowerCase().includes(filter.toLowerCase()),
       ) || [],
   };
 
@@ -1034,7 +1034,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                   {history.oldPath !== "" && history.newPath !== "" && (
                     <Link
                       href={`/dashboard/compare?old=${encodeURIComponent(
-                        history.oldPath
+                        history.oldPath,
                       )}&new=${encodeURIComponent(history.newPath)}`}
                       target="_blank"
                     >
@@ -1169,7 +1169,7 @@ function RenameDocumentDialog() {
   });
 
   const initialDocumentTitle = documents?.files.find(
-    (file) => file.documentID === process.documentID
+    (file) => file.documentID === process.documentID,
   )?.title;
 
   const formik = useFormik({
