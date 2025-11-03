@@ -87,8 +87,10 @@ function Auth() {
   };
 
   const validationSchema = Yup.object({
-    email: Yup.string().required(t("validation_required")),
-    password: Yup.string().required(t("validation_required")),
+    email: Yup.string()
+      .required("This field is required")
+      .email("Invalid email format!"),
+    password: Yup.string().required("This field is required"),
   });
 
   const formik = useFormik({
@@ -124,10 +126,10 @@ function Auth() {
       <div className="flex flex-col gap-6">
         {currentStep === 1 && (
           <>
-            <div className="flex flex-col items-center gap-2">
-              <h1 className="text-3xl font-semibold">{t("login")}</h1>
+            <div className="flex flex-col items-center text-center gap-2">
+              <h1 className="text-3xl font-semibold">Login</h1>
               <p className="text-muted-foreground text-sm text-balance">
-                {t("login_subtitle")}
+                Enter your credentials to access your account.
               </p>
             </div>
             <form
@@ -137,13 +139,13 @@ function Auth() {
             >
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     disabled={isLoading}
-                    placeholder={t("email")}
+                    placeholder="Email"
                     value={formik.values.email}
                     onChange={formik.handleChange}
                     aria-invalid={
@@ -157,13 +159,13 @@ function Auth() {
                   )}
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="password">{t("password")}</FieldLabel>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
                   <Input
                     id="password"
                     name="password"
                     type="password"
                     disabled={isLoading}
-                    placeholder={t("password")}
+                    placeholder="Password"
                     value={formik.values.password}
                     onChange={formik.handleChange}
                     aria-invalid={
@@ -178,7 +180,7 @@ function Auth() {
                 </Field>
                 <Field>
                   <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? "Loading..." : t("login")}
+                    {isLoading ? "Loading..." : "Login"}
                   </Button>
                 </Field>
               </FieldGroup>
@@ -254,7 +256,7 @@ function Auth() {
                   disabled={isLoading}
                   className="w-full"
                 >
-                  {isLoading ? "Loading..." : t("verify_button")}
+                  {isLoading ? "Loading..." : "Verify"}
                 </Button>
               </Field>
             </div>
