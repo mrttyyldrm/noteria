@@ -36,9 +36,13 @@ const LanguageContext = createContext<LanguageContextTypes>(
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const { GET } = useAPI();
 
-  const [isLanguageLoading, setIsLanguageLoading] = useState<boolean>(false);
-  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
-  const [languages, setLanguages] = useState<Record<string, string> | {}>({});
+  const [isLanguageLoading, setIsLanguageLoading] =
+    useState<LanguageContextTypes["isLanguageLoading"]>(false);
+  const [currentLanguage, setCurrentLanguage] =
+    useState<LanguageContextTypes["currentLanguage"]>(null);
+  const [languages, setLanguages] = useState<LanguageContextTypes["languages"]>(
+    {},
+  );
   const [languagePackage, setLanguagePackage] = useState<
     Record<string, string>
   >({});
@@ -134,11 +138,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageContext.Provider value={value}>
-      {Object.keys(languagePackage).length === 0 ? (
-        <LanguageLoader />
-      ) : (
-        children
-      )}
+      {Object.keys(languagePackage).length === 0
+        ? // <LanguageLoader />
+          children
+        : children}
     </LanguageContext.Provider>
   );
 }
