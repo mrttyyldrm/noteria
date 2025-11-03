@@ -138,10 +138,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageContext.Provider value={value}>
-      {Object.keys(languagePackage).length === 0
-        ? // <LanguageLoader />
-          children
-        : children}
+      {Object.keys(languagePackage).length === 0 ? (
+        <LanguageLoader />
+      ) : (
+        children
+      )}
     </LanguageContext.Provider>
   );
 }
