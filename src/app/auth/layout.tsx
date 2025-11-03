@@ -1,4 +1,4 @@
-import { TranslationDropdown } from "@/context/TranslationContext";
+import { LanguageDropdown } from "@/context/LanguageContext";
 import Image from "next/image";
 
 function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -11,7 +11,7 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
             Noteria
           </div>
           <div className="absolute top-1/2 right-0 -translate-y-1/2">
-            <TranslationDropdown />
+            <LanguageDropdown />
           </div>
         </div>
         <div className="flex flex-1 items-center justify-center">

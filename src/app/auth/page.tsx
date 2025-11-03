@@ -13,7 +13,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { useTranslation } from "@/context/TranslationContext";
+import { useLanguage } from "@/context/LanguageContext";
 import useAPI from "@/hooks/useAPI";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ import * as Yup from "yup";
 
 function Auth() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const { GET, POST } = useAPI();
 
   const otpRef = useRef<HTMLInputElement>(null);

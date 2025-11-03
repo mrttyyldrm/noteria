@@ -4,8 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
-  BreadcrumbList,
   BreadcrumbItem,
+  BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,10 +20,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuSeparator,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Empty,
@@ -39,28 +39,28 @@ import {
 } from "@/components/ui/input-group";
 import { Kbd } from "@/components/ui/kbd";
 import {
-  SidebarTrigger,
   SidebarMenuButton,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocument } from "@/context/DocumentContext";
-import { TranslationDropdown } from "@/context/TranslationContext";
+import { LanguageDropdown } from "@/context/LanguageContext";
 import useAPI from "@/hooks/useAPI";
 import {
   ChevronsUpDown,
+  File,
   FileSearch2,
   Gavel,
   Search,
   SearchIcon,
   SearchX,
-  File,
   User,
 } from "lucide-react";
 import Image from "next/image";
-import { redirect, usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
+import { useEffect, useState } from "react";
 
 interface IProfile {
   userType: "Clerk" | "Notary";
@@ -344,7 +344,7 @@ function SidebarNavigation() {
         >
           <Search />
         </Button>
-        <TranslationDropdown />
+        <LanguageDropdown />
       </div>
 
       <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>

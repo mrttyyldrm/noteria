@@ -1,5 +1,5 @@
+import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
-import { useTranslation } from "@/context/TranslationContext";
 import { useRouter } from "next/navigation";
 
 export const getCookie = (cookieName: string): string | null => {
@@ -20,7 +20,7 @@ export const getCookie = (cookieName: string): string | null => {
 const useAPI = () => {
   const router = useRouter();
 
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const { showNotification } = useNotification();
 
   const BASE_URL = "https://api.noteria.app/";
@@ -89,7 +89,7 @@ const useAPI = () => {
     })
       .then((response) => handleAPIResponse(response, onSuccess, onError))
       .catch(() => {
-        showNotification(t("error.unknown"));
+        showNotification(t("asdad"));
         onError?.();
       });
   };

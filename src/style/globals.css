@@ -275,6 +275,7 @@
   --animate-scale: fade-scale 0.3s ease-out;
   --animate-fade-up: fade-up 0.3s ease-out;
   --animate-fade-right: fade-right 0.3s ease-out;
+  --animate-ping: ping 1.25s ease infinite;
 
   @keyframes fade-scale {
     0% {

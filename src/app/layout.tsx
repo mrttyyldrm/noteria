@@ -1,5 +1,5 @@
+import { LanguageProvider } from "@/context/LanguageContext";
 import { NotificationProvider } from "@/context/NotificationContext";
-import { TranslationProvider } from "@/context/TranslationContext";
 import "@/style/globals.css";
 import type { Metadata } from "next";
 
@@ -18,9 +18,9 @@ export default function RootLayout({
   return (
     <html>
       <body>
-        <TranslationProvider>
+        <LanguageProvider>
           <NotificationProvider>{children}</NotificationProvider>
-        </TranslationProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
