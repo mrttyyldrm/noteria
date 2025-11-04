@@ -28,10 +28,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Empty,
+  EmptyDescription,
+  EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-  EmptyHeader,
-  EmptyDescription,
 } from "@/components/ui/empty";
 import {
   Field,
@@ -67,20 +67,19 @@ import useAPI from "@/hooks/useAPI";
 import { formatDate, isDatePast } from "@/lib/date";
 import {
   AlertDialog,
-  AlertDialogTitle,
   AlertDialogContent,
+  AlertDialogTitle,
 } from "@radix-ui/react-alert-dialog";
 import { useFormik } from "formik";
 import {
-  Search,
-  Gavel,
+  CircleAlert,
   EllipsisVertical,
-  Trash2,
-  X,
-  Sparkles,
+  Gavel,
   RefreshCw,
   SearchIcon,
-  CircleAlert,
+  Sparkles,
+  Trash2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -188,11 +187,9 @@ function CourtDecisions() {
   };
 
   useEffect(() => {
-    if (processes !== null) return;
-
     setTimeout(() => {
       setProcesses([]);
-    }, 5000);
+    }, 10000);
   }, [processes]);
 
   useEffect(() => {

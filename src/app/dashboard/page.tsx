@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
@@ -41,6 +43,7 @@ interface IStatus {
   isValid: boolean;
   message: string;
   courtDoc: string;
+  parameters: string[];
 }
 
 function Dashboard() {
@@ -55,6 +58,7 @@ function Dashboard() {
     isValid: true,
     message: "",
     courtDoc: "",
+    parameters: [],
   });
   const [config, setConfig] = useState<IDocumentConfig | null>(null);
   const [price, setPrice] = useState<number | "">("");
@@ -270,7 +274,7 @@ function Dashboard() {
                       {Object.values(details)
                         .reduce((sum, value) => sum + value, 0)
                         .toFixed(2)}
-                      <span className="text-xl">€</span>
+                      <span className="text-xl ml-1">€</span>
                     </p>
                   </CardHeader>
                   <Separator />
@@ -354,13 +358,31 @@ function Dashboard() {
       <AlertDialog
         open={!status.isValid}
         onOpenChange={(open) =>
-          !open && setStatus({ isValid: true, message: "", courtDoc: "" })
+          !open &&
+          setStatus({
+            isValid: true,
+            message: "",
+            courtDoc: "",
+            parameters: [],
+          })
         }
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Document Verification Alert</AlertDialogTitle>
             <AlertDialogDescription>{status.message}</AlertDialogDescription>
+            <Field>
+              <FieldLabel>Detected Keywords:</FieldLabel>
+              {status.parameters.length > 0 && (
+                <div className="flex items-center flex-wrap gap-1">
+                  {status.parameters.map((parameter, index) => (
+                    <Badge key={index} variant="outline">
+                      {parameter}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </Field>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
