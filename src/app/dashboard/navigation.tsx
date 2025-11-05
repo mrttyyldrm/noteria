@@ -280,12 +280,12 @@ function SidebarNavigation() {
                       : profile.fullName}
                     <Badge
                       className={`scale-90 ${
-                        profile.userType === "Notary"
+                        profile.userTypeID !== 1
                           ? "bg-primary text-white"
                           : "bg-white"
                       }`}
                       variant={
-                        profile.userType === "Notary" ? "secondary" : "outline"
+                        profile.userTypeID !== 1 ? "secondary" : "outline"
                       }
                     >
                       {profile.userType}
