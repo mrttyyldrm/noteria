@@ -49,7 +49,7 @@ const useAPI = () => {
       }
 
       return response.json().then((data: any) => {
-        onSuccess?.(data);
+        setTimeout(() => onSuccess?.(data), 0);
       });
     }
 

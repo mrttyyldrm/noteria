@@ -361,7 +361,7 @@ function Dashboard() {
             <AlertDialogDescription>{status.message}</AlertDialogDescription>
             <Field>
               <FieldLabel>{t("A142D666D")}</FieldLabel>
-              {status.parameters.length > 0 && (
+              {status.parameters?.length > 0 && (
                 <div className="flex items-center flex-wrap gap-1">
                   {status.parameters.map((parameter, index) => (
                     <Badge key={index} variant="outline">
