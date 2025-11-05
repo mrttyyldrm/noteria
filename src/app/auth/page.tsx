@@ -24,7 +24,7 @@ import * as Yup from "yup";
 
 function Auth() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, isLanguageLoading } = useLanguage();
   const { GET, POST } = useAPI();
 
   const otpRef = useRef<HTMLInputElement>(null);
@@ -113,6 +113,12 @@ function Auth() {
       }, 100);
     }
   }, [currentStep]);
+
+  useEffect(() => {
+    if (isLanguageLoading) return;
+
+    formik.validateForm();
+  }, [isLanguageLoading]);
 
   useEffect(() => {
     if (code.length === 6 && !isLoading && currentStep === 3) {

@@ -59,19 +59,20 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface IProfile {
-  userType: "Clerk" | "Notary";
+  userType: string;
   noterLogo: string;
   noterName: string;
   fullName: string;
+  userTypeID: number;
 }
 
 interface IPage {
   name: string;
   route: string;
-  userTypes: string[];
+  blacklist: number[];
   showcase: string;
   description: string;
 }
@@ -91,7 +92,7 @@ const suggestionIcons: { [key in ISuggestion["resultType"]]: React.ReactNode } =
 
 function SidebarNavigation() {
   const { GET } = useAPI();
-  const { t, currentLanguage } = useLanguage();
+  const { t, isLanguageLoading } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const { setOpen, isMobile } = useSidebar();
@@ -106,32 +107,29 @@ function SidebarNavigation() {
     ISuggestion[] | null
   >(null);
 
-  const pages: IPage[] = useMemo(
-    () => [
-      {
-        name: t("C3A79F67D"),
-        route: "/dashboard/document-management",
-        userTypes: [t("5119FE5E6"), t("F7D0F1652")],
-        showcase: "/document-management-showcase.png",
-        description: t("D38507840"),
-      },
-      {
-        name: t("AF77627FE"),
-        route: "/dashboard/user-management",
-        userTypes: [t("F7D0F1652")],
-        showcase: "/user-management-showcase.png",
-        description: t("5D4C01092"),
-      },
-      {
-        name: t("8A64E6185"),
-        route: "/dashboard/court-decisions",
-        userTypes: [t("5119FE5E6"), t("F7D0F1652")],
-        showcase: "/court-decisions-showcase.png",
-        description: t("DC28EC857"),
-      },
-    ],
-    [currentLanguage, t],
-  );
+  const pages: IPage[] = [
+    {
+      name: t("C3A79F67D"),
+      route: "/dashboard/document-management",
+      blacklist: [],
+      showcase: "/document-management-showcase.png",
+      description: t("D38507840"),
+    },
+    {
+      name: t("AF77627FE"),
+      route: "/dashboard/user-management",
+      blacklist: [1],
+      showcase: "/user-management-showcase.png",
+      description: t("5D4C01092"),
+    },
+    {
+      name: t("8A64E6185"),
+      route: "/dashboard/court-decisions",
+      blacklist: [],
+      showcase: "/court-decisions-showcase.png",
+      description: t("DC28EC857"),
+    },
+  ];
 
   const logoutDashboard = () => {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -180,14 +178,17 @@ function SidebarNavigation() {
   };
 
   useEffect(() => {
+    if (isLanguageLoading) return;
+
     const currentPage = pages.find((page) => pathname === page.route);
 
+    console.log(currentPage);
     setPage(currentPage || null);
 
     if (currentPage?.route === pages[0].route) {
       setOpen(false);
     }
-  }, [pathname, currentLanguage]);
+  }, [pathname, isLanguageLoading]);
 
   useEffect(() => {
     if (!isCommandOpen) return;
@@ -301,7 +302,7 @@ function SidebarNavigation() {
               <DropdownMenuLabel>{t("776FAE1E9")}</DropdownMenuLabel>
               <DropdownMenuGroup>
                 {pages.map((page) => {
-                  if (page.userTypes.includes(profile.userType)) {
+                  if (!page.blacklist.includes(profile.userTypeID)) {
                     return (
                       <DropdownMenuItem
                         disabled={pathname === page.route}

@@ -544,7 +544,7 @@ function UpdateDecisionDialog({
 }: DecisionDialogProps) {
   const { POST } = useAPI();
   const { showNotification } = useNotification();
-  const { t } = useLanguage();
+  const { t, isLanguageLoading } = useLanguage();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [keyword, setKeyword] = useState<string>("");
@@ -625,6 +625,12 @@ function UpdateDecisionDialog({
       updateDecision(values);
     },
   });
+
+  useEffect(() => {
+    if (isLanguageLoading) return;
+
+    formik.validateForm();
+  }, [isLanguageLoading]);
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>

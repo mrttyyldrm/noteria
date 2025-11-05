@@ -15,14 +15,14 @@ import { useNotification } from "@/context/NotificationContext";
 import useAPI from "@/hooks/useAPI";
 import { useFormik } from "formik";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as Yup from "yup";
 
 function Reset() {
   const router = useRouter();
   const params = useParams();
   const { showNotification } = useNotification();
-  const { t } = useLanguage();
+  const { t, isLanguageLoading } = useLanguage();
   const { GET } = useAPI();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -68,6 +68,12 @@ function Reset() {
       resetPassword();
     },
   });
+
+  useEffect(() => {
+    if (isLanguageLoading) return;
+
+    formik.validateForm();
+  }, [isLanguageLoading]);
 
   return (
     <div className="w-full max-w-xl">

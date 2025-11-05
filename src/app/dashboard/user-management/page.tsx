@@ -358,7 +358,7 @@ function CreateOrUpdateUserDialog({
 }: CreateOrUpdateUserDialogProps) {
   const { GET, POST } = useAPI();
   const { showNotification } = useNotification();
-  const { t } = useLanguage();
+  const { t, isLanguageLoading } = useLanguage();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userTypes, setUserTypes] = useState<Record<number, string> | null>(
@@ -438,6 +438,12 @@ function CreateOrUpdateUserDialog({
       }
     },
   });
+
+  useEffect(() => {
+    if (isLanguageLoading) return;
+
+    formik.validateForm();
+  }, [isLanguageLoading]);
 
   useEffect(() => {
     getUserTypes();

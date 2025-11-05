@@ -1056,7 +1056,7 @@ export function DocumentManager({ filter }: { filter: string }) {
 
 function UploadDocumentDialog() {
   const { loading, process, uploadDocument, closeProcess } = useDocument();
-  const { t } = useLanguage();
+  const { t, isLanguageLoading } = useLanguage();
 
   const handleDrop = async (files: File[]) => {
     const file = files[0];
@@ -1086,6 +1086,12 @@ function UploadDocumentDialog() {
       });
     },
   });
+
+  useEffect(() => {
+    if (isLanguageLoading) return;
+
+    formik.validateForm();
+  }, [isLanguageLoading]);
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && closeProcess()}>
@@ -1165,7 +1171,7 @@ function UploadDocumentDialog() {
 function RenameDocumentDialog() {
   const { documents, loading, process, renameDocument, closeProcess } =
     useDocument();
-  const { t } = useLanguage();
+  const { t, isLanguageLoading } = useLanguage();
 
   const validationSchema = yup.object({
     title: yup.string().required("Title is required!"),
@@ -1187,6 +1193,12 @@ function RenameDocumentDialog() {
       });
     },
   });
+
+  useEffect(() => {
+    if (isLanguageLoading) return;
+
+    formik.validateForm();
+  }, [isLanguageLoading]);
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && closeProcess()}>
@@ -1283,12 +1295,7 @@ function DocumentsSidebar() {
             <SidebarMenuItem>
               <div className="w-full flex items-center gap-2 font-semibold text-xl text-foreground">
                 <Image src="/logo.svg" alt="Logo" width={42} height={42} />
-                <div className="flex items-center">
-                  Noteria
-                  <span className="ml-2 mt-1 text-xs text-muted-foreground font-medium">
-                    v1.0.0
-                  </span>
-                </div>
+                <div className="flex items-center">Noteria</div>
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
