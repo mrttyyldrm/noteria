@@ -22,7 +22,6 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -130,11 +129,6 @@ function SidebarNavigation() {
       description: t("DC28EC857"),
     },
   ];
-
-  const logoutDashboard = () => {
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    router.replace("/auth");
-  };
 
   const getProfile = () => {
     GET("GetProfile", {}, (data: IProfile) => {
@@ -330,10 +324,6 @@ function SidebarNavigation() {
                   }
                 })}
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem textValue="logout" onSelect={logoutDashboard}>
-                {t("1CCB65B44")}
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (

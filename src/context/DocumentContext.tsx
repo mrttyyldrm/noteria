@@ -95,6 +95,7 @@ import {
   File,
   Folder,
   FolderRoot,
+  LogOut,
   RefreshCw,
   Save,
   SearchIcon,
@@ -286,7 +287,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   };
 
   const generateInitialFolderName = () => {
-    const FOLDER_NAME = "New Folder";
+    const FOLDER_NAME = t("A25D8B19C");
 
     const prevDirectories = documents?.directories ?? [];
     let newName = FOLDER_NAME;
@@ -1282,10 +1283,16 @@ function DeleteDocumentDialog() {
 }
 
 function DocumentsSidebar() {
+  const router = useRouter();
   const { path, loading, createFolder, openProcess } = useDocument();
   const { t } = useLanguage();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const logout = () => {
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    router.replace("/auth");
+  };
 
   return (
     <>
@@ -1296,6 +1303,14 @@ function DocumentsSidebar() {
               <div className="w-full flex items-center gap-2 font-semibold text-xl text-foreground">
                 <Image src="/logo.svg" alt="Logo" width={42} height={42} />
                 <div className="flex items-center">Noteria</div>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  className="ml-auto"
+                  onClick={logout}
+                >
+                  <LogOut />
+                </Button>
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
