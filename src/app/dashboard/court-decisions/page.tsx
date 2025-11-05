@@ -180,10 +180,7 @@ function CourtDecisions() {
       {},
       (data) => {
         setDecisions(data.orders);
-
-        if (processes === null) {
-          setProcesses(data.aiProcess);
-        }
+        setProcesses(data.aiProcess);
         setIsLoading(false);
       },
       () => setIsLoading(false),
