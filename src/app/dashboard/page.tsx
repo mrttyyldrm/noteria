@@ -29,8 +29,10 @@ import {
 } from "@/components/ui/input-group";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { IDocumentConfig, useDocument } from "@/context/DocumentContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useAPI from "@/hooks/useAPI";
 import { DocumentEditor } from "@onlyoffice/document-editor-react";
@@ -49,11 +51,12 @@ interface IStatus {
 function Dashboard() {
   const { GET } = useAPI();
   const { showNotification } = useNotification();
+  const { t } = useLanguage();
   const { selectedDocument, documents, selectDocument } = useDocument();
 
   const [isReady, setIsReady] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isCompleting, setIsCompleting] = useState<boolean>(false);
+  const [isVerifying, setisVerifying] = useState<boolean>(false);
   const [status, setStatus] = useState<IStatus>({
     isValid: true,
     message: "",
@@ -70,14 +73,14 @@ function Dashboard() {
     if (!selectedDocument || isLoading) return;
 
     setOpen(false);
-    setIsCompleting(true);
+    setisVerifying(true);
     setIsLoading(true);
     GET(
       "CheckDoc",
       { DocID: selectedDocument.documentID },
       (data: IStatus) => {
         setStatus(data);
-        setIsCompleting(false);
+        setisVerifying(false);
         setIsLoading(false);
 
         if (!data.isValid) return;
@@ -86,7 +89,7 @@ function Dashboard() {
       },
       () => {
         setIsLoading(false);
-        setIsCompleting(false);
+        setisVerifying(false);
       },
     );
   };
@@ -127,7 +130,7 @@ function Dashboard() {
 
   const finishDocument = () => {
     selectDocument(null);
-    showNotification("Document has been finished.", "success");
+    showNotification(t("CEDBABF59"), "success");
     setCurrentStep(1);
   };
 
@@ -144,10 +147,8 @@ function Dashboard() {
               <EmptyMedia variant="icon" className="bg-white/20">
                 <FileClock />
               </EmptyMedia>
-              <EmptyTitle>Document is Loading</EmptyTitle>
-              <EmptyDescription>
-                Please wait while the document is being loaded.
-              </EmptyDescription>
+              <EmptyTitle>{t("970D0B4CE")}</EmptyTitle>
+              <EmptyDescription>{t("A08D6A172")}</EmptyDescription>
             </EmptyHeader>
           </Empty>
         </Skeleton>
@@ -156,24 +157,22 @@ function Dashboard() {
       {currentStep === 1 ? (
         selectedDocument !== null ? (
           <>
-            {isCompleting && (
+            {isVerifying && (
               <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50 flex justify-center items-center">
                 <Empty className="p-2">
                   <EmptyHeader>
                     <EmptyMedia variant="icon" className="bg-white/20">
                       <FileUp />
                     </EmptyMedia>
-                    <EmptyTitle>Document is Completing</EmptyTitle>
-                    <EmptyDescription>
-                      Please wait while the document is being completed.
-                    </EmptyDescription>
+                    <EmptyTitle>{t("4BB8EF004")}</EmptyTitle>
+                    <EmptyDescription>{t("6815D771D")}</EmptyDescription>
                   </EmptyHeader>
                 </Empty>
               </Skeleton>
             )}
             <div
               className={`relative w-full h-full flex flex-col rounded-b-lg overflow-hidden ${
-                !isReady || isCompleting ? "opacity-0" : ""
+                !isReady || isVerifying ? "opacity-0" : ""
               }`}
             >
               {selectedDocument.editable && selectedDocument.config && (
@@ -198,11 +197,11 @@ function Dashboard() {
 
               <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
                 <Button variant="outline" onClick={() => selectDocument(null)}>
-                  Close Document
+                  {t("CE4708006")}
                 </Button>
                 {selectedDocument.editable && selectedDocument.config && (
                   <Button disabled={isLoading} onClick={() => setOpen(true)}>
-                    {isLoading ? "Verifying..." : "Verify Document"}
+                    {isLoading ? <Spinner /> : t("FD0C7F9C4")}
                   </Button>
                 )}
 
@@ -213,10 +212,7 @@ function Dashboard() {
                         <Info />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      You are currently in preview mode and editing is not
-                      available.
-                    </TooltipContent>
+                    <TooltipContent>{t("DED358E09")}</TooltipContent>
                   </Tooltip>
                 )}
               </Card>
@@ -229,10 +225,8 @@ function Dashboard() {
                 <EmptyMedia variant="icon">
                   <File />
                 </EmptyMedia>
-                <EmptyTitle>No Document Selected</EmptyTitle>
-                <EmptyDescription>
-                  Please select a document from the sidebar.
-                </EmptyDescription>
+                <EmptyTitle>{t("6EB16FCAD")}</EmptyTitle>
+                <EmptyDescription>{t("E8FAC7E57")}</EmptyDescription>
               </EmptyHeader>
             </Empty>
           )
@@ -243,10 +237,9 @@ function Dashboard() {
         <>
           <div className="p-4 w-full max-w-md mx-auto flex flex-col items-center gap-4 mb-11">
             <div className="flex flex-col items-center gap-2 text-center">
-              <h1 className="text-3xl font-semibold">Calculate Price</h1>
+              <h1 className="text-3xl font-semibold">{t("404CC10E0")}</h1>
               <p className="text-muted-foreground text-sm text-balance">
-                Enter the notary service amount below to calculate the total
-                fee.
+                {t("534870AF8")}
               </p>
             </div>
             <ButtonGroup className="w-full max-w-xs">
@@ -260,7 +253,7 @@ function Dashboard() {
                 <InputGroupAddon align="inline-end">€</InputGroupAddon>
               </InputGroup>
               <Button variant="outline" onClick={calcPrice}>
-                Calculate
+                {t("A49592C0B")}
               </Button>
             </ButtonGroup>
             {details !== null ? (
@@ -268,7 +261,7 @@ function Dashboard() {
                 <Card className="w-full max-w-xs py-4 gap-4">
                   <CardHeader className="px-4">
                     <CardTitle className="text-muted-foreground font-normal text-center">
-                      Total Fee
+                      {t("D1889CDF6")}
                     </CardTitle>
                     <p className="text-4xl font-semibold text-foreground text-center">
                       {Object.values(details)
@@ -301,10 +294,10 @@ function Dashboard() {
           </div>
           <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
             <Button variant="outline" onClick={() => setCurrentStep(1)}>
-              Edit Document
+              {t("3CF519BD6")}
             </Button>
             <Button disabled={isLoading} onClick={() => printDocument()}>
-              {isLoading ? "Printing..." : "Print Document"}
+              {isLoading ? <Spinner /> : t("B970607EA")}
             </Button>
           </Card>
         </>
@@ -330,9 +323,9 @@ function Dashboard() {
 
           <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
             <Button variant="outline" onClick={() => setCurrentStep(1)}>
-              Edit Document
+              {t("3CF519BD6")}
             </Button>
-            <Button onClick={finishDocument}>Finish Document</Button>
+            <Button onClick={finishDocument}>{t("C9FA164C5")}</Button>
           </Card>
         </div>
       )}
@@ -340,17 +333,12 @@ function Dashboard() {
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you saved the document?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              If you complete the document without saving, your changes may be
-              lost. Are you sure you want to proceed?
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("B5A943A0F")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("6EC830880")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button onClick={completeDocument}>Confirm</Button>
+            <AlertDialogCancel>{t("1AF8F06BC")}</AlertDialogCancel>
+            <Button onClick={completeDocument}>{t("67C4B27A7")}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -369,10 +357,10 @@ function Dashboard() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Document Verification Alert</AlertDialogTitle>
+            <AlertDialogTitle>{t("C267D86DF")}</AlertDialogTitle>
             <AlertDialogDescription>{status.message}</AlertDialogDescription>
             <Field>
-              <FieldLabel>Detected Keywords:</FieldLabel>
+              <FieldLabel>{t("A142D666D")}</FieldLabel>
               {status.parameters.length > 0 && (
                 <div className="flex items-center flex-wrap gap-1">
                   {status.parameters.map((parameter, index) => (
@@ -385,12 +373,12 @@ function Dashboard() {
             </Field>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("1AF8F06BC")}</AlertDialogCancel>
             <Link href={status.courtDoc} target="_blank">
-              <Button variant="outline">Show Decision</Button>
+              <Button variant="outline">{t("62CA2893B")}</Button>
             </Link>
             <AlertDialogAction onClick={() => setCurrentStep(2)}>
-              Continue
+              {t("E9C175950")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -13,6 +13,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Spinner } from "@/components/ui/spinner";
 import { useLanguage } from "@/context/LanguageContext";
 import useAPI from "@/hooks/useAPI";
 import { useFormik } from "formik";
@@ -87,16 +88,14 @@ function Auth() {
   };
 
   const validationSchema = Yup.object({
-    email: Yup.string()
-      .required("This field is required")
-      .email("Invalid email format!"),
-    password: Yup.string().required("This field is required"),
+    email: Yup.string().required(t("2C936F5BA")).email(t("9F2BE0310")),
+    password: Yup.string().required(t("2C936F5BA")),
   });
 
   const formik = useFormik({
     initialValues: {
-      email: "mrttyyldrm@gmail.com",
-      password: "1234567890",
+      email: "",
+      password: "",
       requestID: "",
     },
     validationSchema: validationSchema,
@@ -127,9 +126,9 @@ function Auth() {
         {currentStep === 1 && (
           <>
             <div className="flex flex-col items-center text-center gap-2">
-              <h1 className="text-3xl font-semibold">Login</h1>
+              <h1 className="text-3xl font-semibold">{t("6DFA8AFAB")}</h1>
               <p className="text-muted-foreground text-sm text-balance">
-                Enter your credentials to access your account.
+                {t("C52C391DA")}
               </p>
             </div>
             <form
@@ -139,13 +138,13 @@ function Auth() {
             >
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <FieldLabel htmlFor="email">{t("F69047778")}</FieldLabel>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     disabled={isLoading}
-                    placeholder="Email"
+                    placeholder={t("F69047778")}
                     value={formik.values.email}
                     onChange={formik.handleChange}
                     aria-invalid={
@@ -159,13 +158,13 @@ function Auth() {
                   )}
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <FieldLabel htmlFor="password">{t("CE78FC317")}</FieldLabel>
                   <Input
                     id="password"
                     name="password"
                     type="password"
                     disabled={isLoading}
-                    placeholder="Password"
+                    placeholder={t("CE78FC317")}
                     value={formik.values.password}
                     onChange={formik.handleChange}
                     aria-invalid={
@@ -180,7 +179,7 @@ function Auth() {
                 </Field>
                 <Field>
                   <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? "Loading..." : "Login"}
+                    {isLoading ? <Spinner /> : t("6DFA8AFAB")}
                   </Button>
                 </Field>
               </FieldGroup>
@@ -190,10 +189,9 @@ function Auth() {
         {currentStep === 2 && (
           <>
             <div className="flex flex-col items-center text-center gap-2">
-              <h1 className="text-3xl font-semibold">Setup Authenticator</h1>
+              <h1 className="text-3xl font-semibold">{t("6D024C2BC")}</h1>
               <p className="text-muted-foreground text-sm text-balance">
-                Scan the QR code below with Google Authenticator app to complete
-                the setup.
+                {t("9FCA181DC")}
               </p>
             </div>
             <div className="flex flex-col gap-6">
@@ -206,7 +204,7 @@ function Auth() {
                   disabled={isLoading}
                   className="w-full"
                 >
-                  {isLoading ? "Loading..." : "Next"}
+                  {isLoading ? <Spinner /> : t("729241038")}
                 </Button>
               </Field>
             </div>
@@ -215,12 +213,9 @@ function Auth() {
         {currentStep === 3 && (
           <>
             <div className="flex flex-col items-center text-center gap-2">
-              <h1 className="text-3xl font-semibold">
-                Enter Verification Code
-              </h1>
+              <h1 className="text-3xl font-semibold">{t("F0673494C")}</h1>
               <p className="text-muted-foreground text-sm text-balance">
-                Enter the 6-digit code from your Google Authenticator app to
-                complete the auth process.
+                {t("686CE075D")}
               </p>
             </div>
             <div className="flex flex-col gap-6">
@@ -256,7 +251,7 @@ function Auth() {
                   disabled={isLoading}
                   className="w-full"
                 >
-                  {isLoading ? "Loading..." : "Verify"}
+                  {isLoading ? <Spinner /> : t("81253CC97")}
                 </Button>
               </Field>
             </div>
@@ -268,7 +263,7 @@ function Auth() {
             className="mx-auto"
             onClick={() => setCurrentStep(1)}
           >
-            Return to Login
+            {t("6297AFCE8")}
           </Button>
         )}
       </div>

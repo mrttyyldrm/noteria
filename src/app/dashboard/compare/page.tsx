@@ -10,16 +10,18 @@ import {
 } from "@/components/ui/resizable";
 import { useSidebar } from "@/components/ui/sidebar";
 import type { IDocumentConfig } from "@/context/DocumentContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useAPI from "@/hooks/useAPI";
 import { DocumentEditor } from "@onlyoffice/document-editor-react";
 import Link from "next/link";
 import { notFound, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 function CompareDocuments() {
   const { GET } = useAPI();
   const { setOpen } = useSidebar();
+  const { t } = useLanguage();
   const { showNotification } = useNotification();
 
   const searchParams = useSearchParams();
@@ -71,7 +73,7 @@ function CompareDocuments() {
           />
           <Card className="absolute bottom-2 left-1/2 -translate-x-1/2 shadow-lg text-sm text-muted-foreground">
             <CardTitle className="px-4 py-2 font-medium">
-              Old Document
+              {t("537D30C54")}
             </CardTitle>
           </Card>
         </ResizablePanel>
@@ -87,13 +89,13 @@ function CompareDocuments() {
           />
           <Card className="absolute bottom-2 left-1/2 -translate-x-1/2 shadow-lg text-sm text-muted-foreground">
             <CardTitle className="px-4 py-2 font-medium">
-              New Document
+              {t("F1D1506D7")}
             </CardTitle>
           </Card>
         </ResizablePanel>
         <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
           <Link href="/dashboard/">
-            <Button variant="outline">Close Documents</Button>
+            <Button variant="outline">{t("802282309")}</Button>
           </Link>
         </Card>
       </ResizablePanelGroup>

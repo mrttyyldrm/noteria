@@ -2,20 +2,21 @@
 
 import FileManagementSkeleton from "./loading";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { useDocument, DocumentManager } from "@/context/DocumentContext";
-import { Search, SearchIcon } from "lucide-react";
+import { DocumentManager, useDocument } from "@/context/DocumentContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { SearchIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
 
 function DocumentManagement() {
   const { path, loading, documents, openProcess, createFolder } = useDocument();
   useDocument();
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter");
 
@@ -30,7 +31,7 @@ function DocumentManagement() {
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <InputGroup className="sm:max-w-3xs">
           <InputGroupInput
-            placeholder="Search folders or files..."
+            placeholder={t("91832C904")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -44,13 +45,13 @@ function DocumentManagement() {
             disabled={loading.status && loading.documentType === "folder"}
             onClick={() => createFolder()}
           >
-            Create New Folder
+            {t("668C381C0")}
           </Button>
           <Button
             onClick={() => openProcess("upload", null)}
             disabled={path.length === 0}
           >
-            Upload New File
+            {t("30B4A5878")}
           </Button>
         </div>
       </div>

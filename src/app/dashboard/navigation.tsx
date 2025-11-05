@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocument } from "@/context/DocumentContext";
-import { LanguageDropdown } from "@/context/LanguageContext";
+import { LanguageDropdown, useLanguage } from "@/context/LanguageContext";
 import useAPI from "@/hooks/useAPI";
 import {
   ChevronsUpDown,
@@ -59,8 +59,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import * as React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface IProfile {
   userType: "Clerk" | "Notary";
@@ -72,7 +71,7 @@ interface IProfile {
 interface IPage {
   name: string;
   route: string;
-  userTypes: ("Clerk" | "Notary")[];
+  userTypes: string[];
   showcase: string;
   description: string;
 }
@@ -83,31 +82,6 @@ interface ISuggestion {
   detail: any;
 }
 
-const pages: IPage[] = [
-  {
-    name: "Document Management",
-    route: "/dashboard/document-management",
-    userTypes: ["Clerk", "Notary"],
-    showcase: "/document-management-showcase.png",
-    description:
-      "Manage and organize all your documents securely and efficiently.",
-  },
-  {
-    name: "User Management",
-    route: "/dashboard/user-management",
-    userTypes: ["Notary"],
-    showcase: "/user-management-showcase.png",
-    description: "Add, edit, and control user access and permissions.",
-  },
-  {
-    name: "Court Decisions",
-    route: "/dashboard/court-decisions",
-    userTypes: ["Clerk", "Notary"],
-    showcase: "/court-decisions-showcase.png",
-    description: "View and track court decisions relevant to your cases.",
-  },
-];
-
 const suggestionIcons: { [key in ISuggestion["resultType"]]: React.ReactNode } =
   {
     Document: <File />,
@@ -117,6 +91,7 @@ const suggestionIcons: { [key in ISuggestion["resultType"]]: React.ReactNode } =
 
 function SidebarNavigation() {
   const { GET } = useAPI();
+  const { t, currentLanguage } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const { setOpen, isMobile } = useSidebar();
@@ -130,6 +105,33 @@ function SidebarNavigation() {
   const [searchSuggestions, setSearchSuggestions] = useState<
     ISuggestion[] | null
   >(null);
+
+  const pages: IPage[] = useMemo(
+    () => [
+      {
+        name: t("C3A79F67D"),
+        route: "/dashboard/document-management",
+        userTypes: [t("5119FE5E6"), t("F7D0F1652")],
+        showcase: "/document-management-showcase.png",
+        description: t("D38507840"),
+      },
+      {
+        name: t("AF77627FE"),
+        route: "/dashboard/user-management",
+        userTypes: [t("F7D0F1652")],
+        showcase: "/user-management-showcase.png",
+        description: t("5D4C01092"),
+      },
+      {
+        name: t("8A64E6185"),
+        route: "/dashboard/court-decisions",
+        userTypes: [t("5119FE5E6"), t("F7D0F1652")],
+        showcase: "/court-decisions-showcase.png",
+        description: t("DC28EC857"),
+      },
+    ],
+    [currentLanguage, t],
+  );
 
   const logoutDashboard = () => {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -185,7 +187,7 @@ function SidebarNavigation() {
     if (currentPage?.route === pages[0].route) {
       setOpen(false);
     }
-  }, [pathname]);
+  }, [pathname, currentLanguage]);
 
   useEffect(() => {
     if (!isCommandOpen) return;
@@ -238,7 +240,7 @@ function SidebarNavigation() {
       >
         <InputGroupInput
           readOnly={true}
-          placeholder="Search..."
+          placeholder={t("D0BBBC0DB")}
           className="cursor-pointer"
         />
         <InputGroupAddon>
@@ -296,7 +298,7 @@ function SidebarNavigation() {
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-3xs sm:w-xs" align="end">
-              <DropdownMenuLabel>Modules</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("776FAE1E9")}</DropdownMenuLabel>
               <DropdownMenuGroup>
                 {pages.map((page) => {
                   if (page.userTypes.includes(profile.userType)) {
@@ -329,7 +331,7 @@ function SidebarNavigation() {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem textValue="logout" onSelect={logoutDashboard}>
-                Logout
+                {t("1CCB65B44")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -349,7 +351,7 @@ function SidebarNavigation() {
 
       <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
         <CommandInput
-          placeholder="Search anything..."
+          placeholder={t("E0B486BCB")}
           value={search}
           onValueChange={setSearch}
         />
@@ -357,7 +359,7 @@ function SidebarNavigation() {
           {!isSearchLoading ? (
             searchSuggestions && searchSuggestions.length > 0 ? (
               <>
-                <CommandGroup heading="Suggestions">
+                <CommandGroup heading={t("B8936AA58")}>
                   {searchSuggestions.map((suggestion: ISuggestion, index) => (
                     <CommandItem
                       key={index}
@@ -375,10 +377,8 @@ function SidebarNavigation() {
                       <EmptyMedia variant="icon">
                         <SearchX />
                       </EmptyMedia>
-                      <EmptyTitle>No Search Results Found</EmptyTitle>
-                      <EmptyDescription>
-                        Try adjusting your search terms or check for typos.
-                      </EmptyDescription>
+                      <EmptyTitle>{t("6C1F629B6")}</EmptyTitle>
+                      <EmptyDescription>{t("EB20D261D")}</EmptyDescription>
                     </EmptyHeader>
                   </Empty>
                 </CommandEmpty>
@@ -390,10 +390,8 @@ function SidebarNavigation() {
                     <EmptyMedia variant="icon">
                       <FileSearch2 />
                     </EmptyMedia>
-                    <EmptyTitle>Search for files or folders</EmptyTitle>
-                    <EmptyDescription>
-                      Use the search bar to quickly find everything you need.
-                    </EmptyDescription>
+                    <EmptyTitle>{t("1928A896B")}</EmptyTitle>
+                    <EmptyDescription>{t("EAFB1CD6B")}</EmptyDescription>
                   </EmptyHeader>
                 </Empty>
               </div>

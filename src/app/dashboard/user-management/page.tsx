@@ -25,10 +25,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Empty,
+  EmptyDescription,
+  EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-  EmptyHeader,
-  EmptyDescription,
 } from "@/components/ui/empty";
 import {
   Field,
@@ -43,6 +43,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -51,17 +52,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useAPI from "@/hooks/useAPI";
 import { useFormik } from "formik";
 import {
   EllipsisVertical,
   RefreshCw,
-  Search,
   SearchIcon,
   UserRound,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import * as yup from "yup";
 
 interface IUser {
@@ -89,6 +90,7 @@ function UserManagementLoading() {
 function UserManagement() {
   const { GET } = useAPI();
   const { showNotification } = useNotification();
+  const { t } = useLanguage();
 
   const [users, setUsers] = useState<IUser[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -135,10 +137,10 @@ function UserManagement() {
             user.userID === userID ? { ...user, userActive: status } : user,
           ),
         );
-        showNotification(
-          `User has been ${status ? "enabled" : "disabled"} successfully.`,
-          "success",
-        );
+
+        status
+          ? showNotification(t("34A25EFD6"), "success")
+          : showNotification(t("978A2883A"), "success");
         setLoading({ process: null, userID: null });
       },
       () => setLoading({ process: null, userID: null }),
@@ -153,10 +155,8 @@ function UserManagement() {
       "ForgotPassword",
       { userID },
       () => {
-        showNotification(
-          "The user's password has been successfully reset. A password reset link has been sent to the user's registered email address. Please check the email.",
-          "success",
-        );
+        showNotification(t("FB0E7D535"), "success");
+        showNotification(t("FC180BC03"), "default");
         setLoading({ process: null, userID: null });
       },
       () => setLoading({ process: null, userID: null }),
@@ -176,7 +176,7 @@ function UserManagement() {
             user.userID === userID ? { ...user, mfaActive: false } : user,
           ),
         );
-        showNotification(`User's MFA has been reset successfully.`, "success");
+        showNotification(t("9DE8D2DB8"), "success");
         setLoading({ process: null, userID: null });
       },
       () => setLoading({ process: null, userID: null }),
@@ -202,7 +202,7 @@ function UserManagement() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <InputGroup className="sm:max-w-3xs">
           <InputGroupInput
-            placeholder="Search users..."
+            placeholder={t("877A8DC4F")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -211,7 +211,7 @@ function UserManagement() {
           </InputGroupAddon>
         </InputGroup>
         <Button onClick={() => setDialog({ process: "create", user: null })}>
-          Create New User
+          {t("40460F8F2")}
         </Button>
       </div>
       <Card className="overflow-x-auto">
@@ -219,11 +219,11 @@ function UserManagement() {
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="pl-3">#</TableHead>
-              <TableHead>Full Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>User Type</TableHead>
-              <TableHead>Account Status</TableHead>
-              <TableHead>MFA Status</TableHead>
+              <TableHead>{t("B90C49F20")}</TableHead>
+              <TableHead>{t("F69047778")}</TableHead>
+              <TableHead>{t("722C02C19")}</TableHead>
+              <TableHead>{t("49A56F386")}</TableHead>
+              <TableHead>{t("F752E841C")}</TableHead>
               <TableHead className="min-w-20 flex justify-end items-center">
                 <Button
                   variant="outline"
@@ -249,12 +249,12 @@ function UserManagement() {
                     <Badge
                       variant={user.userActive ? "default" : "destructive"}
                     >
-                      {user.userActive ? "Active" : "Inactive"}
+                      {user.userActive ? t("572300D84") : t("A6A0BC8C4")}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={user.mfaActive ? "default" : "destructive"}>
-                      {user.mfaActive ? "Active" : "Inactive"}
+                      {user.mfaActive ? t("572300D84") : t("A6A0BC8C4")}
                     </Badge>
                   </TableCell>
                   <TableCell className="flex justify-end items-center gap-2">
@@ -272,7 +272,7 @@ function UserManagement() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-40" align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t("EA1F69315")}</DropdownMenuLabel>
                         <DropdownMenuGroup>
                           <DropdownMenuItem
                             textValue="update"
@@ -280,7 +280,7 @@ function UserManagement() {
                               setDialog({ process: "update", user })
                             }
                           >
-                            Update User
+                            {t("3AA80D99C")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             textValue="status"
@@ -288,24 +288,24 @@ function UserManagement() {
                               toggleAccountStatus(user.userID, !user.userActive)
                             }
                           >
-                            {user.userActive ? "Disable User" : "Enable User"}
+                            {user.userActive ? t("BB143469E") : t("504BC6599")}
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuLabel>Account</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t("E4C47695A")}</DropdownMenuLabel>
                         <DropdownMenuGroup>
                           <DropdownMenuItem
                             textValue="password"
                             onSelect={() => resetPassword(user.userID)}
                           >
-                            Reset User Password
+                            {t("6E41E68BE")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             textValue="reset"
                             disabled={user.mfaActive === false}
                             onSelect={() => resetAccountMFA(user.userID)}
                           >
-                            Reset User MFA
+                            {t("8A05C491A")}
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
@@ -321,10 +321,8 @@ function UserManagement() {
                       <EmptyMedia variant="icon">
                         <UserRound />
                       </EmptyMedia>
-                      <EmptyTitle>No User Found</EmptyTitle>
-                      <EmptyDescription>
-                        Try creating a new user or check your search.
-                      </EmptyDescription>
+                      <EmptyTitle>{t("786FCFBC7")}</EmptyTitle>
+                      <EmptyDescription>{t("16920FC7F")}</EmptyDescription>
                     </EmptyHeader>
                   </Empty>
                 </TableCell>
@@ -360,6 +358,7 @@ function CreateOrUpdateUserDialog({
 }: CreateOrUpdateUserDialogProps) {
   const { GET, POST } = useAPI();
   const { showNotification } = useNotification();
+  const { t } = useLanguage();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userTypes, setUserTypes] = useState<Record<number, string> | null>(
@@ -394,7 +393,7 @@ function CreateOrUpdateUserDialog({
       updateUser,
       () => {
         setIsLoading(false);
-        showNotification("User has been updated successfully.", "success");
+        showNotification(t("D30E4A874"), "success");
         onSubmit();
         onClose();
       },
@@ -410,7 +409,7 @@ function CreateOrUpdateUserDialog({
       createUser,
       () => {
         setIsLoading(false);
-        showNotification("User has been created successfully.", "success");
+        showNotification(t("B42AE5AEC"), "success");
         onSubmit();
         onClose();
       },
@@ -419,11 +418,11 @@ function CreateOrUpdateUserDialog({
   };
 
   const validationSchema = yup.object({
-    fullName: yup.string().required("Full Name is required!"),
-    email: yup.string().email("Invalid email!").required("Email is required!"),
+    fullName: yup.string().required(t("2C936F5BA")),
+    email: yup.string().email(t("9F2BE0310")).required(t("2C936F5BA")),
     userType: yup.object({
-      key: yup.number().required("User Type is required!"),
-      value: yup.string().required("User Type is required!"),
+      key: yup.number().required(t("2C936F5BA")),
+      value: yup.string().required(t("2C936F5BA")),
     }),
   });
 
@@ -448,11 +447,9 @@ function CreateOrUpdateUserDialog({
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-md">
         <DialogHeader>
-          <DialogTitle>{user ? "Update User" : "Create User"}</DialogTitle>
+          <DialogTitle>{user ? t("F6ED5B7C6") : t("EA1CB78DD")}</DialogTitle>
           <DialogDescription>
-            {user
-              ? "Update the details for the selected user."
-              : "Fill in the details to create a new user."}
+            {user ? t("BF0939C1D") : t("362A7AF51")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -462,7 +459,7 @@ function CreateOrUpdateUserDialog({
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="title">Full Name</FieldLabel>
+              <FieldLabel htmlFor="title">{t("B90C49F20")}</FieldLabel>
               <Input
                 id="fullName"
                 name="fullName"
@@ -471,14 +468,14 @@ function CreateOrUpdateUserDialog({
                 disabled={isLoading}
                 value={formik.values.fullName}
                 onChange={formik.handleChange}
-                placeholder="Full Name"
+                placeholder={t("B90C49F20")}
               />
               {formik.touched.fullName && formik.errors.fullName && (
                 <FieldError>{formik.errors.fullName}</FieldError>
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="title">Email</FieldLabel>
+              <FieldLabel htmlFor="title">{t("F69047778")}</FieldLabel>
               <Input
                 id="email"
                 name="email"
@@ -487,15 +484,15 @@ function CreateOrUpdateUserDialog({
                 disabled={isLoading}
                 value={formik.values.email}
                 onChange={formik.handleChange}
-                placeholder="Email"
+                placeholder={t("F69047778")}
               />
               {formik.touched.email && formik.errors.email && (
                 <FieldError>{formik.errors.email}</FieldError>
               )}
             </Field>
             {userTypes !== null ? (
-              <Field aria-required="true">
-                <FieldLabel htmlFor="title">User Type</FieldLabel>
+              <Field>
+                <FieldLabel htmlFor="title">{t("722C02C19")}</FieldLabel>
                 <ButtonGroup className="w-full grid grid-cols-3">
                   {Object.entries(userTypes).map(([key, value]) => (
                     <Button
@@ -528,16 +525,10 @@ function CreateOrUpdateUserDialog({
           </FieldGroup>
           <DialogFooter>
             <DialogClose asChild disabled={isLoading}>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{t("1AF8F06BC")}</Button>
             </DialogClose>
             <Button type="submit" disabled={isLoading}>
-              {isLoading
-                ? user
-                  ? "Updating..."
-                  : "Creating..."
-                : user
-                  ? "Update"
-                  : "Create"}
+              {isLoading ? <Spinner /> : user ? t("3AA80D99C") : t("F03073054")}
             </Button>
           </DialogFooter>
         </form>

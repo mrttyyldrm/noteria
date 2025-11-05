@@ -6,8 +6,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Field, FieldLabel, FieldContent } from "@/components/ui/field";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
@@ -24,10 +24,10 @@ import {
 import { useDocument, type IFile } from "@/context/DocumentContext";
 import useAPI from "@/hooks/useAPI";
 import { formatDate, isDatePast } from "@/lib/date";
-import { SearchIcon, File } from "lucide-react";
+import { File, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface IPersonProfile {
   personalInfo: {

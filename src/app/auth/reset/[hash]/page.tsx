@@ -3,24 +3,26 @@
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldGroup,
-  FieldLabel,
   FieldDescription,
   FieldError,
+  FieldGroup,
+  FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useAPI from "@/hooks/useAPI";
 import { useFormik } from "formik";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
-import React, { useState, useRef, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import * as Yup from "yup";
 
 function Reset() {
   const router = useRouter();
   const params = useParams();
   const { showNotification } = useNotification();
+  const { t } = useLanguage();
   const { GET } = useAPI();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -38,10 +40,7 @@ function Reset() {
       "ResetPassword",
       resetData,
       () => {
-        showNotification(
-          "Your password has been successfully changed!",
-          "success",
-        );
+        showNotification(t("FC77C34B3"), "success");
         router.replace("/auth");
         setIsLoading(false);
       },
@@ -53,10 +52,10 @@ function Reset() {
   };
 
   const validationSchema = Yup.object({
-    password: Yup.string().required("This field is required!"),
+    password: Yup.string().required(t("2C936F5BA")),
     repassword: Yup.string()
-      .required("This field is required!")
-      .oneOf([Yup.ref("password")], "Passwords must match!"),
+      .required(t("2C936F5BA"))
+      .oneOf([Yup.ref("password")], t("230B5524D")),
   });
 
   const formik = useFormik({
@@ -74,9 +73,9 @@ function Reset() {
     <div className="w-full max-w-xl">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-3xl font-semibold">Reset Password</h1>
+          <h1 className="text-3xl font-semibold">{t("6E41E68BE")}</h1>
           <p className="text-muted-foreground text-sm text-balance">
-            Enter your new password to reset your account.
+            {t("B8E473388")}
           </p>
         </div>
         <form
@@ -86,32 +85,31 @@ function Reset() {
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <FieldLabel htmlFor="password">{t("CE78FC317")}</FieldLabel>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 disabled={isLoading}
-                placeholder="Password"
+                placeholder={t("CE78FC317")}
                 value={formik.values.password}
                 onChange={formik.handleChange}
               />
               <FieldDescription className="text-xs">
-                Recommend using 8 or more characters that are a mix of letters,
-                numbers, and symbols.
+                {t("3E5A68B3D")}
               </FieldDescription>
               {formik.touched.password && formik.errors.password && (
                 <FieldError>{formik.errors.password}</FieldError>
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="repassword">Confirm Password</FieldLabel>
+              <FieldLabel htmlFor="repassword">{t("A2B162E01")}</FieldLabel>
               <Input
                 id="repassword"
                 name="repassword"
                 type="password"
                 disabled={isLoading}
-                placeholder="Confirm Password"
+                placeholder={t("A2B162E01")}
                 value={formik.values.repassword}
                 onChange={formik.handleChange}
               />
@@ -121,7 +119,7 @@ function Reset() {
             </Field>
             <Field>
               <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? "Reseting..." : "Reset Password"}
+                {isLoading ? <Spinner /> : t("8E8050D17")}
               </Button>
             </Field>
           </FieldGroup>

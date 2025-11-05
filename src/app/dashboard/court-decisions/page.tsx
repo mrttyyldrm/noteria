@@ -47,6 +47,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -62,6 +63,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDocument } from "@/context/DocumentContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useAPI from "@/hooks/useAPI";
 import { formatDate, isDatePast } from "@/lib/date";
@@ -122,11 +124,12 @@ function CourtDecisionsLoading() {
   ));
 }
 
-const checkIsMissing = (
+function checkIsMissing(
+  t: (key: string) => string,
   value: any,
   content?: () => React.ReactNode,
   error?: () => React.ReactNode,
-) => {
+) {
   const hasMissingData = (val: any): boolean => {
     if (val === null || val === undefined || val === "") return true;
 
@@ -144,17 +147,18 @@ const checkIsMissing = (
       error()
     ) : (
       <div>
-        <Badge variant="secondary">Missing Data</Badge>
+        <Badge variant="secondary">{t("71AA54348")}</Badge>
       </div>
     );
   }
 
   return content?.();
-};
+}
 
 function CourtDecisions() {
   const { GET } = useAPI();
   const { openProcess } = useDocument();
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter");
 
@@ -213,7 +217,7 @@ function CourtDecisions() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <InputGroup className="sm:max-w-3xs">
           <InputGroupInput
-            placeholder="Search decisions..."
+            placeholder={t("429B3C072")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -222,18 +226,18 @@ function CourtDecisions() {
           </InputGroupAddon>
         </InputGroup>
         <Button onClick={() => openProcess("upload", null, "Court")}>
-          Upload New Court Decision
+          {t("AFCD5F9C9")}
         </Button>
       </div>
       <Card className="overflow-x-auto">
         <Table className="p-1">
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="pl-3">Case</TableHead>
-              <TableHead>Start - End Date</TableHead>
-              <TableHead>Related People</TableHead>
-              <TableHead>Related Properties</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="pl-3">{t("E75E7FFD6")}</TableHead>
+              <TableHead>{t("F253A35F7")}</TableHead>
+              <TableHead>{t("36692BA5C")}</TableHead>
+              <TableHead>{t("8CEC3FEC7")}</TableHead>
+              <TableHead>{t("04299AD9B")}</TableHead>
               <TableHead className="flex justify-end items-center">
                 <Button
                   variant="outline"
@@ -256,8 +260,8 @@ function CourtDecisions() {
                     <TableRow key={index}>
                       <TableCell colSpan={6} className="p-1 bg-white">
                         <Skeleton className="p-3 flex justify-center items-center gap-2 text-center">
-                          <Sparkles className="size-4" /> {process} is
-                          processing
+                          <Sparkles className="size-4" /> {process}{" "}
+                          {t("B6F05A869")}
                         </Skeleton>
                       </TableCell>
                     </TableRow>
@@ -266,26 +270,25 @@ function CourtDecisions() {
                   filteredDecisions.map((decision, index) => (
                     <TableRow key={index}>
                       <TableCell className="pl-3 flex items-center gap-2">
-                        {checkIsMissing(decision, undefined, () => (
+                        {checkIsMissing(t, decision, undefined, () => (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Badge variant="destructive" className="p-1">
                                 <CircleAlert />
                               </Badge>
                             </TooltipTrigger>
-                            <TooltipContent>
-                              This record has missing data. Please review and
-                              update the information.
-                            </TooltipContent>
+                            <TooltipContent>{t("AFECF3EAD")}</TooltipContent>
                           </Tooltip>
                         ))}
                         {checkIsMissing(
+                          t,
                           decision.caseNumber,
                           () => decision.caseNumber,
                         )}
                       </TableCell>
                       <TableCell>
                         {checkIsMissing(
+                          t,
                           decision.startDate && decision.expireDate,
                           () =>
                             `${formatDate(decision.startDate)} - ${formatDate(
@@ -294,13 +297,17 @@ function CourtDecisions() {
                         )}
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
-                        {checkIsMissing(decision.relatedPerson, () => (
-                          <>{decision.relatedPerson.length} People</>
+                        {checkIsMissing(t, decision.relatedPerson, () => (
+                          <>
+                            {decision.relatedPerson.length} {t("906A1601F")}
+                          </>
                         ))}
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
-                        {checkIsMissing(decision.relatedProperties, () => (
-                          <>{decision.relatedProperties.length} Properties</>
+                        {checkIsMissing(t, decision.relatedProperties, () => (
+                          <>
+                            {decision.relatedProperties.length} {t("928F2A8CA")}
+                          </>
                         ))}
                       </TableCell>
                       <TableCell>
@@ -332,18 +339,18 @@ function CourtDecisions() {
                                 })
                               }
                             >
-                              View Details
+                              {t("1A32575BD")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onSelect={() =>
                                 setDialog({ process: "update", decision })
                               }
                             >
-                              Update Decision
+                              {t("3AA80D99C")}
                             </DropdownMenuItem>
                             <Link href={decision.r2Path} target="_blank">
                               <DropdownMenuItem>
-                                Download Decision
+                                {t("56BE8D0E4")}
                               </DropdownMenuItem>
                             </Link>
                             <DropdownMenuSeparator />
@@ -357,7 +364,7 @@ function CourtDecisions() {
                                 )
                               }
                             >
-                              Delete Decision
+                              {t("F1BEBB0DE")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -372,11 +379,8 @@ function CourtDecisions() {
                           <EmptyMedia variant="icon">
                             <Gavel />
                           </EmptyMedia>
-                          <EmptyTitle>No Court Decision Found</EmptyTitle>
-                          <EmptyDescription>
-                            Try creating a new decision or uploading an existing
-                            one.
-                          </EmptyDescription>
+                          <EmptyTitle>{t("6540F0E5A")}</EmptyTitle>
+                          <EmptyDescription>{t("DCE27C5E5")}</EmptyDescription>
                         </EmptyHeader>
                       </Empty>
                     </TableCell>
@@ -422,13 +426,17 @@ function ShowDecisionDialog({
   onSubmit,
   onClose,
 }: DecisionDialogProps) {
+  const { t } = useLanguage();
+
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg p-0">
         <DialogHeader className="p-4 pb-0">
           <DialogTitle className="flex flex-col sm:flex-row items-center gap-2 truncate">
-            {checkIsMissing(decision.caseNumber, () => (
-              <p>Case {decision.caseNumber}</p>
+            {checkIsMissing(t, decision.caseNumber, () => (
+              <p>
+                {t("8331B0C9F")} {decision.caseNumber}
+              </p>
             ))}
             <Badge variant="outline">{formatDate(decision.recordDate)}</Badge>
           </DialogTitle>
@@ -436,40 +444,40 @@ function ShowDecisionDialog({
         <FieldGroup className="max-h-[50vh] md:max-h-[70vh] overflow-y-auto px-4">
           <div className="grid grid-cols-2 gap-4">
             <Field className="col-span-2">
-              <FieldLabel htmlFor="description">Summary</FieldLabel>
-              {checkIsMissing(decision.summary, () => (
+              <FieldLabel htmlFor="description">{t("B0AB3A2A4")}</FieldLabel>
+              {checkIsMissing(t, decision.summary, () => (
                 <p className="text-sm text-muted-foreground text-justify">
                   {decision.summary}
                 </p>
               ))}
             </Field>
             <Field>
-              <FieldLabel htmlFor="description">Start Date</FieldLabel>
-              {checkIsMissing(decision.startDate, () => (
+              <FieldLabel htmlFor="description">{t("BBF634251")}</FieldLabel>
+              {checkIsMissing(t, decision.startDate, () => (
                 <p className="text-sm text-muted-foreground text-justify">
                   {formatDate(decision.startDate)}
                 </p>
               ))}
             </Field>
             <Field>
-              <FieldLabel htmlFor="description">Expire Date</FieldLabel>
-              {checkIsMissing(decision.expireDate, () => (
+              <FieldLabel htmlFor="description">{t("23D4FE15A")}</FieldLabel>
+              {checkIsMissing(t, decision.expireDate, () => (
                 <p className="text-sm text-muted-foreground text-justify">
                   {formatDate(decision.expireDate)}
                 </p>
               ))}
             </Field>
             <Field className="col-span-2">
-              <FieldLabel htmlFor="description">Related People</FieldLabel>
-              {checkIsMissing(decision.relatedPerson, () =>
+              <FieldLabel htmlFor="description">{t("36692BA5C")}</FieldLabel>
+              {checkIsMissing(t, decision.relatedPerson, () =>
                 decision.relatedPerson.map((person, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    {checkIsMissing(person.nameSurname, () => (
+                    {checkIsMissing(t, person.nameSurname, () => (
                       <h4 className="text-sm font-semibold text-foreground">
                         {person.nameSurname}
                       </h4>
                     ))}
-                    {checkIsMissing(person.idNumber, () => (
+                    {checkIsMissing(t, person.idNumber, () => (
                       <Badge variant="outline">{person.idNumber}</Badge>
                     ))}
                   </div>
@@ -477,23 +485,23 @@ function ShowDecisionDialog({
               )}
             </Field>
             <Field className="col-span-2">
-              <FieldLabel htmlFor="description">Related Properties</FieldLabel>
-              {checkIsMissing(decision.relatedProperties, () =>
+              <FieldLabel htmlFor="description">{t("8CEC3FEC7")}</FieldLabel>
+              {checkIsMissing(t, decision.relatedProperties, () =>
                 decision.relatedProperties.map((property, index) => (
                   <div key={index} className="flex flex-col gap-1">
                     <div key={index} className="flex items-center gap-3">
-                      {checkIsMissing(property.ProperyType, () => (
+                      {checkIsMissing(t, property.ProperyType, () => (
                         <h4 className="text-sm font-semibold text-foreground">
                           {property.ProperyType}
                         </h4>
                       ))}
-                      {checkIsMissing(property.propertyNumber, () => (
+                      {checkIsMissing(t, property.propertyNumber, () => (
                         <Badge variant="outline">
                           {property.propertyNumber}
                         </Badge>
                       ))}
                     </div>
-                    {checkIsMissing(property.propertyDesc, () => (
+                    {checkIsMissing(t, property.propertyDesc, () => (
                       <p className="text-sm text-muted-foreground text-justify">
                         {property.propertyDesc}
                       </p>
@@ -503,9 +511,9 @@ function ShowDecisionDialog({
               )}
             </Field>
             <Field className="col-span-2">
-              <FieldLabel htmlFor="description">Keywords</FieldLabel>
+              <FieldLabel htmlFor="description">{t("F7C86D366")}</FieldLabel>
               <div className="flex items-center flex-wrap gap-1">
-                {checkIsMissing(decision.searchKeywords, () =>
+                {checkIsMissing(t, decision.searchKeywords, () =>
                   decision.searchKeywords.map((keyword, index) => (
                     <Badge key={index} variant="outline">
                       {keyword}
@@ -518,10 +526,10 @@ function ShowDecisionDialog({
         </FieldGroup>
         <DialogFooter className="p-4">
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{t("7D8F5F809")}</Button>
           </DialogClose>
           <Button type="submit" onClick={() => onSubmit()}>
-            Update Decision
+            {t("3AA80D99C")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -536,6 +544,7 @@ function UpdateDecisionDialog({
 }: DecisionDialogProps) {
   const { POST } = useAPI();
   const { showNotification } = useNotification();
+  const { t } = useLanguage();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [keyword, setKeyword] = useState<string>("");
@@ -544,7 +553,7 @@ function UpdateDecisionDialog({
     if (keyword.trim() === "") return;
 
     if (formik.values.searchKeywords.includes(keyword.trim())) {
-      showNotification("Keyword already exists!");
+      showNotification(t("04FA764C0"));
       return;
     }
 
@@ -563,7 +572,7 @@ function UpdateDecisionDialog({
       "UpdateOrder",
       decision,
       () => {
-        showNotification("Court decision updated successfully!");
+        showNotification(t("A49286AEB"));
         setIsLoading(false);
 
         onSubmit();
@@ -574,42 +583,37 @@ function UpdateDecisionDialog({
   };
 
   const validationSchema = yup.object({
-    caseOrderID: yup.number().required("Case Order ID is required!"),
-    caseNumber: yup.string().required("Case Number is required!"),
-    summary: yup.string().required("Summary is required!"),
-    startDate: yup.string().required("Start Date is required!"),
-    expireDate: yup.string().required("Expire Date is required!"),
-    recordDate: yup.string().required("Record Date is required!"),
-    r2Path: yup.string().required("R2 Path is required!"),
+    caseOrderID: yup.number().required(t("2C936F5BA")),
+    caseNumber: yup.string().required(t("2C936F5BA")),
+    summary: yup.string().required(t("2C936F5BA")),
+    startDate: yup.string().required(t("2C936F5BA")),
+    expireDate: yup.string().required(t("2C936F5BA")),
+    recordDate: yup.string().required(t("2C936F5BA")),
+    r2Path: yup.string().required(t("2C936F5BA")),
     relatedPerson: yup
       .array()
       .of(
         yup.object({
-          nameSurname: yup.string().required("Name Surname is required!"),
-          idNumber: yup.string().nullable().required("ID Number is required!"),
+          nameSurname: yup.string().required(t("2C936F5BA")),
+          idNumber: yup.string().nullable().required(t("2C936F5BA")),
         }),
       )
-      .min(1, "At least 1 person are required!")
-      .required("Related Person is required!"),
+      .min(1, t("AB49D15FD"))
+      .required(t("2C936F5BA")),
     relatedProperties: yup
       .array()
       .of(
         yup.object({
-          propertyNumber: yup
-            .string()
-            .nullable()
-            .required("Property Number is required!"),
-          propertyDesc: yup
-            .string()
-            .required("Property Description is required!"),
-          ProperyType: yup.string().required("Property Type is required!"),
+          propertyNumber: yup.string().nullable().required(t("2C936F5BA")),
+          propertyDesc: yup.string().required(t("2C936F5BA")),
+          ProperyType: yup.string().required(t("2C936F5BA")),
         }),
       )
-      .required("Related Properties is required!"),
+      .required(t("2C936F5BA")),
     searchKeywords: yup
       .array()
-      .of(yup.string().required("Keyword is required!"))
-      .required("Search Keywords are required!"),
+      .of(yup.string().required(t("2C936F5BA")))
+      .required(t("2C936F5BA")),
   });
 
   const formik = useFormik({
@@ -626,9 +630,9 @@ function UpdateDecisionDialog({
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg p-0">
         <DialogHeader className="p-4 pb-0">
-          <DialogTitle>Update Court Decision</DialogTitle>
+          <DialogTitle>{t("99423F916")}</DialogTitle>
           <DialogDescription className="flex flex-col gap-2">
-            Edit and update court decision details.
+            {t("3BA84F1A6")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -638,7 +642,7 @@ function UpdateDecisionDialog({
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="caseNumber">Case</FieldLabel>
+              <FieldLabel htmlFor="caseNumber">{t("E75E7FFD6")}</FieldLabel>
               <Input
                 id="caseNumber"
                 name="caseNumber"
@@ -647,14 +651,14 @@ function UpdateDecisionDialog({
                 disabled={isLoading}
                 value={formik.values.caseNumber ?? ""}
                 onChange={formik.handleChange}
-                placeholder="Case"
+                placeholder={t("E75E7FFD6")}
               />
               {formik.errors.caseNumber && (
                 <FieldError>{formik.errors.caseNumber}</FieldError>
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="title">Summary</FieldLabel>
+              <FieldLabel htmlFor="title">{t("B0AB3A2A4")}</FieldLabel>
               <Textarea
                 id="summary"
                 name="summary"
@@ -662,7 +666,7 @@ function UpdateDecisionDialog({
                 disabled={isLoading}
                 value={formik.values.summary ?? ""}
                 onChange={formik.handleChange}
-                placeholder="Summary"
+                placeholder={t("B0AB3A2A4")}
               />
               {formik.errors.summary && (
                 <FieldError>{formik.errors.summary}</FieldError>
@@ -670,7 +674,7 @@ function UpdateDecisionDialog({
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field>
-                <FieldLabel htmlFor="startDate">Start Date</FieldLabel>
+                <FieldLabel htmlFor="startDate">{t("BBF634251")}</FieldLabel>
                 <Input
                   id="startDate"
                   name="startDate"
@@ -679,14 +683,14 @@ function UpdateDecisionDialog({
                   disabled={isLoading}
                   value={formik.values.startDate ?? ""}
                   onChange={formik.handleChange}
-                  placeholder="Start Date"
+                  placeholder={t("BBF634251")}
                 />
                 {formik.errors.startDate && (
                   <FieldError>{formik.errors.startDate}</FieldError>
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="expireDate">Expire Date</FieldLabel>
+                <FieldLabel htmlFor="expireDate">{t("23D4FE15A")}</FieldLabel>
                 <Input
                   id="expireDate"
                   name="expireDate"
@@ -695,7 +699,7 @@ function UpdateDecisionDialog({
                   disabled={isLoading}
                   value={formik.values.expireDate ?? ""}
                   onChange={formik.handleChange}
-                  placeholder="Expire Date"
+                  placeholder={t("23D4FE15A")}
                 />
                 {formik.errors.expireDate && (
                   <FieldError>{formik.errors.expireDate}</FieldError>
@@ -707,7 +711,7 @@ function UpdateDecisionDialog({
           <FieldGroup>
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <FieldLabel className="text-sm font-semibold">
-                Related People
+                {t("36692BA5C")}
               </FieldLabel>
               <Button
                 type="button"
@@ -720,7 +724,7 @@ function UpdateDecisionDialog({
                   ])
                 }
               >
-                Add Person
+                {t("0E4115961")}
               </Button>
             </div>
             {formik.errors.relatedPerson &&
@@ -732,7 +736,7 @@ function UpdateDecisionDialog({
                 <Fragment key={index}>
                   <Field className="col-span-2 sm:col-span-1">
                     <FieldLabel htmlFor={`relatedPerson.${index}.nameSurname`}>
-                      Person {index} Full Name
+                      {t("B0AB3A2A4")} {index} {t("B90C49F20")}
                     </FieldLabel>
                     <Input
                       id={`relatedPerson.${index}.nameSurname`}
@@ -744,7 +748,7 @@ function UpdateDecisionDialog({
                         formik.values.relatedPerson[index].nameSurname ?? ""
                       }
                       onChange={formik.handleChange}
-                      placeholder="Name Surname"
+                      placeholder={t("B90C49F20")}
                     />
                     {typeof formik.errors.relatedPerson?.[index] === "object" &&
                       formik.errors.relatedPerson[index]?.nameSurname && (
@@ -755,7 +759,7 @@ function UpdateDecisionDialog({
                   </Field>
                   <Field>
                     <FieldLabel htmlFor={`relatedPerson.${index}.idNumber`}>
-                      Person {index + 1} ID Number
+                      {t("B0AB3A2A4")} {index + 1} {t("89141CD07")}
                     </FieldLabel>
                     <Input
                       id={`relatedPerson.${index}.idNumber`}
@@ -765,7 +769,7 @@ function UpdateDecisionDialog({
                       disabled={isLoading}
                       value={formik.values.relatedPerson[index].idNumber ?? ""}
                       onChange={formik.handleChange}
-                      placeholder="ID Number"
+                      placeholder={t("89141CD07")}
                     />
                     {typeof formik.errors.relatedPerson?.[index] === "object" &&
                       formik.errors.relatedPerson[index]?.idNumber && (
@@ -800,7 +804,7 @@ function UpdateDecisionDialog({
           <FieldGroup>
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <FieldLabel className="text-sm font-semibold">
-                Related Properties
+                {t("8CEC3FEC7")}
               </FieldLabel>
               <Button
                 type="button"
@@ -813,7 +817,7 @@ function UpdateDecisionDialog({
                   ])
                 }
               >
-                Add Property
+                {t("D43469118")}
               </Button>
             </div>
             {formik.errors.relatedProperties &&
@@ -829,7 +833,7 @@ function UpdateDecisionDialog({
                   <FieldLabel
                     htmlFor={`relatedProperties.${index}.propertyNumber`}
                   >
-                    Property {index + 1} Number
+                    {t("A04A05310")} {index + 1} {t("729FA40C4")}
                   </FieldLabel>
                   <Input
                     id={`relatedProperties.${index}.propertyNumber`}
@@ -842,7 +846,7 @@ function UpdateDecisionDialog({
                       ""
                     }
                     onChange={formik.handleChange}
-                    placeholder="Property Number"
+                    placeholder={t("0E101F9A1")}
                   />
                   {typeof formik.errors.relatedProperties?.[index] ===
                     "object" &&
@@ -859,7 +863,7 @@ function UpdateDecisionDialog({
                   <FieldLabel
                     htmlFor={`relatedProperties.${index}.ProperyType`}
                   >
-                    Property {index + 1} Type
+                    {t("A04A05310")} {index + 1} {t("6E63411C1")}
                   </FieldLabel>
                   <Input
                     id={`relatedProperties.${index}.ProperyType`}
@@ -871,7 +875,7 @@ function UpdateDecisionDialog({
                       formik.values.relatedProperties[index].ProperyType ?? ""
                     }
                     onChange={formik.handleChange}
-                    placeholder="Property Type"
+                    placeholder={t("7E8AF404D")}
                   />
                   {typeof formik.errors.relatedProperties?.[index] ===
                     "object" &&
@@ -895,7 +899,6 @@ function UpdateDecisionDialog({
                     )
                   }
                   disabled={isLoading}
-                  aria-label={`Remove property ${index + 1}`}
                 >
                   <Trash2 />
                 </Button>
@@ -903,7 +906,7 @@ function UpdateDecisionDialog({
                   <FieldLabel
                     htmlFor={`relatedProperties.${index}.propertyDesc`}
                   >
-                    Property {index + 1} Description
+                    {t("A04A05310")} {index + 1} {t("031F951E7")}
                   </FieldLabel>
                   <Textarea
                     id={`relatedProperties.${index}.propertyDesc`}
@@ -914,7 +917,7 @@ function UpdateDecisionDialog({
                       formik.values.relatedProperties[index].propertyDesc ?? ""
                     }
                     onChange={formik.handleChange}
-                    placeholder="Property Description"
+                    placeholder={t("3F3E42F1D")}
                   />
                   {typeof formik.errors.relatedProperties?.[index] ===
                     "object" &&
@@ -934,7 +937,7 @@ function UpdateDecisionDialog({
                 htmlFor="keyword"
                 className="text-sm font-semibold sm:col-span-2"
               >
-                Search Keywords
+                {t("F7C86D366")}
               </FieldLabel>
               <Input
                 id="keyword"
@@ -943,7 +946,7 @@ function UpdateDecisionDialog({
                 disabled={isLoading}
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Type keyword..."
+                placeholder={t("2B5109439")}
               />
               <Button
                 type="button"
@@ -951,7 +954,7 @@ function UpdateDecisionDialog({
                 disabled={keyword === ""}
                 onClick={addKeyword}
               >
-                Add Keyword
+                {t("D065B6213")}
               </Button>
             </div>
             {formik.errors.searchKeywords &&
@@ -988,14 +991,14 @@ function UpdateDecisionDialog({
         </form>
         <DialogFooter className="p-4">
           <DialogClose asChild disabled={isLoading}>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("1AF8F06BC")}</Button>
           </DialogClose>
           <Button
             type="submit"
             disabled={isLoading}
             onClick={() => formik.handleSubmit()}
           >
-            {isLoading ? "Updating..." : "Update"}
+            {isLoading ? <Spinner /> : t("3AA80D99C")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1010,6 +1013,7 @@ function DeleteDecisionDialog({
 }: DecisionDialogProps) {
   const { GET } = useAPI();
   const { showNotification } = useNotification();
+  const { t } = useLanguage();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -1021,7 +1025,7 @@ function DeleteDecisionDialog({
       "DeleteOrder",
       { courtOrderID: decision.caseOrderID },
       () => {
-        showNotification("Court decision deleted successfully!");
+        showNotification(t("B0E0841BA"));
         setIsLoading(false);
 
         onSubmit();
@@ -1035,20 +1039,19 @@ function DeleteDecisionDialog({
     <AlertDialog open={true} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            document and remove it from the system.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t("3472C3FF9")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("38A1B4B9E")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isLoading}>
+            {t("1AF8F06BC")}
+          </AlertDialogCancel>
           <Button
             variant="destructive"
             onClick={deleteDocument}
             disabled={isLoading}
           >
-            {isLoading ? "Deleting..." : "Continue"}
+            {isLoading ? <Spinner /> : t("E9C175950")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

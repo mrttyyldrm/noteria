@@ -1,14 +1,15 @@
 "use client";
 
+import { useLanguage } from "./LanguageContext";
 import { useNotification } from "./NotificationContext";
 import {
   AlertDialog,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -73,9 +74,10 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -89,14 +91,14 @@ import { formatDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { useFormik } from "formik";
 import {
-  Folder,
-  RefreshCw,
-  Save,
-  X,
   EllipsisVertical,
   File,
-  SearchIcon,
+  Folder,
   FolderRoot,
+  RefreshCw,
+  Save,
+  SearchIcon,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -230,6 +232,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const { GET, POST } = useAPI();
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
   const { setOpenMobile, setOpen } = useSidebar();
   const { showNotification } = useNotification();
 
@@ -315,7 +318,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
           directories: newDirectories,
         }));
         deactivateLoading();
-        showNotification("Folder created successfully.", "success");
+        showNotification(t("8535B453A"), "success");
       },
       () => deactivateLoading(),
     );
@@ -342,7 +345,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
           directories: newDirectories,
         }));
         deactivateLoading();
-        showNotification("Folder renamed successfully.", "success");
+        showNotification(t("B79A4BA9A"), "success");
       },
       () => deactivateLoading(),
     );
@@ -366,7 +369,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
           directories: newDirectories,
         }));
         deactivateLoading();
-        showNotification("Folder deleted successfully.", "success");
+        showNotification(t("5D1E018D8"), "success");
       },
       () => deactivateLoading(),
     );
@@ -440,7 +443,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         () => {
           getDocuments();
 
-          showNotification("Document uploaded successfully.", "success");
+          showNotification(t("6FDF08435"), "success");
           callback?.();
         },
         () => deactivateLoading(),
@@ -480,7 +483,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
           ),
         });
         deactivateLoading();
-        showNotification("Document renamed successfully.", "success");
+        showNotification(t("BE00A801F"), "success");
         callback?.();
       },
       () => deactivateLoading(),
@@ -505,7 +508,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
           ),
         });
         deactivateLoading();
-        showNotification("Document deleted successfully.", "success");
+        showNotification(t("3D1162DBE"), "success");
         callback?.();
       },
       () => deactivateLoading(),
@@ -597,7 +600,7 @@ export function DocumentManager({ filter }: { filter: string }) {
     renameFolder,
     deleteFolder,
   } = useDocument();
-  useDocument();
+  const { t } = useLanguage();
 
   const [rename, setRename] = useState<{
     status: boolean;
@@ -792,12 +795,14 @@ export function DocumentManager({ filter }: { filter: string }) {
                                 align="end"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuLabel>
+                                  {t("EA1F69315")}
+                                </DropdownMenuLabel>
                                 <DropdownMenuGroup>
                                   <DropdownMenuItem
                                     onSelect={() => openFolder(directory)}
                                   >
-                                    Open Folder
+                                    {t("6F482C07E")}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onSelect={() => {
@@ -808,7 +813,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                                       setRenameInput(directory);
                                     }}
                                   >
-                                    Rename Folder
+                                    {t("97C6196C8")}
                                   </DropdownMenuItem>
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />
@@ -821,7 +826,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                                     })
                                   }
                                 >
-                                  Delete Folder
+                                  {t("F1BEBB0DE")}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -876,21 +881,23 @@ export function DocumentManager({ filter }: { filter: string }) {
                                 align="end"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuLabel>
+                                  {t("EA1F69315")}
+                                </DropdownMenuLabel>
                                 <DropdownMenuGroup>
                                   <DropdownMenuItem
                                     onSelect={() =>
                                       getDocumentHistory(file.documentID)
                                     }
                                   >
-                                    View History
+                                    {t("F064EEDE3")}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onSelect={() =>
                                       selectDocument(file.documentID)
                                     }
                                   >
-                                    Open Document
+                                    {t("6F482C07E")}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     textValue="rename"
@@ -898,11 +905,11 @@ export function DocumentManager({ filter }: { filter: string }) {
                                       openProcess("rename", file.documentID)
                                     }
                                   >
-                                    Rename Document
+                                    {t("97C6196C8")}
                                   </DropdownMenuItem>
                                   <Link href={file.url}>
                                     <DropdownMenuItem textValue="download">
-                                      Download Document
+                                      {t("56BE8D0E4")}
                                     </DropdownMenuItem>
                                   </Link>
                                   <DropdownMenuSeparator />
@@ -913,7 +920,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                                       openProcess("delete", file.documentID)
                                     }
                                   >
-                                    Delete Document
+                                    {t("F1BEBB0DE")}
                                   </DropdownMenuItem>
                                 </DropdownMenuGroup>
                               </DropdownMenuContent>
@@ -931,18 +938,15 @@ export function DocumentManager({ filter }: { filter: string }) {
                           <EmptyMedia variant="icon">
                             <File />
                           </EmptyMedia>
-                          <EmptyTitle>No Folder or File Found</EmptyTitle>
-                          <EmptyDescription>
-                            You can create a new folder or upload a new file to
-                            get started.
-                          </EmptyDescription>
+                          <EmptyTitle>{t("D7B9A5B42")}</EmptyTitle>
+                          <EmptyDescription>{t("B0DBB3098")}</EmptyDescription>
                           <EmptyContent>
                             <div className="flex flex-col items-center gap-2">
                               {path.length > 0 && (
                                 <Button
                                   onClick={() => openProcess("upload", null)}
                                 >
-                                  Upload New File
+                                  {t("59817AC52")}
                                 </Button>
                               )}
                               <Button
@@ -953,7 +957,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                                 }
                                 onClick={() => createFolder()}
                               >
-                                Create New Folder
+                                {t("668C381C0")}
                               </Button>
                             </div>
                           </EmptyContent>
@@ -978,14 +982,11 @@ export function DocumentManager({ filter }: { filter: string }) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              document and remove it from the system.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("85D8D4C98")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("A1C8A1CD2")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("1AF8F06BC")}</AlertDialogCancel>
             <Button
               variant="destructive"
               onClick={() => {
@@ -993,7 +994,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                 setOpen({ status: false, folderName: "" });
               }}
             >
-              Continue
+              {t("E9C175950")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1003,14 +1004,14 @@ export function DocumentManager({ filter }: { filter: string }) {
         open={histories.length > 0}
         onOpenChange={(open) => !open && setHistories([])}
       >
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Document History</DialogTitle>
+        <DialogContent className="sm:max-w-lg px-0">
+          <DialogHeader className="px-4">
+            <DialogTitle>{t("B5CA4315C")}</DialogTitle>
             <DialogDescription className="flex flex-col gap-2">
-              View the history of the document.
+              {t("4582B4B0C")}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-4 w-full overflow-hidden">
+          <div className="flex flex-col px-4 gap-4 w-full overflow-y-auto max-h-[50vh] md:max-h-[70vh]">
             {histories.map((history, index) => (
               <div
                 key={index}
@@ -1028,7 +1029,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                 </div>
                 <div className="flex flex-col items-start gap-4 overflow-hidden">
                   <div className="flex items-center gap-2 text-sm">
-                    <Badge>{history.type}</Badge>
+                    <Badge variant="secondary">{history.type}</Badge>
                     <p className="text-muted-foreground">by {history.user}</p>
                   </div>
                   {history.oldPath !== "" && history.newPath !== "" && (
@@ -1039,7 +1040,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                       target="_blank"
                     >
                       <Button size="sm" variant="outline">
-                        Compare Changes
+                        {t("C242C71F2")}
                       </Button>
                     </Link>
                   )}
@@ -1055,6 +1056,7 @@ export function DocumentManager({ filter }: { filter: string }) {
 
 function UploadDocumentDialog() {
   const { loading, process, uploadDocument, closeProcess } = useDocument();
+  const { t } = useLanguage();
 
   const handleDrop = async (files: File[]) => {
     const file = files[0];
@@ -1065,8 +1067,8 @@ function UploadDocumentDialog() {
   };
 
   const validationSchema = yup.object({
-    file: yup.string().required("File is required!"),
-    title: yup.string().required("Title is required!"),
+    file: yup.string().required(t("2C936F5BA")),
+    title: yup.string().required(t("2C936F5BA")),
   });
 
   const formik = useFormik({
@@ -1089,13 +1091,13 @@ function UploadDocumentDialog() {
     <Dialog open={true} onOpenChange={(open) => !open && closeProcess()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
+          <DialogTitle>{t("8C51E8531")}</DialogTitle>
           <DialogDescription className="flex flex-col gap-2">
-            Upload a document to create a new document.
+            {t("04960E397")}
           </DialogDescription>
           <DialogDescription asChild>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">Source Path:</p>
+              <p className="text-sm text-muted-foreground">{t("C497659B8")}</p>
               <Badge variant="outline">/{process.path?.toLowerCase()}</Badge>
             </div>
           </DialogDescription>
@@ -1108,7 +1110,7 @@ function UploadDocumentDialog() {
           <FieldGroup>
             {formik.values.file && (
               <Field>
-                <FieldLabel htmlFor="title">Title</FieldLabel>
+                <FieldLabel htmlFor="title">{t("79E559EE5")}</FieldLabel>
                 <Input
                   id="title"
                   name="title"
@@ -1116,7 +1118,7 @@ function UploadDocumentDialog() {
                   disabled={loading.status}
                   value={formik.values.title}
                   onChange={formik.handleChange}
-                  placeholder="Title"
+                  placeholder={t("79E559EE5")}
                 />
                 {formik.touched.title && formik.errors.title && (
                   <FieldError>{formik.errors.title}</FieldError>
@@ -1124,7 +1126,7 @@ function UploadDocumentDialog() {
               </Field>
             )}
             <Field>
-              <FieldLabel htmlFor="file">File</FieldLabel>
+              <FieldLabel htmlFor="file">{t("43CD0C1CF")}</FieldLabel>
               <Dropzone
                 accept={{
                   "application/pdf": [".pdf"],
@@ -1148,10 +1150,10 @@ function UploadDocumentDialog() {
           </FieldGroup>
           <DialogFooter>
             <DialogClose asChild disabled={loading.status}>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{t("1AF8F06BC")}</Button>
             </DialogClose>
             <Button type="submit" disabled={loading.status}>
-              {loading.status ? "Uploading..." : "Upload Document"}
+              {loading.status ? <Spinner /> : t("8C51E8531")}
             </Button>
           </DialogFooter>
         </form>
@@ -1163,6 +1165,7 @@ function UploadDocumentDialog() {
 function RenameDocumentDialog() {
   const { documents, loading, process, renameDocument, closeProcess } =
     useDocument();
+  const { t } = useLanguage();
 
   const validationSchema = yup.object({
     title: yup.string().required("Title is required!"),
@@ -1189,9 +1192,9 @@ function RenameDocumentDialog() {
     <Dialog open={true} onOpenChange={(open) => !open && closeProcess()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Rename Document</DialogTitle>
+          <DialogTitle>{t("AA8A1211B")}</DialogTitle>
           <DialogDescription className="flex flex-col gap-2">
-            Change the title of your document.
+            {t("C691BB986")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -1201,7 +1204,7 @@ function RenameDocumentDialog() {
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="title">Title</FieldLabel>
+              <FieldLabel htmlFor="title">{t("79E559EE5")}</FieldLabel>
               <Input
                 id="title"
                 name="title"
@@ -1209,7 +1212,7 @@ function RenameDocumentDialog() {
                 disabled={loading.status}
                 value={formik.values.title}
                 onChange={formik.handleChange}
-                placeholder="Title"
+                placeholder={t("79E559EE5")}
               />
               {formik.touched.title && formik.errors.title && (
                 <FieldError>{formik.errors.title}</FieldError>
@@ -1218,10 +1221,10 @@ function RenameDocumentDialog() {
           </FieldGroup>
           <DialogFooter>
             <DialogClose asChild disabled={loading.status}>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{t("1AF8F06BC")}</Button>
             </DialogClose>
             <Button type="submit" disabled={loading.status}>
-              {loading.status ? "Renaming..." : "Rename Document"}
+              {loading.status ? <Spinner /> : t("AA8A1211B")}
             </Button>
           </DialogFooter>
         </form>
@@ -1232,6 +1235,7 @@ function RenameDocumentDialog() {
 
 function DeleteDocumentDialog() {
   const { loading, process, deleteDocument, closeProcess } = useDocument();
+  const { t } = useLanguage();
 
   const handleSubmit = () => {
     if (!process.documentID) return;
@@ -1245,22 +1249,19 @@ function DeleteDocumentDialog() {
     <AlertDialog open={true} onOpenChange={(open) => !open && closeProcess()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            document and remove it from the system.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t("531F840D6")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("EFB9FE7FA")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading.status}>
-            Cancel
+            {t("1AF8F06BC")}
           </AlertDialogCancel>
           <Button
             variant="destructive"
             onClick={handleSubmit}
             disabled={loading.status}
           >
-            {loading.status ? "Deleting..." : "Continue"}
+            {loading.status ? <Spinner /> : t("E9C175950")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -1270,6 +1271,7 @@ function DeleteDocumentDialog() {
 
 function DocumentsSidebar() {
   const { path, loading, createFolder, openProcess } = useDocument();
+  const { t } = useLanguage();
 
   const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -1294,7 +1296,7 @@ function DocumentsSidebar() {
         <SidebarContent className="flex flex-col h-full px-4 sm:p-2 gap-4">
           <InputGroup className="bg-white">
             <InputGroupInput
-              placeholder="Search folders or files..."
+              placeholder={t("91832C904")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -1312,7 +1314,7 @@ function DocumentsSidebar() {
                 className="w-full"
                 disabled={path.length === 0}
               >
-                Upload New File
+                {t("30B4A5878")}
               </Button>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -1322,7 +1324,7 @@ function DocumentsSidebar() {
                 onClick={() => createFolder()}
                 className="w-full"
               >
-                Create New Folder
+                {t("668C381C0")}
               </Button>
             </SidebarMenuItem>
           </SidebarMenu>

@@ -1,7 +1,11 @@
-import { LanguageDropdown } from "@/context/LanguageContext";
+"use client";
+
+import { LanguageDropdown, useLanguage } from "@/context/LanguageContext";
 import Image from "next/image";
 
 function AuthLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-4 md:p-6">
@@ -20,14 +24,12 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
       </div>
       <div className="bg-muted relative hidden lg:flex overflow-hidden m-2 ml-0 rounded-lg bg-auth bg-bottom-left bg-cover bg-no-repeat flex-col justify-end p-8 gap-10">
         <div className="flex flex-col">
-          <p className="text-3xl text-muted font-light">
-            Kosovo’s AI Powered Notary App
+          <p className="text-3xl text-muted font-light max-w-sm">
+            {t("7CDB799A1")}
           </p>
           <h1 className="text-9xl text-muted font-semibold">Noteria</h1>
         </div>
-        <p className="text-muted font-normal text-sm">
-          © 2025 Powered by Zhvillo®
-        </p>
+        <p className="text-muted font-normal text-sm">{t("EB8175EF2")}</p>
       </div>
     </div>
   );
