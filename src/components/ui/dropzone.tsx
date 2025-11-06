@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
 import { UploadIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -158,7 +159,8 @@ export const DropzoneEmptyState = ({
   children,
   className,
 }: DropzoneEmptyStateProps) => {
-  const { src, maxSize, minSize, maxFiles } = useDropzoneContext();
+  const { t } = useLanguage();
+  const { src, maxSize, minSize } = useDropzoneContext();
 
   if (src) {
     return null;
@@ -171,11 +173,11 @@ export const DropzoneEmptyState = ({
   let caption = "";
 
   if (minSize && maxSize) {
-    caption += ` between ${renderBytes(minSize)} and ${renderBytes(maxSize)}`;
+    caption += ` ${t("C0CE13DEE")} ${renderBytes(minSize)} - ${renderBytes(maxSize)}`;
   } else if (minSize) {
-    caption += ` at least ${renderBytes(minSize)}`;
+    caption += ` ${t("D23763F9B")} ${renderBytes(minSize)}`;
   } else if (maxSize) {
-    caption += ` less than ${renderBytes(maxSize)}`;
+    caption += ` ${t("4B8ABD448")} ${renderBytes(maxSize)}`;
   }
 
   return (
@@ -184,10 +186,10 @@ export const DropzoneEmptyState = ({
         <UploadIcon size={16} />
       </div>
       <p className="my-2 w-full truncate text-wrap font-medium text-sm">
-        Upload {maxFiles === 1 ? "a file" : "files"}
+        {t("8C51E8531")}
       </p>
       <p className="w-full truncate text-wrap text-muted-foreground text-xs">
-        Drag and drop or click to upload
+        {t("E567EE3B6")}
       </p>
       {caption && (
         <p className="text-wrap text-muted-foreground text-xs">{caption}.</p>

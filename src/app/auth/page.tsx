@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/input-otp";
 import { Spinner } from "@/components/ui/spinner";
 import { useLanguage } from "@/context/LanguageContext";
-import useAPI from "@/hooks/useAPI";
+import useFetch from "@/hooks/useFetch";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
@@ -25,67 +25,9 @@ import * as Yup from "yup";
 function Auth() {
   const router = useRouter();
   const { t, isLanguageLoading } = useLanguage();
-  const { GET, POST } = useAPI();
 
-  const otpRef = useRef<HTMLInputElement>(null);
-
-  const [qrLink, setQrLink] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
-  const [code, setCode] = useState<string>("");
-  const [isOTPInvalid, setIsOTPInvalid] = useState<boolean>(false);
-
-  const auth = () => {
-    if (isLoading) return;
-
-    const authData = {
-      Email: formik.values.email,
-      Pass: formik.values.password,
-    };
-
-    setIsLoading(true);
-    POST(
-      "Auth",
-      authData,
-      (data) => {
-        formik.setFieldValue("requestID", data.requestID);
-        setCurrentStep(data.mfaqr ? 2 : 3);
-        setQrLink(data.mfaqr || "");
-        setIsLoading(false);
-      },
-      () => {
-        formik.resetForm();
-        setIsLoading(false);
-      },
-    );
-  };
-
-  const checkOTP = () => {
-    if (isLoading || code.length !== 6) return;
-
-    const verifyData = {
-      OTP: code,
-      requestID: formik.values.requestID,
-    };
-
-    setIsLoading(true);
-    GET(
-      "CheckOTP",
-      verifyData,
-      () => {
-        router.replace("/dashboard");
-      },
-      () => {
-        setIsLoading(false);
-        setIsOTPInvalid(true);
-        setCode("");
-
-        setTimeout(() => {
-          setIsOTPInvalid(false);
-        }, 2000);
-      },
-    );
-  };
+  const auth = useFetch("POST", "Auth");
+  const checkOTP = useFetch("GET", "CheckOTP");
 
   const validationSchema = Yup.object({
     email: Yup.string().required(t("2C936F5BA")).email(t("9F2BE0310")),
@@ -100,9 +42,50 @@ function Auth() {
     },
     validationSchema: validationSchema,
     onSubmit: () => {
-      auth();
+      handleAuth();
     },
   });
+
+  const otpRef = useRef<HTMLInputElement>(null);
+
+  const [qrLink, setQrLink] = useState<string>("");
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [code, setCode] = useState<string>("");
+  const [isOTPInvalid, setIsOTPInvalid] = useState<boolean>(false);
+
+  const handleAuth = () => {
+    auth.fetch({
+      params: {
+        Email: formik.values.email,
+        Pass: formik.values.password,
+      },
+      onSuccess: (data) => {
+        formik.setFieldValue("requestID", data.requestID);
+        setCurrentStep(data.mfaqr ? 2 : 3);
+        setQrLink(data.mfaqr || "");
+      },
+    });
+  };
+
+  const handleCheckOTP = () => {
+    checkOTP.fetch({
+      params: {
+        OTP: code,
+        requestID: formik.values.requestID,
+      },
+      onSuccess: () => {
+        router.replace("/dashboard");
+      },
+      onError: () => {
+        setIsOTPInvalid(true);
+        setCode("");
+
+        setTimeout(() => {
+          setIsOTPInvalid(false);
+        }, 2000);
+      },
+    });
+  };
 
   useEffect(() => {
     if (currentStep === 3) {
@@ -121,8 +104,8 @@ function Auth() {
   }, [isLanguageLoading]);
 
   useEffect(() => {
-    if (code.length === 6 && !isLoading && currentStep === 3) {
-      checkOTP();
+    if (code.length === 6 && !checkOTP.loading && currentStep === 3) {
+      handleCheckOTP();
     }
   }, [code]);
 
@@ -149,7 +132,7 @@ function Auth() {
                     id="email"
                     name="email"
                     type="email"
-                    disabled={isLoading}
+                    disabled={auth.loading}
                     placeholder={t("F69047778")}
                     value={formik.values.email}
                     onChange={formik.handleChange}
@@ -169,7 +152,7 @@ function Auth() {
                     id="password"
                     name="password"
                     type="password"
-                    disabled={isLoading}
+                    disabled={auth.loading}
                     placeholder={t("CE78FC317")}
                     value={formik.values.password}
                     onChange={formik.handleChange}
@@ -184,8 +167,12 @@ function Auth() {
                   )}
                 </Field>
                 <Field>
-                  <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? <Spinner /> : t("6DFA8AFAB")}
+                  <Button
+                    type="submit"
+                    disabled={auth.loading}
+                    className="w-full"
+                  >
+                    {auth.loading ? <Spinner /> : t("6DFA8AFAB")}
                   </Button>
                 </Field>
               </FieldGroup>
@@ -205,12 +192,8 @@ function Auth() {
                 <QRCodeCanvas width={200} value={qrLink} fgColor="#364a63" />
               </div>
               <Field>
-                <Button
-                  onClick={() => setCurrentStep(3)}
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  {isLoading ? <Spinner /> : t("729241038")}
+                <Button onClick={() => setCurrentStep(3)} className="w-full">
+                  {t("729241038")}
                 </Button>
               </Field>
             </div>
@@ -230,7 +213,7 @@ function Auth() {
                   ref={otpRef}
                   maxLength={6}
                   required
-                  disabled={isLoading}
+                  disabled={checkOTP.loading}
                   value={code}
                   onChange={(value) => {
                     setCode(value);
@@ -253,11 +236,11 @@ function Auth() {
               </Field>
               <Field>
                 <Button
-                  onClick={checkOTP}
-                  disabled={isLoading}
+                  onClick={() => checkOTP.fetch()}
+                  disabled={checkOTP.loading}
                   className="w-full"
                 >
-                  {isLoading ? <Spinner /> : t("81253CC97")}
+                  {checkOTP.loading ? <Spinner /> : t("81253CC97")}
                 </Button>
               </Field>
             </div>

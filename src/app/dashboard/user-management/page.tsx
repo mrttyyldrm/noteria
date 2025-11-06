@@ -54,7 +54,7 @@ import {
 } from "@/components/ui/table";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
-import useAPI from "@/hooks/useAPI";
+import useFetch from "@/hooks/useFetch";
 import { useFormik } from "formik";
 import {
   EllipsisVertical,
@@ -88,9 +88,13 @@ function UserManagementLoading() {
 }
 
 function UserManagement() {
-  const { GET } = useAPI();
   const { showNotification } = useNotification();
   const { t } = useLanguage();
+
+  const getUsersFetcher = useFetch("GET", "GetAllUsers");
+  const toggleAccountStatusFetcher = useFetch("POST", "ToggleUserStatus");
+  const resetPasswordFetcher = useFetch("POST", "ForgotPassword");
+  const resetVerificationFetcher = useFetch("POST", "ResetUserMFA");
 
   const [users, setUsers] = useState<IUser[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -98,40 +102,30 @@ function UserManagement() {
     process: "reset" | "status" | "password" | "update" | "create" | null;
     userID: number | null;
   }>({ process: null, userID: null });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [dialog, setDialog] = useState<{
     process: "update" | "create" | null;
     user: IUser | null;
   }>({ process: null, user: null });
 
   const getUsers = () => {
-    if (isLoading) return;
+    if (getUsersFetcher.loading) return;
 
-    setIsLoading(true);
-    GET(
-      "GetAllUsers",
-      {},
-      (data) => {
+    getUsersFetcher.fetch({
+      onSuccess: (data: IUser[]) => {
         setUsers(data);
-        setIsLoading(false);
       },
-      () => setIsLoading(false),
-    );
+    });
   };
 
   const toggleAccountStatus = (userID: number, status: boolean) => {
     if (loading.process !== null) return;
 
-    setLoading({ process: "status", userID });
-
-    const userStatusData = {
-      userID: userID,
-      userStatus: status,
-    };
-    GET(
-      "ToggleUserStatus",
-      userStatusData,
-      () => {
+    toggleAccountStatusFetcher.fetch({
+      params: {
+        userID: userID,
+        userStatus: status,
+      },
+      onSuccess: () => {
         setUsers((prev) =>
           prev.map((user) =>
             user.userID === userID ? { ...user, userActive: status } : user,
@@ -141,46 +135,51 @@ function UserManagement() {
         status
           ? showNotification(t("34A25EFD6"), "success")
           : showNotification(t("978A2883A"), "success");
+      },
+      onLoading: (loading) => {
+        if (loading) return setLoading({ process: "status", userID });
+
         setLoading({ process: null, userID: null });
       },
-      () => setLoading({ process: null, userID: null }),
-    );
+    });
   };
 
   const resetPassword = (userID: number) => {
     if (loading.process !== null) return;
 
-    setLoading({ process: "password", userID });
-    GET(
-      "ForgotPassword",
-      { userID },
-      () => {
+    resetPasswordFetcher.fetch({
+      params: { userID },
+      onSuccess: () => {
         showNotification(t("FB0E7D535"), "success");
         showNotification(t("FC180BC03"), "default");
+      },
+      onLoading: (loading) => {
+        if (loading) return setLoading({ process: "password", userID });
+
         setLoading({ process: null, userID: null });
       },
-      () => setLoading({ process: null, userID: null }),
-    );
+    });
   };
 
-  const resetAccountMFA = (userID: number) => {
+  const resetVerification = (userID: number) => {
     if (loading.process !== null) return;
 
-    setLoading({ process: "reset", userID });
-    GET(
-      "ResetUserMFA",
-      { userID },
-      () => {
+    resetVerificationFetcher.fetch({
+      params: { userID },
+      onSuccess: () => {
         setUsers((prev) =>
           prev.map((user) =>
             user.userID === userID ? { ...user, mfaActive: false } : user,
           ),
         );
         showNotification(t("9DE8D2DB8"), "success");
+      },
+      onLoading: (loading) => {
+        if (loading) return setLoading({ process: "reset", userID });
+
         setLoading({ process: null, userID: null });
       },
-      () => setLoading({ process: null, userID: null }),
-    );
+    });
   };
 
   useEffect(() => {
@@ -236,7 +235,7 @@ function UserManagement() {
             </TableRow>
           </TableHeader>
           <TableBody className="text-muted-foreground">
-            {isLoading ? (
+            {getUsersFetcher.loading ? (
               <UserManagementLoading />
             ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user, index) => (
@@ -275,7 +274,6 @@ function UserManagement() {
                         <DropdownMenuLabel>{t("EA1F69315")}</DropdownMenuLabel>
                         <DropdownMenuGroup>
                           <DropdownMenuItem
-                            textValue="update"
                             onSelect={() =>
                               setDialog({ process: "update", user })
                             }
@@ -283,7 +281,6 @@ function UserManagement() {
                             {t("3AA80D99C")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            textValue="status"
                             onSelect={() =>
                               toggleAccountStatus(user.userID, !user.userActive)
                             }
@@ -295,15 +292,13 @@ function UserManagement() {
                         <DropdownMenuLabel>{t("E4C47695A")}</DropdownMenuLabel>
                         <DropdownMenuGroup>
                           <DropdownMenuItem
-                            textValue="password"
                             onSelect={() => resetPassword(user.userID)}
                           >
                             {t("6E41E68BE")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            textValue="reset"
                             disabled={user.mfaActive === false}
-                            onSelect={() => resetAccountMFA(user.userID)}
+                            onSelect={() => resetVerification(user.userID)}
                           >
                             {t("8A05C491A")}
                           </DropdownMenuItem>
@@ -335,9 +330,7 @@ function UserManagement() {
         open={dialog.process !== null}
         user={dialog.user}
         onClose={() => setDialog({ process: null, user: null })}
-        onSubmit={() => {
-          getUsers();
-        }}
+        onSubmit={() => getUsers()}
       />
     </section>
   );
@@ -356,14 +349,12 @@ function CreateOrUpdateUserDialog({
   onSubmit,
   onClose,
 }: CreateOrUpdateUserDialogProps) {
-  const { GET, POST } = useAPI();
   const { showNotification } = useNotification();
   const { t, isLanguageLoading } = useLanguage();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [userTypes, setUserTypes] = useState<Record<number, string> | null>(
-    null,
-  );
+  const getUserTypesFetcher = useFetch("GET", "GetUserTypes");
+  const updateUserFetcher = useFetch("POST", "UpdateUser");
+  const createUserFetcher = useFetch("POST", "AddUser");
 
   const initialValues = user
     ? {
@@ -378,43 +369,39 @@ function CreateOrUpdateUserDialog({
       };
 
   const getUserTypes = () => {
-    if (userTypes) return;
+    if (getUserTypesFetcher.data) return;
 
-    GET("GetUserTypes", {}, (data: Record<number, string>) => {
-      setUserTypes(data);
-    });
+    getUserTypesFetcher.fetch();
   };
 
   const updateUser = (updateUser: Partial<IUser>) => {
-    if (isLoading) return;
+    if (updateUserFetcher.loading) return;
 
-    POST(
-      "UpdateUser",
-      updateUser,
-      () => {
-        setIsLoading(false);
+    updateUserFetcher.fetch({
+      params: updateUser,
+      onSuccess: () => {
         showNotification(t("D30E4A874"), "success");
         onSubmit();
+      },
+      onLoading: () => {
         onClose();
       },
-      () => onClose(),
-    );
+    });
   };
 
   const createUser = (createUser: Partial<IUser>) => {
-    if (isLoading) return;
+    if (createUserFetcher.loading) return;
 
-    POST(
-      "AddUser",
-      createUser,
-      () => {
-        setIsLoading(false);
+    updateUserFetcher.fetch({
+      params: createUser,
+      onSuccess: () => {
         showNotification(t("B42AE5AEC"), "success");
         onSubmit();
+      },
+      onLoading: () => {
         onClose();
       },
-      () => onClose(),
-    );
+    });
   };
 
   const validationSchema = yup.object({
@@ -444,6 +431,8 @@ function CreateOrUpdateUserDialog({
 
     formik.validateForm();
   }, [isLanguageLoading]);
+
+  const isLoading = createUserFetcher.loading || updateUserFetcher.loading;
 
   useEffect(() => {
     getUserTypes();
@@ -496,30 +485,32 @@ function CreateOrUpdateUserDialog({
                 <FieldError>{formik.errors.email}</FieldError>
               )}
             </Field>
-            {userTypes !== null ? (
+            {getUserTypesFetcher.data !== null ? (
               <Field>
                 <FieldLabel htmlFor="title">{t("722C02C19")}</FieldLabel>
                 <ButtonGroup className="w-full grid grid-cols-3">
-                  {Object.entries(userTypes).map(([key, value]) => (
-                    <Button
-                      type="button"
-                      key={key}
-                      disabled={isLoading}
-                      variant={
-                        formik.values.userType?.key === Number(key)
-                          ? "default"
-                          : "outline"
-                      }
-                      onClick={() =>
-                        formik.setFieldValue("userType", {
-                          key: Number(key),
-                          value: value,
-                        })
-                      }
-                    >
-                      {value}
-                    </Button>
-                  ))}
+                  {Object.entries(getUserTypesFetcher.data).map(
+                    ([key, value]) => (
+                      <Button
+                        type="button"
+                        key={key}
+                        disabled={isLoading}
+                        variant={
+                          formik.values.userType?.key === Number(key)
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() =>
+                          formik.setFieldValue("userType", {
+                            key: Number(key),
+                            value: value,
+                          })
+                        }
+                      >
+                        {String(value)}
+                      </Button>
+                    ),
+                  )}
                 </ButtonGroup>
                 {formik.touched.userType && formik.errors.userType && (
                   <FieldError>{formik.errors.userType.key}</FieldError>

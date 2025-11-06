@@ -12,10 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
-import useAPI from "@/hooks/useAPI";
+import useFetch from "@/hooks/useFetch";
 import { useFormik } from "formik";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import * as Yup from "yup";
 
 function Reset() {
@@ -23,32 +23,21 @@ function Reset() {
   const params = useParams();
   const { showNotification } = useNotification();
   const { t, isLanguageLoading } = useLanguage();
-  const { GET } = useAPI();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const resetPassword = useFetch("GET", "ResetPassword");
 
-  const resetPassword = () => {
-    if (isLoading) return;
-
-    const resetData = {
-      RequestID: params.hash,
-      NewPass: formik.values.password,
-    };
-
-    setIsLoading(true);
-    GET(
-      "ResetPassword",
-      resetData,
-      () => {
+  const handleResetPassword = () => {
+    resetPassword.fetch({
+      params: {
+        RequestID: params.hash,
+        NewPass: formik.values.password,
+      },
+      onSuccess: () => {
         showNotification(t("FC77C34B3"), "success");
         router.replace("/auth");
-        setIsLoading(false);
       },
-      () => {
-        formik.resetForm();
-        setIsLoading(false);
-      },
-    );
+      onError: () => formik.resetForm(),
+    });
   };
 
   const validationSchema = Yup.object({
@@ -65,7 +54,7 @@ function Reset() {
     },
     validationSchema: validationSchema,
     onSubmit: () => {
-      resetPassword();
+      handleResetPassword();
     },
   });
 
@@ -96,7 +85,7 @@ function Reset() {
                 id="password"
                 name="password"
                 type="password"
-                disabled={isLoading}
+                disabled={resetPassword.loading}
                 placeholder={t("CE78FC317")}
                 value={formik.values.password}
                 onChange={formik.handleChange}
@@ -114,7 +103,7 @@ function Reset() {
                 id="repassword"
                 name="repassword"
                 type="password"
-                disabled={isLoading}
+                disabled={resetPassword.loading}
                 placeholder={t("A2B162E01")}
                 value={formik.values.repassword}
                 onChange={formik.handleChange}
@@ -124,8 +113,12 @@ function Reset() {
               )}
             </Field>
             <Field>
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? <Spinner /> : t("8E8050D17")}
+              <Button
+                type="submit"
+                disabled={resetPassword.loading}
+                className="w-full"
+              >
+                {resetPassword.loading ? <Spinner /> : t("8E8050D17")}
               </Button>
             </Field>
           </FieldGroup>

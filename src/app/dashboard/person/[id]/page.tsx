@@ -22,11 +22,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDocument, type IFile } from "@/context/DocumentContext";
-import useAPI from "@/hooks/useAPI";
+import useFetch from "@/hooks/useFetch";
 import { formatDate, isDatePast } from "@/lib/date";
 import { File, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface IPersonProfile {
@@ -42,6 +42,7 @@ interface IPersonProfile {
 
 function Person() {
   const { id } = useParams();
+
   const { selectDocument } = useDocument();
 
   const [profile, setProfile] = useState<IPersonProfile | null>(null);
@@ -49,19 +50,24 @@ function Person() {
     "document",
   );
 
-  const { GET } = useAPI();
+  const getPersonProfile = useFetch("GET", "GetPersonProfile");
 
-  const getPersonProfile = () => {
+  const handleGetPersonProfile = () => {
     if (!id) return;
 
-    GET("GetPersonProfile", { PersonID: id }, (data: IPersonProfile) => {
-      setProfile(data);
+    getPersonProfile.fetch({
+      params: { PersonID: id },
+      onSuccess: (data: IPersonProfile) => {
+        setProfile(data);
+      },
     });
   };
 
   useEffect(() => {
-    getPersonProfile();
-  }, []);
+    isNaN(Number(id)) && notFound();
+
+    handleGetPersonProfile();
+  }, [id]);
 
   if (!profile) {
     return <PersonSkeleton />;

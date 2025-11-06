@@ -45,7 +45,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocument } from "@/context/DocumentContext";
 import { LanguageDropdown, useLanguage } from "@/context/LanguageContext";
-import useAPI from "@/hooks/useAPI";
+import useFetch from "@/hooks/useFetch";
 import {
   ChevronsUpDown,
   File,
@@ -90,18 +90,18 @@ const suggestionIcons: { [key in ISuggestion["resultType"]]: React.ReactNode } =
   };
 
 function SidebarNavigation() {
-  const { GET } = useAPI();
   const { t, isLanguageLoading } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const { setOpen, isMobile } = useSidebar();
   const { selectDocument } = useDocument();
 
-  const [profile, setProfile] = useState<IProfile | null>(null);
+  const getProfileFetcher = useFetch("GET", "GetProfile");
+  const getSearchOptionsFetcher = useFetch("GET", "Search");
+
   const [page, setPage] = useState<IPage | null>(null);
   const [isCommandOpen, setIsCommandOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
-  const [isSearchLoading, setIsSearchLoading] = useState<boolean>(false);
   const [searchSuggestions, setSearchSuggestions] = useState<
     ISuggestion[] | null
   >(null);
@@ -131,24 +131,16 @@ function SidebarNavigation() {
   ];
 
   const getProfile = () => {
-    GET("GetProfile", {}, (data: IProfile) => {
-      setProfile(data);
-    });
+    getProfileFetcher.fetch();
   };
 
   const getSearchOptions = () => {
-    if (isSearchLoading) return;
+    if (getSearchOptionsFetcher.loading) return;
 
-    setIsSearchLoading(true);
-    GET(
-      "Search",
-      { Query: search },
-      (data) => {
-        setSearchSuggestions(data);
-        setIsSearchLoading(false);
-      },
-      () => setIsSearchLoading(false),
-    );
+    getSearchOptionsFetcher.fetch({
+      params: { Query: search },
+      onSuccess: (data: ISuggestion[]) => setSearchSuggestions(data),
+    });
   };
 
   const redirectSuggestion = (suggestion: ISuggestion) => {
@@ -176,7 +168,6 @@ function SidebarNavigation() {
 
     const currentPage = pages.find((page) => pathname === page.route);
 
-    console.log(currentPage);
     setPage(currentPage || null);
 
     if (currentPage?.route === pages[0].route) {
@@ -211,6 +202,8 @@ function SidebarNavigation() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const profile: IProfile | null = getProfileFetcher.data;
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
@@ -347,7 +340,7 @@ function SidebarNavigation() {
           onValueChange={setSearch}
         />
         <CommandList>
-          {!isSearchLoading ? (
+          {!getSearchOptionsFetcher.loading ? (
             searchSuggestions && searchSuggestions.length > 0 ? (
               <>
                 <CommandGroup heading={t("B8936AA58")}>

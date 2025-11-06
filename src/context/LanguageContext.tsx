@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import useAPI, { getCookie } from "@/hooks/useAPI";
+import useFetch, { getCookie } from "@/hooks/useFetch";
 import { Globe } from "lucide-react";
 import Image from "next/image";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -34,10 +34,9 @@ const LanguageContext = createContext<LanguageContextTypes>(
 );
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const { GET } = useAPI();
+  const getLanguagesFetcher = useFetch("GET", "GetLanguages");
+  const getLanguagePackageFetcher = useFetch("GET", "GetLanguagePackage");
 
-  const [isLanguageLoading, setIsLanguageLoading] =
-    useState<LanguageContextTypes["isLanguageLoading"]>(false);
   const [currentLanguage, setCurrentLanguage] =
     useState<LanguageContextTypes["currentLanguage"]>(null);
   const [languages, setLanguages] = useState<LanguageContextTypes["languages"]>(
@@ -58,26 +57,21 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const changeLanguage = (languageCode: string) => {
-    if (isLanguageLoading) return;
+    if (getLanguagePackageFetcher.loading) return;
 
-    setIsLanguageLoading(true);
     setCurrentLanguage(languageCode);
     document.cookie = `language=${languageCode}; path=/; samesite=Strict; secure; max-age=31536000;`;
 
-    GET(
-      "GetLanguagePackage",
-      {},
-      (response: any) => {
-        setLanguagePackage(response);
-        localStorage.setItem("languagePackage", JSON.stringify(response));
+    getLanguagePackageFetcher.fetch({
+      onSuccess: (data) => {
+        setLanguagePackage(data);
+        localStorage.setItem("languagePackage", JSON.stringify(data));
         localStorage.setItem(
           "languagePackageUpdateDate",
           new Date().toLocaleDateString(),
         );
-        setIsLanguageLoading(false);
       },
-      () => setIsLanguageLoading(false),
-    );
+    });
   };
 
   const t = (languageCode: string) => {
@@ -86,22 +80,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (Object.keys(languages).length === 0) {
-      setIsLanguageLoading(true);
-
-      GET(
-        "GetLanguages",
-        {},
-        (response: any) => {
+      getLanguagesFetcher.fetch({
+        onSuccess: (data) => {
           setLanguages(
-            response.reduce((acc: any, lang: any) => {
+            data.reduce((acc: any, lang: any) => {
               acc[lang.langCode] = lang.languageName;
               return acc;
             }, {}),
           );
-          setIsLanguageLoading(false);
         },
-        () => setIsLanguageLoading(false),
-      );
+      });
     }
   }, []);
 
@@ -126,6 +114,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       setLanguagePackage(JSON.parse(storedLanguagePackage));
     }
   }, []);
+
+  const isLanguageLoading =
+    getLanguagePackageFetcher.loading || getLanguagesFetcher.loading;
 
   const value = {
     isLanguageLoading,

@@ -65,7 +65,7 @@ import {
 import { useDocument } from "@/context/DocumentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
-import useAPI from "@/hooks/useAPI";
+import useFetch from "@/hooks/useFetch";
 import { formatDate, isDatePast } from "@/lib/date";
 import {
   AlertDialog,
@@ -156,14 +156,14 @@ function checkIsMissing(
 }
 
 function CourtDecisions() {
-  const { GET } = useAPI();
   const { openProcess } = useDocument();
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter");
 
+  const getCourtDecisions = useFetch("GET", "GetCourtList");
+
   const [decisions, setDecisions] = useState<IDecision[] | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [processes, setProcesses] = useState<string[] | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>(filter ?? "");
   const [dialog, setDialog] = useState<{
@@ -171,20 +171,13 @@ function CourtDecisions() {
     decision: IDecision | null;
   }>({ process: null, decision: null });
 
-  const getCourtDecisions = () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    GET(
-      "GetCourtList",
-      {},
-      (data) => {
+  const handleGetCourtDecisions = () => {
+    getCourtDecisions.fetch({
+      onSuccess: (data) => {
         setDecisions(data.orders);
         setProcesses(data.aiProcess);
-        setIsLoading(false);
       },
-      () => setIsLoading(false),
-    );
+    });
   };
 
   useEffect(() => {
@@ -194,7 +187,7 @@ function CourtDecisions() {
   }, [processes]);
 
   useEffect(() => {
-    getCourtDecisions();
+    handleGetCourtDecisions();
   }, []);
 
   if (!decisions) {
@@ -239,7 +232,7 @@ function CourtDecisions() {
                 <Button
                   variant="outline"
                   size="icon-sm"
-                  onClick={() => getCourtDecisions()}
+                  onClick={() => handleGetCourtDecisions()}
                 >
                   <RefreshCw />
                 </Button>
@@ -247,7 +240,7 @@ function CourtDecisions() {
             </TableRow>
           </TableHeader>
           <TableBody className="text-muted-foreground">
-            {isLoading ? (
+            {getCourtDecisions.loading ? (
               <CourtDecisionsLoading />
             ) : (
               <>
@@ -403,7 +396,7 @@ function CourtDecisions() {
         <UpdateDecisionDialog
           decision={dialog.decision}
           onClose={() => setDialog({ process: null, decision: null })}
-          onSubmit={() => getCourtDecisions()}
+          onSubmit={() => handleGetCourtDecisions()}
         />
       )}
 
@@ -411,7 +404,7 @@ function CourtDecisions() {
         <DeleteDecisionDialog
           decision={dialog.decision}
           onClose={() => setDialog({ process: null, decision: null })}
-          onSubmit={() => getCourtDecisions()}
+          onSubmit={() => handleGetCourtDecisions()}
         />
       )}
     </section>
@@ -539,11 +532,11 @@ function UpdateDecisionDialog({
   onClose,
   onSubmit,
 }: DecisionDialogProps) {
-  const { POST } = useAPI();
   const { showNotification } = useNotification();
   const { t, isLanguageLoading } = useLanguage();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { loading, fetch } = useFetch("POST", "UpdateOrder");
+
   const [keyword, setKeyword] = useState<string>("");
 
   const addKeyword = () => {
@@ -562,21 +555,17 @@ function UpdateDecisionDialog({
   };
 
   const updateDecision = (decision: IDecision) => {
-    if (isLoading) return;
+    if (loading) return;
 
-    setIsLoading(true);
-    POST(
-      "UpdateOrder",
-      decision,
-      () => {
+    fetch({
+      params: decision,
+      onSuccess: () => {
         showNotification(t("A49286AEB"));
-        setIsLoading(false);
 
         onSubmit();
         onClose();
       },
-      () => setIsLoading(false),
-    );
+    });
   };
 
   const validationSchema = yup.object({
@@ -651,7 +640,7 @@ function UpdateDecisionDialog({
                 name="caseNumber"
                 type="text"
                 required={true}
-                disabled={isLoading}
+                disabled={loading}
                 value={formik.values.caseNumber ?? ""}
                 onChange={formik.handleChange}
                 placeholder={t("E75E7FFD6")}
@@ -666,7 +655,7 @@ function UpdateDecisionDialog({
                 id="summary"
                 name="summary"
                 required={true}
-                disabled={isLoading}
+                disabled={loading}
                 value={formik.values.summary ?? ""}
                 onChange={formik.handleChange}
                 placeholder={t("B0AB3A2A4")}
@@ -683,7 +672,7 @@ function UpdateDecisionDialog({
                   name="startDate"
                   type="date"
                   required={true}
-                  disabled={isLoading}
+                  disabled={loading}
                   value={formik.values.startDate ?? ""}
                   onChange={formik.handleChange}
                   placeholder={t("BBF634251")}
@@ -699,7 +688,7 @@ function UpdateDecisionDialog({
                   name="expireDate"
                   type="date"
                   required={true}
-                  disabled={isLoading}
+                  disabled={loading}
                   value={formik.values.expireDate ?? ""}
                   onChange={formik.handleChange}
                   placeholder={t("23D4FE15A")}
@@ -746,7 +735,7 @@ function UpdateDecisionDialog({
                       name={`relatedPerson.${index}.nameSurname`}
                       type="text"
                       required={true}
-                      disabled={isLoading}
+                      disabled={loading}
                       value={
                         formik.values.relatedPerson[index].nameSurname ?? ""
                       }
@@ -769,7 +758,7 @@ function UpdateDecisionDialog({
                       name={`relatedPerson.${index}.idNumber`}
                       type="number"
                       required={true}
-                      disabled={isLoading}
+                      disabled={loading}
                       value={formik.values.relatedPerson[index].idNumber ?? ""}
                       onChange={formik.handleChange}
                       placeholder={t("89141CD07")}
@@ -794,8 +783,7 @@ function UpdateDecisionDialog({
                         ),
                       )
                     }
-                    disabled={isLoading}
-                    aria-label={`Remove person ${index + 1}`}
+                    disabled={loading}
                   >
                     <Trash2 />
                   </Button>
@@ -843,7 +831,7 @@ function UpdateDecisionDialog({
                     name={`relatedProperties.${index}.propertyNumber`}
                     type="number"
                     required={true}
-                    disabled={isLoading}
+                    disabled={loading}
                     value={
                       formik.values.relatedProperties[index].propertyNumber ??
                       ""
@@ -873,7 +861,7 @@ function UpdateDecisionDialog({
                     name={`relatedProperties.${index}.ProperyType`}
                     type="text"
                     required={true}
-                    disabled={isLoading}
+                    disabled={loading}
                     value={
                       formik.values.relatedProperties[index].ProperyType ?? ""
                     }
@@ -901,7 +889,7 @@ function UpdateDecisionDialog({
                       ),
                     )
                   }
-                  disabled={isLoading}
+                  disabled={loading}
                 >
                   <Trash2 />
                 </Button>
@@ -915,7 +903,7 @@ function UpdateDecisionDialog({
                     id={`relatedProperties.${index}.propertyDesc`}
                     name={`relatedProperties.${index}.propertyDesc`}
                     required={true}
-                    disabled={isLoading}
+                    disabled={loading}
                     value={
                       formik.values.relatedProperties[index].propertyDesc ?? ""
                     }
@@ -946,7 +934,7 @@ function UpdateDecisionDialog({
                 id="keyword"
                 name="keyword"
                 type="text"
-                disabled={isLoading}
+                disabled={loading}
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder={t("2B5109439")}
@@ -993,15 +981,15 @@ function UpdateDecisionDialog({
           </FieldGroup>
         </form>
         <DialogFooter className="p-4">
-          <DialogClose asChild disabled={isLoading}>
+          <DialogClose asChild disabled={loading}>
             <Button variant="outline">{t("1AF8F06BC")}</Button>
           </DialogClose>
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={loading}
             onClick={() => formik.handleSubmit()}
           >
-            {isLoading ? <Spinner /> : t("3AA80D99C")}
+            {loading ? <Spinner /> : t("3AA80D99C")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1014,28 +1002,23 @@ function DeleteDecisionDialog({
   onSubmit,
   onClose,
 }: DecisionDialogProps) {
-  const { GET } = useAPI();
   const { showNotification } = useNotification();
   const { t } = useLanguage();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { loading, fetch } = useFetch("GET", "DeleteOrder");
 
-  const deleteDocument = () => {
-    if (isLoading) return;
+  const deleteDecision = () => {
+    if (loading) return;
 
-    setIsLoading(true);
-    GET(
-      "DeleteOrder",
-      { courtOrderID: decision.caseOrderID },
-      () => {
+    fetch({
+      params: { courtOrderID: decision.caseOrderID },
+      onSuccess: () => {
         showNotification(t("B0E0841BA"));
-        setIsLoading(false);
 
         onSubmit();
         onClose();
       },
-      () => setIsLoading(false),
-    );
+    });
   };
 
   return (
@@ -1046,15 +1029,15 @@ function DeleteDecisionDialog({
           <AlertDialogDescription>{t("38A1B4B9E")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>
+          <AlertDialogCancel disabled={loading}>
             {t("1AF8F06BC")}
           </AlertDialogCancel>
           <Button
             variant="destructive"
-            onClick={deleteDocument}
-            disabled={isLoading}
+            onClick={deleteDecision}
+            disabled={loading}
           >
-            {isLoading ? <Spinner /> : t("E9C175950")}
+            {loading ? <Spinner /> : t("E9C175950")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

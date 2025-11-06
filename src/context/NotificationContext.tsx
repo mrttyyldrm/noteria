@@ -8,7 +8,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item";
-import { CircleCheck, CircleAlert, Info, X } from "lucide-react";
+import { CircleAlert, CircleCheck, Info, X } from "lucide-react";
 import { createContext, useContext, useState } from "react";
 
 interface NotificationTypes {
@@ -94,7 +94,7 @@ function Notifications() {
   const { notifications, removeNotification } = useNotification();
 
   return (
-    <div className="z-50 fixed bottom-4 right-4 flex flex-col justify-end space-y-3">
+    <div className="z-[99] fixed bottom-4 right-4 flex flex-col justify-end space-y-3">
       {notifications.map((notification: NotificationTypes, index: number) => (
         <Notification
           key={index}

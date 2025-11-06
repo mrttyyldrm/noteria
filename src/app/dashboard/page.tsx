@@ -33,7 +33,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { IDocumentConfig, useDocument } from "@/context/DocumentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
-import useAPI from "@/hooks/useAPI";
+import useFetch from "@/hooks/useFetch";
 import { DocumentEditor } from "@onlyoffice/document-editor-react";
 import { File, FileClock, FileUp } from "lucide-react";
 import Link from "next/link";
@@ -47,13 +47,15 @@ interface IStatus {
 }
 
 function Dashboard() {
-  const { GET } = useAPI();
   const { showNotification } = useNotification();
   const { t } = useLanguage();
   const { selectedDocument, documents, selectDocument } = useDocument();
 
+  const verifyDocumentFetcher = useFetch("GET", "CheckDoc");
+  const calcPriceFetcher = useFetch("GET", "CalcPrice");
+  const printDocumentFetcher = useFetch("GET", "PrintDoc");
+
   const [isReady, setIsReady] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isVerifying, setisVerifying] = useState<boolean>(false);
   const [status, setStatus] = useState<IStatus>({
     isValid: true,
@@ -67,63 +69,55 @@ function Dashboard() {
   const [open, setOpen] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  const completeDocument = () => {
-    if (!selectedDocument || isLoading) return;
+  const verifyDocument = () => {
+    if (!selectedDocument || verifyDocumentFetcher.loading) return;
 
-    setOpen(false);
-    setisVerifying(true);
-    setIsLoading(true);
-    GET(
-      "CheckDoc",
-      { DocID: selectedDocument.documentID },
-      (data: IStatus) => {
+    verifyDocumentFetcher.fetch({
+      params: { DocID: selectedDocument.documentID },
+      onSuccess: (data: IStatus) => {
         setStatus(data);
         setisVerifying(false);
-        setIsLoading(false);
 
         if (!data.isValid) return;
 
         setCurrentStep(2);
       },
-      () => {
-        setIsLoading(false);
+      onLoading: (loading) => {
+        if (loading) {
+          setOpen(false);
+          setisVerifying(true);
+          return;
+        }
+
         setisVerifying(false);
       },
-    );
+    });
   };
 
   const calcPrice = () => {
-    if (!price || isLoading) return;
+    if (!price || calcPriceFetcher.loading) return;
 
-    setDetails({});
-    setIsLoading(true);
-    GET(
-      "CalcPrice",
-      { Price: price },
-      (data) => {
+    calcPriceFetcher.fetch({
+      params: { Price: price },
+      onSuccess: (data) => {
         setDetails(data);
-        setIsLoading(false);
       },
-      () => setIsLoading(false),
-    );
+      onLoading: (loading) => {
+        if (loading) setDetails({});
+      },
+    });
   };
 
   const printDocument = () => {
-    if (!selectedDocument || isLoading) return;
+    if (!selectedDocument || printDocumentFetcher.loading) return;
 
-    setIsLoading(true);
-    GET(
-      "PrintDoc",
-      { DocID: selectedDocument.documentID },
-      (data) => {
+    printDocumentFetcher.fetch({
+      params: { DocID: selectedDocument.documentID },
+      onSuccess: (data) => {
         setConfig(data);
         setCurrentStep(3);
-        setIsLoading(false);
       },
-      () => {
-        setIsLoading(false);
-      },
-    );
+    });
   };
 
   const finishDocument = () => {
@@ -198,8 +192,15 @@ function Dashboard() {
                   {t("CE4708006")}
                 </Button>
                 {selectedDocument.editable && selectedDocument.config && (
-                  <Button disabled={isLoading} onClick={() => setOpen(true)}>
-                    {isLoading ? <Spinner /> : t("FD0C7F9C4")}
+                  <Button
+                    disabled={verifyDocumentFetcher.loading}
+                    onClick={() => setOpen(true)}
+                  >
+                    {verifyDocumentFetcher.loading ? (
+                      <Spinner />
+                    ) : (
+                      t("FD0C7F9C4")
+                    )}
                   </Button>
                 )}
               </Card>
@@ -283,8 +284,11 @@ function Dashboard() {
             <Button variant="outline" onClick={() => setCurrentStep(1)}>
               {t("3CF519BD6")}
             </Button>
-            <Button disabled={isLoading} onClick={() => printDocument()}>
-              {isLoading ? <Spinner /> : t("B970607EA")}
+            <Button
+              disabled={printDocumentFetcher.loading}
+              onClick={() => printDocument()}
+            >
+              {printDocumentFetcher.loading ? <Spinner /> : t("B970607EA")}
             </Button>
           </Card>
         </>
@@ -325,7 +329,7 @@ function Dashboard() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("1AF8F06BC")}</AlertDialogCancel>
-            <Button onClick={completeDocument}>{t("67C4B27A7")}</Button>
+            <Button onClick={verifyDocument}>{t("67C4B27A7")}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
