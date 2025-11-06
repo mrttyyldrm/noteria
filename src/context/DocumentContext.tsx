@@ -587,6 +587,7 @@ const TableRowSkeleton = () => {
 };
 
 export function DocumentManager({ filter }: { filter: string }) {
+  const router = useRouter();
   const { GET } = useAPI();
   const {
     path,
@@ -859,13 +860,17 @@ export function DocumentManager({ filter }: { filter: string }) {
                                 })}
                               />
                               <p
-                                className={cn({
-                                  "text-primary font-medium": isSelected,
-                                  "hover:underline hover:text-foreground cursor-pointer":
-                                    !isSelected,
-                                })}
+                                className={cn(
+                                  "cursor-pointer hover:underline",
+                                  {
+                                    "text-primary": isSelected,
+                                    "text-foreground": !isSelected,
+                                  },
+                                )}
                                 onClick={() =>
-                                  !isSelected && selectDocument(file.documentID)
+                                  !isSelected
+                                    ? selectDocument(file.documentID)
+                                    : router.push("/dashboard")
                                 }
                               >{`${file.title}.${file.extension}`}</p>
                             </div>
@@ -895,13 +900,16 @@ export function DocumentManager({ filter }: { filter: string }) {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onSelect={() =>
-                                      selectDocument(file.documentID)
+                                      selectDocument(
+                                        isSelected ? null : file.documentID,
+                                      )
                                     }
                                   >
-                                    {t("6F482C07E")}
+                                    {isSelected
+                                      ? t("7D8F5F809")
+                                      : t("6F482C07E")}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    textValue="rename"
                                     onSelect={() =>
                                       openProcess("rename", file.documentID)
                                     }
@@ -916,7 +924,6 @@ export function DocumentManager({ filter }: { filter: string }) {
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     variant="destructive"
-                                    textValue="delete"
                                     onSelect={() =>
                                       openProcess("delete", file.documentID)
                                     }
@@ -1016,7 +1023,7 @@ export function DocumentManager({ filter }: { filter: string }) {
             {histories.map((history, index) => (
               <div
                 key={index}
-                className="group grid grid-cols-[4.5rem_auto_1fr] items-stretch gap-4"
+                className="group grid grid-cols-[5rem_auto_1fr] items-stretch gap-4"
               >
                 <p className="text-foreground text-sm font-semibold">
                   {formatDate(history.logDate)}
@@ -1031,7 +1038,9 @@ export function DocumentManager({ filter }: { filter: string }) {
                 <div className="flex flex-col items-start gap-4 overflow-hidden">
                   <div className="flex items-center gap-2 text-sm">
                     <Badge variant="secondary">{history.type}</Badge>
-                    <p className="text-muted-foreground">by {history.user}</p>
+                    <p className="text-muted-foreground">
+                      {t("C76AEB17E")?.replace("{fullName}", history.user)}
+                    </p>
                   </div>
                   {history.oldPath !== "" && history.newPath !== "" && (
                     <Link
@@ -1301,7 +1310,9 @@ function DocumentsSidebar() {
           <SidebarMenu className="p-2 pb-0 md:p-0">
             <SidebarMenuItem>
               <div className="w-full flex items-center gap-2 font-semibold text-xl text-foreground">
-                <Image src="/logo.svg" alt="Logo" width={42} height={42} />
+                <Link href="/dashboard">
+                  <Image src="/logo.svg" alt="Logo" width={42} height={42} />
+                </Link>
                 <div className="flex items-center">Noteria</div>
                 <Button
                   variant="outline"

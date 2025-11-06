@@ -30,14 +30,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { IDocumentConfig, useDocument } from "@/context/DocumentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useAPI from "@/hooks/useAPI";
 import { DocumentEditor } from "@onlyoffice/document-editor-react";
-import { Tooltip } from "@radix-ui/react-tooltip";
-import { File, FileClock, FileUp, Info } from "lucide-react";
+import { File, FileClock, FileUp } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -203,17 +201,6 @@ function Dashboard() {
                   <Button disabled={isLoading} onClick={() => setOpen(true)}>
                     {isLoading ? <Spinner /> : t("FD0C7F9C4")}
                   </Button>
-                )}
-
-                {!selectedDocument.editable && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon">
-                        <Info />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{t("DED358E09")}</TooltipContent>
-                  </Tooltip>
                 )}
               </Card>
             </div>
