@@ -26,8 +26,11 @@ function Auth() {
   const router = useRouter();
   const { t, isLanguageLoading } = useLanguage();
 
-  const auth = useFetch("POST", "Auth");
-  const checkOTP = useFetch("GET", "CheckOTP");
+  const { loading: authLoading, fetch: fetchAuth } = useFetch("POST", "Auth");
+  const { loading: checkOTPLoading, fetch: fetchCheckOTP } = useFetch(
+    "GET",
+    "CheckOTP",
+  );
 
   const validationSchema = Yup.object({
     email: Yup.string().required(t("2C936F5BA")).email(t("9F2BE0310")),
@@ -42,7 +45,7 @@ function Auth() {
     },
     validationSchema: validationSchema,
     onSubmit: () => {
-      handleAuth();
+      auth();
     },
   });
 
@@ -53,8 +56,8 @@ function Auth() {
   const [code, setCode] = useState<string>("");
   const [isOTPInvalid, setIsOTPInvalid] = useState<boolean>(false);
 
-  const handleAuth = () => {
-    auth.fetch({
+  const auth = () => {
+    fetchAuth({
       params: {
         Email: formik.values.email,
         Pass: formik.values.password,
@@ -67,8 +70,8 @@ function Auth() {
     });
   };
 
-  const handleCheckOTP = () => {
-    checkOTP.fetch({
+  const checkOTP = () => {
+    fetchCheckOTP({
       params: {
         OTP: code,
         requestID: formik.values.requestID,
@@ -104,8 +107,8 @@ function Auth() {
   }, [isLanguageLoading]);
 
   useEffect(() => {
-    if (code.length === 6 && !checkOTP.loading && currentStep === 3) {
-      handleCheckOTP();
+    if (code.length === 6 && !checkOTPLoading && currentStep === 3) {
+      checkOTP();
     }
   }, [code]);
 
@@ -132,7 +135,7 @@ function Auth() {
                     id="email"
                     name="email"
                     type="email"
-                    disabled={auth.loading}
+                    disabled={authLoading}
                     placeholder={t("F69047778")}
                     value={formik.values.email}
                     onChange={formik.handleChange}
@@ -152,7 +155,7 @@ function Auth() {
                     id="password"
                     name="password"
                     type="password"
-                    disabled={auth.loading}
+                    disabled={authLoading}
                     placeholder={t("CE78FC317")}
                     value={formik.values.password}
                     onChange={formik.handleChange}
@@ -169,10 +172,10 @@ function Auth() {
                 <Field>
                   <Button
                     type="submit"
-                    disabled={auth.loading}
+                    disabled={authLoading}
                     className="w-full"
                   >
-                    {auth.loading ? <Spinner /> : t("6DFA8AFAB")}
+                    {authLoading ? <Spinner /> : t("6DFA8AFAB")}
                   </Button>
                 </Field>
               </FieldGroup>
@@ -213,7 +216,7 @@ function Auth() {
                   ref={otpRef}
                   maxLength={6}
                   required
-                  disabled={checkOTP.loading}
+                  disabled={checkOTPLoading}
                   value={code}
                   onChange={(value) => {
                     setCode(value);
@@ -236,11 +239,11 @@ function Auth() {
               </Field>
               <Field>
                 <Button
-                  onClick={() => checkOTP.fetch()}
-                  disabled={checkOTP.loading}
+                  onClick={() => checkOTP()}
+                  disabled={checkOTPLoading}
                   className="w-full"
                 >
-                  {checkOTP.loading ? <Spinner /> : t("81253CC97")}
+                  {checkOTPLoading ? <Spinner /> : t("81253CC97")}
                 </Button>
               </Field>
             </div>

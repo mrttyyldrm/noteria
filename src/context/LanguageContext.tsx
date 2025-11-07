@@ -34,8 +34,12 @@ const LanguageContext = createContext<LanguageContextTypes>(
 );
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const getLanguagesFetcher = useFetch("GET", "GetLanguages");
-  const getLanguagePackageFetcher = useFetch("GET", "GetLanguagePackage");
+  const { loading: languagesLoading, fetch: fetchLanguages } = useFetch(
+    "GET",
+    "GetLanguages",
+  );
+  const { loading: languagePackageLoading, fetch: fetchLanguagePackage } =
+    useFetch("GET", "GetLanguagePackage");
 
   const [currentLanguage, setCurrentLanguage] =
     useState<LanguageContextTypes["currentLanguage"]>(null);
@@ -57,12 +61,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const changeLanguage = (languageCode: string) => {
-    if (getLanguagePackageFetcher.loading) return;
+    if (languagePackageLoading) return;
 
     setCurrentLanguage(languageCode);
     document.cookie = `language=${languageCode}; path=/; samesite=Strict; secure; max-age=31536000;`;
 
-    getLanguagePackageFetcher.fetch({
+    fetchLanguagePackage({
       onSuccess: (data) => {
         setLanguagePackage(data);
         localStorage.setItem("languagePackage", JSON.stringify(data));
@@ -80,7 +84,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (Object.keys(languages).length === 0) {
-      getLanguagesFetcher.fetch({
+      fetchLanguages({
         onSuccess: (data) => {
           setLanguages(
             data.reduce((acc: any, lang: any) => {
@@ -115,8 +119,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const isLanguageLoading =
-    getLanguagePackageFetcher.loading || getLanguagesFetcher.loading;
+  const isLanguageLoading = languagePackageLoading || languagesLoading;
 
   const value = {
     isLanguageLoading,

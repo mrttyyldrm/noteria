@@ -24,10 +24,10 @@ function Reset() {
   const { showNotification } = useNotification();
   const { t, isLanguageLoading } = useLanguage();
 
-  const resetPassword = useFetch("GET", "ResetPassword");
+  const { loading, fetch } = useFetch("GET", "ResetPassword");
 
-  const handleResetPassword = () => {
-    resetPassword.fetch({
+  const resetPassword = () => {
+    fetch({
       params: {
         RequestID: params.hash,
         NewPass: formik.values.password,
@@ -54,7 +54,7 @@ function Reset() {
     },
     validationSchema: validationSchema,
     onSubmit: () => {
-      handleResetPassword();
+      resetPassword();
     },
   });
 
@@ -85,7 +85,7 @@ function Reset() {
                 id="password"
                 name="password"
                 type="password"
-                disabled={resetPassword.loading}
+                disabled={loading}
                 placeholder={t("CE78FC317")}
                 value={formik.values.password}
                 onChange={formik.handleChange}
@@ -103,7 +103,7 @@ function Reset() {
                 id="repassword"
                 name="repassword"
                 type="password"
-                disabled={resetPassword.loading}
+                disabled={loading}
                 placeholder={t("A2B162E01")}
                 value={formik.values.repassword}
                 onChange={formik.handleChange}
@@ -113,12 +113,8 @@ function Reset() {
               )}
             </Field>
             <Field>
-              <Button
-                type="submit"
-                disabled={resetPassword.loading}
-                className="w-full"
-              >
-                {resetPassword.loading ? <Spinner /> : t("8E8050D17")}
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? <Spinner /> : t("8E8050D17")}
               </Button>
             </Field>
           </FieldGroup>

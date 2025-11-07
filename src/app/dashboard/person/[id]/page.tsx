@@ -1,7 +1,7 @@
 "use client";
 
 import PersonSkeleton from "./loading";
-import type { IDecision } from "@/app/dashboard/court-decisions/page";
+import type { IDecision } from "@/app/dashboard/(modules)/court-decisions/page";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,28 +45,27 @@ function Person() {
 
   const { selectDocument } = useDocument();
 
-  const [profile, setProfile] = useState<IPersonProfile | null>(null);
   const [navigation, setNavigation] = useState<"document" | "court">(
     "document",
   );
 
-  const getPersonProfile = useFetch("GET", "GetPersonProfile");
+  const { data: profile, fetch: fetchProfile } = useFetch<IPersonProfile>(
+    "GET",
+    "GetPersonProfile",
+  );
 
-  const handleGetPersonProfile = () => {
+  const getPersonProfile = () => {
     if (!id) return;
 
-    getPersonProfile.fetch({
+    fetchProfile({
       params: { PersonID: id },
-      onSuccess: (data: IPersonProfile) => {
-        setProfile(data);
-      },
     });
   };
 
   useEffect(() => {
     isNaN(Number(id)) && notFound();
 
-    handleGetPersonProfile();
+    getPersonProfile();
   }, [id]);
 
   if (!profile) {

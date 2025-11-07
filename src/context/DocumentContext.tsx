@@ -236,15 +236,18 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const { setOpenMobile, setOpen } = useSidebar();
   const { showNotification } = useNotification();
 
-  const getDocumentsFetcher = useFetch("GET", "GetDirectory");
-  const createFolderFetcher = useFetch("GET", "CreateFolder");
-  const renameFolderFetcher = useFetch("GET", "RenameFolder");
-  const deleteFolderFetcher = useFetch("GET", "DeleteFolder");
-  const getDocumentConfigFetcher = useFetch("GET", "GetDocumentConfig");
-  const uploadDocumentFetcher = useFetch("POST", "UploadDoc");
-  const renameDocumentFetcher = useFetch("GET", "RenameDoc");
-  const deleteDocumentFetcher = useFetch("GET", "DeleteDoc");
-  const openDocumentFetcher = useFetch("GET", "OpenDoc");
+  const { fetch: fetchGetDocuments } = useFetch("GET", "GetDirectory");
+  const { fetch: fetchCreateFolder } = useFetch("GET", "CreateFolder");
+  const { fetch: fetchRenameFolder } = useFetch("GET", "RenameFolder");
+  const { fetch: fetchDeleteFolder } = useFetch("GET", "DeleteFolder");
+  const { fetch: fetchGetDocumentConfig } = useFetch(
+    "GET",
+    "GetDocumentConfig",
+  );
+  const { fetch: fetchUploadDocument } = useFetch("POST", "UploadDoc");
+  const { fetch: fetchRenameDocument } = useFetch("GET", "RenameDoc");
+  const { fetch: fetchDeleteDocument } = useFetch("GET", "DeleteDoc");
+  const { fetch: fetchOpenDocument } = useFetch("GET", "OpenDoc");
 
   const DASHBORAD_PATH = "/dashboard";
 
@@ -282,7 +285,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const getDocuments = () => {
     if (loading.status) return;
 
-    getDocumentsFetcher.fetch({
+    fetchGetDocuments({
       params: { Path: path },
       onSuccess: (data: IDocuments) => {
         setDocuments(data);
@@ -320,7 +323,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
     const newName = generateInitialFolderName();
 
-    createFolderFetcher.fetch({
+    fetchCreateFolder({
       params: { Path: [...path, newName].join("/") },
       onSuccess: () => {
         const newDirectories = [...(documents?.directories ?? []), newName];
@@ -342,7 +345,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const renameFolder = (oldName: string, newName: string) => {
     if (loading.status) return;
 
-    renameFolderFetcher.fetch({
+    fetchRenameFolder({
       params: {
         Path: [...path, oldName].join("/"),
         newName: [...path, newName].join("/"),
@@ -359,7 +362,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         showNotification(t("B79A4BA9A"), "success");
       },
       onLoading: (loading) => {
-        if (loading) return activateLoading("folder");
+        if (loading) return activateLoading("folder", oldName);
 
         deactivateLoading();
       },
@@ -369,7 +372,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const deleteFolder = (folderName: string) => {
     if (loading.status) return;
 
-    deleteFolderFetcher.fetch({
+    fetchDeleteFolder({
       params: { Path: [...path, folderName].join("/") },
       onSuccess: () => {
         const newDirectories = documents?.directories.filter(
@@ -383,7 +386,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
         showNotification(t("5D1E018D8"), "success");
       },
       onLoading: (loading) => {
-        if (loading) return activateLoading("folder");
+        if (loading) return activateLoading("folder", folderName);
 
         deactivateLoading();
       },
@@ -420,7 +423,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const getDocumentConfig = () => {
     if (loading.status || !selectedDocument) return;
 
-    getDocumentConfigFetcher.fetch({
+    fetchGetDocumentConfig({
       params: { DocID: selectedDocument?.documentID },
       onSuccess: (data: IDocumentConfig) => {
         if (!selectedDocument) return;
@@ -449,7 +452,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     reader.onloadend = () => {
       const base64String = reader.result as string;
 
-      uploadDocumentFetcher.fetch({
+      fetchUploadDocument({
         params: {
           FileName: title.replace(/\./g, ""),
           Path: path.toLowerCase(),
@@ -478,7 +481,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   ) => {
     if (!documents || loading.status) return;
 
-    renameDocumentFetcher.fetch({
+    fetchRenameDocument({
       params: {
         DocID: process.documentID,
         FileName: title,
@@ -510,7 +513,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const deleteDocument = (callback?: () => void) => {
     if (!documents || loading.status) return;
 
-    deleteDocumentFetcher.fetch({
+    fetchDeleteDocument({
       params: { DocID: process.documentID },
       onSuccess: () => {
         if (selectedDocument?.documentID === process.documentID) {
@@ -548,7 +551,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!selectedDocument) return;
 
-    openDocumentFetcher.fetch({
+    fetchOpenDocument({
       params: { DocID: selectedDocument?.documentID },
     });
 
@@ -622,7 +625,8 @@ export function DocumentManager({ filter }: { filter: string }) {
   } = useDocument();
   const { t } = useLanguage();
 
-  const getDocumentHistoryFetcher = useFetch("GET", "GetDocHistory");
+  const { loading: documentHistoryLoading, fetch: fetchDocumentHistory } =
+    useFetch<IHistory[]>("GET", "GetDocHistory");
 
   const [rename, setRename] = useState<{
     status: boolean;
@@ -636,9 +640,9 @@ export function DocumentManager({ filter }: { filter: string }) {
   const [histories, setHistories] = useState<IHistory[]>([]);
 
   const getDocumentHistory = (documentID: number) => {
-    if (loading.status || getDocumentHistoryFetcher.loading) return;
+    if (loading.status || documentHistoryLoading) return;
 
-    getDocumentHistoryFetcher.fetch({
+    fetchDocumentHistory({
       params: { DocID: documentID },
       onSuccess: (data) => {
         setHistories(data);

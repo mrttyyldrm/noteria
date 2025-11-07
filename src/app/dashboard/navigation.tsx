@@ -96,8 +96,14 @@ function SidebarNavigation() {
   const { setOpen, isMobile } = useSidebar();
   const { selectDocument } = useDocument();
 
-  const getProfileFetcher = useFetch("GET", "GetProfile");
-  const getSearchOptionsFetcher = useFetch("GET", "Search");
+  const { data: profile, fetch: fetchGetProfile } = useFetch<IProfile>(
+    "GET",
+    "GetProfile",
+  );
+  const { loading: searchOptionsLoading, fetch: fetchSearchOptions } = useFetch(
+    "GET",
+    "Search",
+  );
 
   const [page, setPage] = useState<IPage | null>(null);
   const [isCommandOpen, setIsCommandOpen] = useState<boolean>(false);
@@ -130,14 +136,10 @@ function SidebarNavigation() {
     },
   ];
 
-  const getProfile = () => {
-    getProfileFetcher.fetch();
-  };
-
   const getSearchOptions = () => {
-    if (getSearchOptionsFetcher.loading) return;
+    if (searchOptionsLoading) return;
 
-    getSearchOptionsFetcher.fetch({
+    fetchSearchOptions({
       params: { Query: search },
       onSuccess: (data: ISuggestion[]) => setSearchSuggestions(data),
     });
@@ -190,7 +192,7 @@ function SidebarNavigation() {
   }, [search]);
 
   useEffect(() => {
-    getProfile();
+    fetchGetProfile();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "k") {
@@ -202,8 +204,6 @@ function SidebarNavigation() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  const profile: IProfile | null = getProfileFetcher.data;
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
@@ -340,7 +340,7 @@ function SidebarNavigation() {
           onValueChange={setSearch}
         />
         <CommandList>
-          {!getSearchOptionsFetcher.loading ? (
+          {!searchOptionsLoading ? (
             searchSuggestions && searchSuggestions.length > 0 ? (
               <>
                 <CommandGroup heading={t("B8936AA58")}>

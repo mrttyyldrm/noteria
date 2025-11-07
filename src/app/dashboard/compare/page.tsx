@@ -32,7 +32,7 @@ function CompareDocuments() {
   const { t } = useLanguage();
   const { showNotification } = useNotification();
 
-  const compareDocuments = useFetch("GET", "CompareDoc");
+  const { fetch: fetchCompareDocuments } = useFetch("GET", "CompareDoc");
 
   const searchParams = useSearchParams();
   const oldDocumentPath = searchParams.get("old");
@@ -51,7 +51,7 @@ function CompareDocuments() {
   const handleCompareDocuments = () => {
     if (!oldDocumentPath || !newDocumentPath) return;
 
-    compareDocuments.fetch({
+    fetchCompareDocuments({
       params: { OldPath: oldDocumentPath, NewPath: newDocumentPath },
       onSuccess: (data) => {
         setdocuments(data);

@@ -161,7 +161,8 @@ function CourtDecisions() {
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter");
 
-  const getCourtDecisions = useFetch("GET", "GetCourtList");
+  const { loading: courtDecisionsLoading, fetch: fetchCourtDecisions } =
+    useFetch("GET", "GetCourtList");
 
   const [decisions, setDecisions] = useState<IDecision[] | null>(null);
   const [processes, setProcesses] = useState<string[] | null>(null);
@@ -171,8 +172,8 @@ function CourtDecisions() {
     decision: IDecision | null;
   }>({ process: null, decision: null });
 
-  const handleGetCourtDecisions = () => {
-    getCourtDecisions.fetch({
+  const getCourtDecisions = () => {
+    fetchCourtDecisions({
       onSuccess: (data) => {
         setDecisions(data.orders);
         setProcesses(data.aiProcess);
@@ -187,7 +188,7 @@ function CourtDecisions() {
   }, [processes]);
 
   useEffect(() => {
-    handleGetCourtDecisions();
+    getCourtDecisions();
   }, []);
 
   if (!decisions) {
@@ -232,7 +233,7 @@ function CourtDecisions() {
                 <Button
                   variant="outline"
                   size="icon-sm"
-                  onClick={() => handleGetCourtDecisions()}
+                  onClick={() => getCourtDecisions()}
                 >
                   <RefreshCw />
                 </Button>
@@ -240,7 +241,7 @@ function CourtDecisions() {
             </TableRow>
           </TableHeader>
           <TableBody className="text-muted-foreground">
-            {getCourtDecisions.loading ? (
+            {courtDecisionsLoading ? (
               <CourtDecisionsLoading />
             ) : (
               <>
@@ -396,7 +397,7 @@ function CourtDecisions() {
         <UpdateDecisionDialog
           decision={dialog.decision}
           onClose={() => setDialog({ process: null, decision: null })}
-          onSubmit={() => handleGetCourtDecisions()}
+          onSubmit={() => getCourtDecisions()}
         />
       )}
 
@@ -404,7 +405,7 @@ function CourtDecisions() {
         <DeleteDecisionDialog
           decision={dialog.decision}
           onClose={() => setDialog({ process: null, decision: null })}
-          onSubmit={() => handleGetCourtDecisions()}
+          onSubmit={() => getCourtDecisions()}
         />
       )}
     </section>

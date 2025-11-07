@@ -1,7 +1,7 @@
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 export const getCookie = (cookieName: string): string | null => {
   const name = `${cookieName}=`;
@@ -18,14 +18,18 @@ export const getCookie = (cookieName: string): string | null => {
   return null;
 };
 
-interface IOptions {
+interface IOptions<T = any> {
   params?: Record<string, any>;
-  onSuccess?: (data: any) => void,
-  onError?: (error: string) => void,
-  onLoading?: (loading: boolean) => void
+  onSuccess?: (data: T) => void;
+  onError?: (error: string) => void;
+  onLoading?: (loading: boolean) => void;
 }
 
-const useFetch = (
+interface IError {
+  m: string;
+}
+
+const useFetch = <T = any>(
   method: "GET" | "POST",
   path: string,
 ) => {
@@ -33,11 +37,11 @@ const useFetch = (
   const { t } = useLanguage();
   const { showNotification } = useNotification();
 
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<T | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const doFetch = useCallback(async (options: IOptions = {}) => {
+  const doFetch = async (options: IOptions<T> = {}) => {
     if (loading) return;
 
     const { params, onSuccess, onError, onLoading } = options;
@@ -75,32 +79,33 @@ const useFetch = (
         throw new Error(t("4256EEA6A"));
       }
 
-      const result = await response.json();
+      const result: T = await response.json();
 
       if (response.status === 200) {
         const newToken = response.headers.get("nauth");
         if (newToken) {
           document.cookie = `token=${newToken}; path=/; samesite=Strict; secure; max-age=1200`;
         }
+
         setData(result);
-        onSuccess?.(result);
+        await onSuccess?.(result);
       }
 
       if (response.status === 202) {
-        throw new Error(result.m || t("894FF0F4F"));
+        throw new Error((result as IError).m || t("894FF0F4F"));
       }
 
     } catch (error: unknown) {
       if (error instanceof Error) {
         showNotification(error.message);
         setError(error.message);
-        onError?.(error.message);
+        await onError?.(error.message);
       }
     } finally {
       setLoading(false);
       onLoading?.(false);
     }
-  }, [method, path, t]);
+  };
 
   return { data, error, loading, fetch: doFetch };
 };

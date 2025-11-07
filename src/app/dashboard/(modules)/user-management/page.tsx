@@ -91,10 +91,13 @@ function UserManagement() {
   const { showNotification } = useNotification();
   const { t } = useLanguage();
 
-  const getUsersFetcher = useFetch("GET", "GetAllUsers");
-  const toggleAccountStatusFetcher = useFetch("POST", "ToggleUserStatus");
-  const resetPasswordFetcher = useFetch("POST", "ForgotPassword");
-  const resetVerificationFetcher = useFetch("POST", "ResetUserMFA");
+  const { fetch: fetchUsers, loading: usersLoading } = useFetch<IUser[]>(
+    "GET",
+    "GetAllUsers",
+  );
+  const { fetch: fetchToggleStatus } = useFetch("POST", "ToggleUserStatus");
+  const { fetch: fetchResetPassword } = useFetch("POST", "ForgotPassword");
+  const { fetch: fetchResetVerification } = useFetch("POST", "ResetUserMFA");
 
   const [users, setUsers] = useState<IUser[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -108,9 +111,9 @@ function UserManagement() {
   }>({ process: null, user: null });
 
   const getUsers = () => {
-    if (getUsersFetcher.loading) return;
+    if (usersLoading) return;
 
-    getUsersFetcher.fetch({
+    fetchUsers({
       onSuccess: (data: IUser[]) => {
         setUsers(data);
       },
@@ -120,7 +123,7 @@ function UserManagement() {
   const toggleAccountStatus = (userID: number, status: boolean) => {
     if (loading.process !== null) return;
 
-    toggleAccountStatusFetcher.fetch({
+    fetchToggleStatus({
       params: {
         userID: userID,
         userStatus: status,
@@ -147,7 +150,7 @@ function UserManagement() {
   const resetPassword = (userID: number) => {
     if (loading.process !== null) return;
 
-    resetPasswordFetcher.fetch({
+    fetchResetPassword({
       params: { userID },
       onSuccess: () => {
         showNotification(t("FB0E7D535"), "success");
@@ -164,7 +167,7 @@ function UserManagement() {
   const resetVerification = (userID: number) => {
     if (loading.process !== null) return;
 
-    resetVerificationFetcher.fetch({
+    fetchResetVerification({
       params: { userID },
       onSuccess: () => {
         setUsers((prev) =>
@@ -235,7 +238,7 @@ function UserManagement() {
             </TableRow>
           </TableHeader>
           <TableBody className="text-muted-foreground">
-            {getUsersFetcher.loading ? (
+            {usersLoading ? (
               <UserManagementLoading />
             ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user, index) => (
@@ -352,9 +355,18 @@ function CreateOrUpdateUserDialog({
   const { showNotification } = useNotification();
   const { t, isLanguageLoading } = useLanguage();
 
-  const getUserTypesFetcher = useFetch("GET", "GetUserTypes");
-  const updateUserFetcher = useFetch("POST", "UpdateUser");
-  const createUserFetcher = useFetch("POST", "AddUser");
+  const { data: userTypes, fetch: fetchUserTypes } = useFetch(
+    "GET",
+    "GetUserTypes",
+  );
+  const { loading: isUpdating, fetch: fetchUpdateUser } = useFetch(
+    "POST",
+    "UpdateUser",
+  );
+  const { loading: isCreating, fetch: fetchCreateUser } = useFetch(
+    "POST",
+    "AddUser",
+  );
 
   const initialValues = user
     ? {
@@ -369,15 +381,15 @@ function CreateOrUpdateUserDialog({
       };
 
   const getUserTypes = () => {
-    if (getUserTypesFetcher.data) return;
+    if (userTypes) return;
 
-    getUserTypesFetcher.fetch();
+    fetchUserTypes();
   };
 
   const updateUser = (updateUser: Partial<IUser>) => {
-    if (updateUserFetcher.loading) return;
+    if (isUpdating) return;
 
-    updateUserFetcher.fetch({
+    fetchUpdateUser({
       params: updateUser,
       onSuccess: () => {
         showNotification(t("D30E4A874"), "success");
@@ -390,9 +402,9 @@ function CreateOrUpdateUserDialog({
   };
 
   const createUser = (createUser: Partial<IUser>) => {
-    if (createUserFetcher.loading) return;
+    if (isCreating) return;
 
-    updateUserFetcher.fetch({
+    fetchCreateUser({
       params: createUser,
       onSuccess: () => {
         showNotification(t("B42AE5AEC"), "success");
@@ -432,7 +444,7 @@ function CreateOrUpdateUserDialog({
     formik.validateForm();
   }, [isLanguageLoading]);
 
-  const isLoading = createUserFetcher.loading || updateUserFetcher.loading;
+  const isLoading = isCreating || isUpdating;
 
   useEffect(() => {
     getUserTypes();
@@ -485,32 +497,30 @@ function CreateOrUpdateUserDialog({
                 <FieldError>{formik.errors.email}</FieldError>
               )}
             </Field>
-            {getUserTypesFetcher.data !== null ? (
+            {userTypes !== null ? (
               <Field>
                 <FieldLabel htmlFor="title">{t("722C02C19")}</FieldLabel>
                 <ButtonGroup className="w-full grid grid-cols-3">
-                  {Object.entries(getUserTypesFetcher.data).map(
-                    ([key, value]) => (
-                      <Button
-                        type="button"
-                        key={key}
-                        disabled={isLoading}
-                        variant={
-                          formik.values.userType?.key === Number(key)
-                            ? "default"
-                            : "outline"
-                        }
-                        onClick={() =>
-                          formik.setFieldValue("userType", {
-                            key: Number(key),
-                            value: value,
-                          })
-                        }
-                      >
-                        {String(value)}
-                      </Button>
-                    ),
-                  )}
+                  {Object.entries(userTypes).map(([key, value]) => (
+                    <Button
+                      type="button"
+                      key={key}
+                      disabled={isLoading}
+                      variant={
+                        formik.values.userType?.key === Number(key)
+                          ? "default"
+                          : "outline"
+                      }
+                      onClick={() =>
+                        formik.setFieldValue("userType", {
+                          key: Number(key),
+                          value: value,
+                        })
+                      }
+                    >
+                      {String(value)}
+                    </Button>
+                  ))}
                 </ButtonGroup>
                 {formik.touched.userType && formik.errors.userType && (
                   <FieldError>{formik.errors.userType.key}</FieldError>

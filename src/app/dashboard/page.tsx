@@ -51,9 +51,14 @@ function Dashboard() {
   const { t } = useLanguage();
   const { selectedDocument, documents, selectDocument } = useDocument();
 
-  const verifyDocumentFetcher = useFetch("GET", "CheckDoc");
-  const calcPriceFetcher = useFetch("GET", "CalcPrice");
-  const printDocumentFetcher = useFetch("GET", "PrintDoc");
+  const { loading: verifyDocumentLoading, fetch: fetchVerifyDocument } =
+    useFetch("GET", "CheckDoc");
+  const { loading: calculatePriceLoading, fetch: fetchCalculatePrice } =
+    useFetch("GET", "CalcPrice");
+  const { loading: printDocumentLoading, fetch: fetchPrintDocument } = useFetch(
+    "GET",
+    "PrintDoc",
+  );
 
   const [isReady, setIsReady] = useState<boolean>(false);
   const [isVerifying, setisVerifying] = useState<boolean>(false);
@@ -70,9 +75,9 @@ function Dashboard() {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   const verifyDocument = () => {
-    if (!selectedDocument || verifyDocumentFetcher.loading) return;
+    if (!selectedDocument || verifyDocumentLoading) return;
 
-    verifyDocumentFetcher.fetch({
+    fetchVerifyDocument({
       params: { DocID: selectedDocument.documentID },
       onSuccess: (data: IStatus) => {
         setStatus(data);
@@ -95,9 +100,9 @@ function Dashboard() {
   };
 
   const calcPrice = () => {
-    if (!price || calcPriceFetcher.loading) return;
+    if (!price || calculatePriceLoading) return;
 
-    calcPriceFetcher.fetch({
+    fetchCalculatePrice({
       params: { Price: price },
       onSuccess: (data) => {
         setDetails(data);
@@ -109,9 +114,9 @@ function Dashboard() {
   };
 
   const printDocument = () => {
-    if (!selectedDocument || printDocumentFetcher.loading) return;
+    if (!selectedDocument || printDocumentLoading) return;
 
-    printDocumentFetcher.fetch({
+    fetchPrintDocument({
       params: { DocID: selectedDocument.documentID },
       onSuccess: (data) => {
         setConfig(data);
@@ -193,14 +198,10 @@ function Dashboard() {
                 </Button>
                 {selectedDocument.editable && selectedDocument.config && (
                   <Button
-                    disabled={verifyDocumentFetcher.loading}
+                    disabled={verifyDocumentLoading}
                     onClick={() => setOpen(true)}
                   >
-                    {verifyDocumentFetcher.loading ? (
-                      <Spinner />
-                    ) : (
-                      t("FD0C7F9C4")
-                    )}
+                    {verifyDocumentLoading ? <Spinner /> : t("FD0C7F9C4")}
                   </Button>
                 )}
               </Card>
@@ -285,10 +286,10 @@ function Dashboard() {
               {t("3CF519BD6")}
             </Button>
             <Button
-              disabled={printDocumentFetcher.loading}
+              disabled={printDocumentLoading}
               onClick={() => printDocument()}
             >
-              {printDocumentFetcher.loading ? <Spinner /> : t("B970607EA")}
+              {printDocumentLoading ? <Spinner /> : t("B970607EA")}
             </Button>
           </Card>
         </>
