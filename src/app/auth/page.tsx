@@ -77,7 +77,7 @@ function Auth() {
         requestID: formik.values.requestID,
       },
       onSuccess: () => {
-        router.replace("/dashboard");
+        Promise.resolve().then(() => router.replace("/dashboard"));
       },
       onError: () => {
         setIsOTPInvalid(true);
