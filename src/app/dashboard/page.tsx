@@ -171,6 +171,7 @@ function Dashboard() {
               className={`relative w-full h-full flex flex-col rounded-b-lg overflow-hidden ${
                 !isReady || isVerifying ? "opacity-0" : ""
               }`}
+              key={selectedDocument.config?.document.key}
             >
               {selectedDocument.editable && selectedDocument.config && (
                 <DocumentEditor
@@ -301,9 +302,9 @@ function Dashboard() {
             !isReady ? "opacity-0" : ""
           }`}
         >
-          {config && (
+          {selectedDocument && config && (
             <DocumentEditor
-              id="print"
+              id={`print-${selectedDocument.documentID}`}
               documentServerUrl="https://384311e4.docs.onlyoffice.com"
               config={config}
               events_onAppReady={() => setIsReady(true)}

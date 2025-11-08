@@ -551,13 +551,13 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!selectedDocument) return;
 
-    fetchOpenDocument({
-      params: { DocID: selectedDocument?.documentID },
-    });
-
-    if (selectedDocument.config || !selectedDocument.editable) return;
-
-    getDocumentConfig();
+    if (selectedDocument.config) {
+      fetchOpenDocument({
+        params: { DocID: selectedDocument?.documentID },
+      });
+    } else if (selectedDocument.editable) {
+      getDocumentConfig();
+    }
   }, [selectedDocument]);
 
   useEffect(() => {
