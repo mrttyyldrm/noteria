@@ -25,10 +25,7 @@ function Auth() {
   const { t, isLanguageLoading } = useLanguage();
 
   const { loading: authLoading, fetch: fetchAuth } = useFetch("POST", "Auth");
-  const { loading: checkOTPLoading, fetch: fetchCheckOTP } = useFetch(
-    "GET",
-    "CheckOTP",
-  );
+  const { fetch: fetchCheckOTP } = useFetch("GET", "CheckOTP");
 
   const validationSchema = Yup.object({
     email: Yup.string().required(t("2C936F5BA")).email(t("9F2BE0310")),
@@ -53,6 +50,7 @@ function Auth() {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [code, setCode] = useState<string>("");
   const [isOTPInvalid, setIsOTPInvalid] = useState<boolean>(false);
+  const [checkOTPLoading, setCheckOTPLoading] = useState<boolean>(false);
 
   const auth = () => {
     fetchAuth({
@@ -84,6 +82,9 @@ function Auth() {
         setTimeout(() => {
           setIsOTPInvalid(false);
         }, 2000);
+      },
+      onLoading: (loading) => {
+        if (loading) setCheckOTPLoading(loading);
       },
     });
   };

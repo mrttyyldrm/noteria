@@ -147,7 +147,12 @@ function checkIsMissing(
       error()
     ) : (
       <div>
-        <Badge variant="secondary">{t("71AA54348")}</Badge>
+        <Badge
+          variant="destructive"
+          className="!bg-white border-destructive text-destructive"
+        >
+          {t("71AA54348")}
+        </Badge>
       </div>
     );
   }
@@ -182,9 +187,12 @@ function CourtDecisions() {
   };
 
   useEffect(() => {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
+      if (processes && processes.length > 0) getCourtDecisions();
       setProcesses([]);
     }, 10000);
+
+    return () => clearTimeout(timeout);
   }, [processes]);
 
   useEffect(() => {
@@ -435,7 +443,7 @@ function ShowDecisionDialog({
         <FieldGroup className="max-h-[50vh] md:max-h-[70vh] overflow-y-auto px-4">
           <div className="grid grid-cols-2 gap-4">
             <Field className="col-span-2">
-              <FieldLabel htmlFor="description">{t("B0AB3A2A4")}</FieldLabel>
+              <FieldLabel>{t("B0AB3A2A4")}</FieldLabel>
               {checkIsMissing(t, decision.summary, () => (
                 <p className="text-sm text-muted-foreground text-justify">
                   {decision.summary}
@@ -443,7 +451,7 @@ function ShowDecisionDialog({
               ))}
             </Field>
             <Field>
-              <FieldLabel htmlFor="description">{t("BBF634251")}</FieldLabel>
+              <FieldLabel>{t("BBF634251")}</FieldLabel>
               {checkIsMissing(t, decision.startDate, () => (
                 <p className="text-sm text-muted-foreground text-justify">
                   {formatDate(decision.startDate)}
@@ -451,7 +459,7 @@ function ShowDecisionDialog({
               ))}
             </Field>
             <Field>
-              <FieldLabel htmlFor="description">{t("23D4FE15A")}</FieldLabel>
+              <FieldLabel>{t("23D4FE15A")}</FieldLabel>
               {checkIsMissing(t, decision.expireDate, () => (
                 <p className="text-sm text-muted-foreground text-justify">
                   {formatDate(decision.expireDate)}
@@ -459,50 +467,44 @@ function ShowDecisionDialog({
               ))}
             </Field>
             <Field className="col-span-2">
-              <FieldLabel htmlFor="description">{t("36692BA5C")}</FieldLabel>
-              {checkIsMissing(t, decision.relatedPerson, () =>
-                decision.relatedPerson.map((person, index) => (
+              <FieldLabel>{t("36692BA5C")}</FieldLabel>
+              {decision.relatedPerson.map((person, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  {checkIsMissing(t, person.nameSurname, () => (
+                    <h4 className="text-sm font-semibold text-foreground">
+                      {person.nameSurname}
+                    </h4>
+                  ))}
+                  {checkIsMissing(t, person.idNumber, () => (
+                    <Badge variant="outline">{person.idNumber}</Badge>
+                  ))}
+                </div>
+              ))}
+            </Field>
+            <Field className="col-span-2">
+              <FieldLabel>{t("8CEC3FEC7")}</FieldLabel>
+              {decision.relatedProperties.map((property, index) => (
+                <div key={index} className="flex flex-col gap-1">
                   <div key={index} className="flex items-center gap-3">
-                    {checkIsMissing(t, person.nameSurname, () => (
+                    {checkIsMissing(t, property.ProperyType, () => (
                       <h4 className="text-sm font-semibold text-foreground">
-                        {person.nameSurname}
+                        {property.ProperyType}
                       </h4>
                     ))}
-                    {checkIsMissing(t, person.idNumber, () => (
-                      <Badge variant="outline">{person.idNumber}</Badge>
+                    {checkIsMissing(t, property.propertyNumber, () => (
+                      <Badge variant="outline">{property.propertyNumber}</Badge>
                     ))}
                   </div>
-                )),
-              )}
+                  {checkIsMissing(t, property.propertyDesc, () => (
+                    <p className="text-sm text-muted-foreground text-justify">
+                      {property.propertyDesc}
+                    </p>
+                  ))}
+                </div>
+              ))}
             </Field>
             <Field className="col-span-2">
-              <FieldLabel htmlFor="description">{t("8CEC3FEC7")}</FieldLabel>
-              {checkIsMissing(t, decision.relatedProperties, () =>
-                decision.relatedProperties.map((property, index) => (
-                  <div key={index} className="flex flex-col gap-1">
-                    <div key={index} className="flex items-center gap-3">
-                      {checkIsMissing(t, property.ProperyType, () => (
-                        <h4 className="text-sm font-semibold text-foreground">
-                          {property.ProperyType}
-                        </h4>
-                      ))}
-                      {checkIsMissing(t, property.propertyNumber, () => (
-                        <Badge variant="outline">
-                          {property.propertyNumber}
-                        </Badge>
-                      ))}
-                    </div>
-                    {checkIsMissing(t, property.propertyDesc, () => (
-                      <p className="text-sm text-muted-foreground text-justify">
-                        {property.propertyDesc}
-                      </p>
-                    ))}
-                  </div>
-                )),
-              )}
-            </Field>
-            <Field className="col-span-2">
-              <FieldLabel htmlFor="description">{t("F7C86D366")}</FieldLabel>
+              <FieldLabel>{t("F7C86D366")}</FieldLabel>
               <div className="flex items-center flex-wrap gap-1">
                 {checkIsMissing(t, decision.searchKeywords, () =>
                   decision.searchKeywords.map((keyword, index) => (
@@ -635,7 +637,7 @@ function UpdateDecisionDialog({
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="caseNumber">{t("E75E7FFD6")}</FieldLabel>
+              <FieldLabel>{t("E75E7FFD6")}</FieldLabel>
               <Input
                 id="caseNumber"
                 name="caseNumber"
@@ -651,7 +653,7 @@ function UpdateDecisionDialog({
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="title">{t("B0AB3A2A4")}</FieldLabel>
+              <FieldLabel>{t("B0AB3A2A4")}</FieldLabel>
               <Textarea
                 id="summary"
                 name="summary"
@@ -667,7 +669,7 @@ function UpdateDecisionDialog({
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field>
-                <FieldLabel htmlFor="startDate">{t("BBF634251")}</FieldLabel>
+                <FieldLabel>{t("BBF634251")}</FieldLabel>
                 <Input
                   id="startDate"
                   name="startDate"
@@ -683,7 +685,7 @@ function UpdateDecisionDialog({
                 )}
               </Field>
               <Field>
-                <FieldLabel htmlFor="expireDate">{t("23D4FE15A")}</FieldLabel>
+                <FieldLabel>{t("23D4FE15A")}</FieldLabel>
                 <Input
                   id="expireDate"
                   name="expireDate"
