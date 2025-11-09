@@ -1,5 +1,5 @@
 export const formatDate = (dateString?: string | null): string => {
-  if (!dateString) return "Unknown";
+  if (!dateString) return "";
 
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";

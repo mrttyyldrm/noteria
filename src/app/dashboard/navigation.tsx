@@ -56,7 +56,6 @@ import {
   SearchX,
   User,
 } from "lucide-react";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -72,8 +71,8 @@ interface IPage {
   name: string;
   route: string;
   blacklist: number[];
-  showcase: string;
   description: string;
+  icon: React.ReactNode;
 }
 
 interface ISuggestion {
@@ -117,22 +116,22 @@ function SidebarNavigation() {
       name: t("C3A79F67D"),
       route: "/dashboard/document-management",
       blacklist: [],
-      showcase: "/document-management-showcase.png",
       description: t("D38507840"),
+      icon: <File className="size-5" />,
     },
     {
       name: t("AF77627FE"),
       route: "/dashboard/user-management",
       blacklist: [1],
-      showcase: "/user-management-showcase.png",
       description: t("5D4C01092"),
+      icon: <User className="size-5" />,
     },
     {
       name: t("8A64E6185"),
       route: "/dashboard/court-decisions",
       blacklist: [],
-      showcase: "/court-decisions-showcase.png",
       description: t("DC28EC857"),
+      icon: <Gavel className="size-5" />,
     },
   ];
 
@@ -291,15 +290,11 @@ function SidebarNavigation() {
                         disabled={pathname === page.route}
                         key={page.route}
                         onSelect={() => router.push(page.route)}
-                        className="items-start sm:items-center"
+                        className="flex-col sm:flex-row items-start gap-2"
                       >
-                        <Image
-                          src={page.showcase}
-                          alt={page.name}
-                          width={200}
-                          height={200}
-                          className="rounded-lg object-cover object-center mr-1 border border-border aspect-square w-12 sm:w-20 mt-1 sm:mt-0"
-                        />
+                        <div className="shrink-0 rounded-lg bg-white flex justify-center items-center border border-border aspect-square w-10 sm:mt-1">
+                          {page.icon}
+                        </div>
                         <div className="flex flex-col">
                           <p className="text-sm font-semibold text-foreground">
                             {page.name}
