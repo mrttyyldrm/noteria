@@ -124,27 +124,6 @@ export interface IFile {
   extension: string;
   url: string;
   editable: boolean;
-  config?: IDocumentConfig;
-}
-
-export interface IDocumentConfig {
-  type: string;
-  document: {
-    fileType: string;
-    title: string;
-    url: string;
-    key: string;
-    permissions: {
-      edit: boolean;
-      download: boolean;
-      print: boolean;
-    };
-  };
-  editorConfig: {
-    mode: string;
-    callbackUrl: string;
-  };
-  token: string;
 }
 
 type IMode = "delete" | "rename" | "upload";
@@ -420,25 +399,6 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     if (pathname !== DASHBORAD_PATH) router.push(DASHBORAD_PATH);
   };
 
-  const getDocumentConfig = () => {
-    if (loading.status || !selectedDocument) return;
-
-    fetchGetDocumentConfig({
-      params: { DocID: selectedDocument?.documentID },
-      onSuccess: (data: IDocumentConfig) => {
-        if (!selectedDocument) return;
-
-        setSelectedDocument({ ...selectedDocument, config: data });
-      },
-      onLoading: (loading) => {
-        if (loading)
-          return activateLoading("file", selectedDocument?.documentID);
-
-        deactivateLoading();
-      },
-    });
-  };
-
   const uploadDocument = (
     title: INewDocument["fileName"],
     file: Blob,
@@ -547,18 +507,6 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const closeProcess = () => {
     setProcess({ mode: null, documentID: null, path: null });
   };
-
-  useEffect(() => {
-    if (!selectedDocument) return;
-
-    if (selectedDocument.config) {
-      fetchOpenDocument({
-        params: { DocID: selectedDocument?.documentID },
-      });
-    } else if (selectedDocument.editable) {
-      getDocumentConfig();
-    }
-  }, [selectedDocument]);
 
   useEffect(() => {
     getDocuments();

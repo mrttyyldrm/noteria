@@ -30,14 +30,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { IDocumentConfig, useDocument } from "@/context/DocumentContext";
+import { useDocument } from "@/context/DocumentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useFetch from "@/hooks/useFetch";
-import { DocumentEditor } from "@onlyoffice/document-editor-react";
-import { File, FileClock, FileUp } from "lucide-react";
+import { File, FileUp } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface IStatus {
   isValid: boolean;
@@ -51,50 +50,38 @@ function Dashboard() {
   const { t } = useLanguage();
   const { selectedDocument, documents, selectDocument } = useDocument();
 
-  const { loading: verifyDocumentLoading, fetch: fetchVerifyDocument } =
-    useFetch("GET", "CheckDoc");
+  const { loading: isVerifying, fetch: fetchVerifyDocument } = useFetch(
+    "GET",
+    "CheckDoc",
+  );
   const { loading: calculatePriceLoading, fetch: fetchCalculatePrice } =
     useFetch("GET", "CalcPrice");
-  const { loading: printDocumentLoading, fetch: fetchPrintDocument } = useFetch(
-    "GET",
-    "PrintDoc",
-  );
 
-  const [isReady, setIsReady] = useState<boolean>(false);
-  const [isVerifying, setisVerifying] = useState<boolean>(false);
   const [status, setStatus] = useState<IStatus>({
     isValid: true,
     message: "",
     courtDoc: "",
     parameters: [],
   });
-  const [config, setConfig] = useState<IDocumentConfig | null>(null);
   const [price, setPrice] = useState<number | "">("");
   const [details, setDetails] = useState<Record<string, number> | null>(null);
   const [open, setOpen] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   const verifyDocument = () => {
-    if (!selectedDocument || verifyDocumentLoading) return;
+    if (!selectedDocument || isVerifying) return;
 
     fetchVerifyDocument({
       params: { DocID: selectedDocument.documentID },
       onSuccess: (data: IStatus) => {
         setStatus(data);
-        setisVerifying(false);
 
         if (!data.isValid) return;
 
         setCurrentStep(2);
       },
       onLoading: (loading) => {
-        if (loading) {
-          setOpen(false);
-          setisVerifying(true);
-          return;
-        }
-
-        setisVerifying(false);
+        if (loading) setOpen(false);
       },
     });
   };
@@ -113,44 +100,14 @@ function Dashboard() {
     });
   };
 
-  const printDocument = () => {
-    if (!selectedDocument || printDocumentLoading) return;
-
-    fetchPrintDocument({
-      params: { DocID: selectedDocument.documentID },
-      onSuccess: (data) => {
-        setConfig(data);
-        setCurrentStep(3);
-      },
-    });
-  };
-
   const finishDocument = () => {
     selectDocument(null);
     showNotification(t("CEDBABF59"), "success");
     setCurrentStep(1);
   };
 
-  useEffect(() => {
-    setIsReady(false);
-  }, [selectedDocument, currentStep]);
-
   return (
     <section className="relative w-full h-full gap-4 overflow-hidden flex justify-center items-center">
-      {!isReady && selectedDocument && currentStep !== 2 && (
-        <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50 flex justify-center items-center">
-          <Empty className="p-2">
-            <EmptyHeader>
-              <EmptyMedia variant="icon" className="bg-white/20">
-                <FileClock />
-              </EmptyMedia>
-              <EmptyTitle>{t("970D0B4CE")}</EmptyTitle>
-              <EmptyDescription>{t("A08D6A172")}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        </Skeleton>
-      )}
-
       {currentStep === 1 ? (
         selectedDocument !== null ? (
           <>
@@ -167,46 +124,20 @@ function Dashboard() {
                 </Empty>
               </Skeleton>
             )}
-            <div
-              className={`relative w-full h-full flex flex-col rounded-b-lg overflow-hidden ${
-                !isReady || isVerifying ? "opacity-0" : ""
-              }`}
-              key={selectedDocument.config?.document.key}
-            >
-              {selectedDocument.editable && selectedDocument.config && (
-                <DocumentEditor
-                  id="editor"
-                  documentServerUrl="https://384311e4.docs.onlyoffice.com"
-                  config={selectedDocument.config}
-                  events_onAppReady={() => setIsReady(true)}
-                  onLoadComponentError={(_, message) =>
-                    showNotification(message, "error")
-                  }
-                />
-              )}
-
-              {!selectedDocument.editable && (
-                <iframe
-                  src={selectedDocument.url}
-                  className="w-full h-full"
-                  onLoad={() => setIsReady(true)}
-                />
-              )}
-
-              <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
-                <Button variant="outline" onClick={() => selectDocument(null)}>
-                  {t("CE4708006")}
+            <iframe
+              src={`${process.env.NEXT_PUBLIC_BASE_URL}/document?id=${selectedDocument.documentID}&mode=edit`}
+              className="w-full h-full"
+            />
+            <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
+              <Button variant="outline" onClick={() => selectDocument(null)}>
+                {t("CE4708006")}
+              </Button>
+              {selectedDocument.editable && (
+                <Button disabled={isVerifying} onClick={() => setOpen(true)}>
+                  {isVerifying ? <Spinner /> : t("FD0C7F9C4")}
                 </Button>
-                {selectedDocument.editable && selectedDocument.config && (
-                  <Button
-                    disabled={verifyDocumentLoading}
-                    onClick={() => setOpen(true)}
-                  >
-                    {verifyDocumentLoading ? <Spinner /> : t("FD0C7F9C4")}
-                  </Button>
-                )}
-              </Card>
-            </div>
+              )}
+            </Card>
           </>
         ) : (
           documents !== null && (
@@ -238,7 +169,7 @@ function Dashboard() {
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(Number(e.target.value))}
-                  placeholder="Enter Service Amount"
+                  placeholder={t("B5CF6ADC6")}
                 />
                 <InputGroupAddon align="inline-end">€</InputGroupAddon>
               </InputGroup>
@@ -286,41 +217,24 @@ function Dashboard() {
             <Button variant="outline" onClick={() => setCurrentStep(1)}>
               {t("3CF519BD6")}
             </Button>
-            <Button
-              disabled={printDocumentLoading}
-              onClick={() => printDocument()}
-            >
-              {printDocumentLoading ? <Spinner /> : t("B970607EA")}
-            </Button>
+            <Button onClick={() => setCurrentStep(3)}>{t("B970607EA")}</Button>
           </Card>
         </>
       )}
 
       {currentStep === 3 && (
-        <div
-          className={`relative w-full h-full flex flex-col rounded-b-lg overflow-hidden ${
-            !isReady ? "opacity-0" : ""
-          }`}
-        >
-          {selectedDocument && config && (
-            <DocumentEditor
-              id={`print-${selectedDocument.documentID}`}
-              documentServerUrl="https://384311e4.docs.onlyoffice.com"
-              config={config}
-              events_onAppReady={() => setIsReady(true)}
-              onLoadComponentError={(_, message) =>
-                showNotification(message, "error")
-              }
-            />
-          )}
-
-          <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
+        <>
+          <iframe
+            src={`${process.env.NEXT_PUBLIC_BASE_URL}/document?id=${selectedDocument?.documentID}&mode=print`}
+            className="w-full h-full"
+          />
+          <Card className="absolute p-2 bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
             <Button variant="outline" onClick={() => setCurrentStep(1)}>
               {t("3CF519BD6")}
             </Button>
             <Button onClick={finishDocument}>{t("C9FA164C5")}</Button>
           </Card>
-        </div>
+        </>
       )}
 
       <AlertDialog open={open} onOpenChange={setOpen}>

@@ -29,10 +29,7 @@ interface IError {
   m: string;
 }
 
-const useFetch = <T = any>(
-  method: "GET" | "POST",
-  path: string,
-) => {
+const useFetch = <T = any>(method: "GET" | "POST", path: string) => {
   const router = useRouter();
   const { t } = useLanguage();
   const { showNotification } = useNotification();
@@ -62,19 +59,23 @@ const useFetch = <T = any>(
       const token = getCookie("token");
       const language = getCookie("language");
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${path}${method === "GET" ? parameters : ""}`, {
-        method,
-        headers: {
-          ...(token && { nauth: token }),
-          ...(language && { nlng: language }),
-          ...(method === "POST" && { "Content-Type": "application/json" }),
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}${path}${method === "GET" ? parameters : ""}`,
+        {
+          method,
+          headers: {
+            ...(token && { nauth: token }),
+            ...(language && { nlng: language }),
+            ...(method === "POST" && { "Content-Type": "application/json" }),
+          },
+          ...(method === "POST" && { body: JSON.stringify(params) }),
+          credentials: "include",
         },
-        ...((method === "POST" && { body: JSON.stringify(params) })),
-        credentials: "include",
-      });
+      );
 
       if (!response.ok && response.status === 401) {
-        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie =
+          "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         router.replace("/auth");
         throw new Error(t("4256EEA6A"));
       }
@@ -94,7 +95,6 @@ const useFetch = <T = any>(
       if (response.status === 202) {
         throw new Error((result as IError).m || t("894FF0F4F"));
       }
-
     } catch (error: unknown) {
       if (error instanceof Error) {
         showNotification(error.message);
