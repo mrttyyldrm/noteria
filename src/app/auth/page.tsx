@@ -17,13 +17,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { useLanguage } from "@/context/LanguageContext";
 import useFetch from "@/hooks/useFetch";
 import { useFormik } from "formik";
-import { useRouter } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
 import * as Yup from "yup";
 
 function Auth() {
-  const router = useRouter();
   const { t, isLanguageLoading } = useLanguage();
 
   const { loading: authLoading, fetch: fetchAuth } = useFetch("POST", "Auth");
@@ -77,7 +75,7 @@ function Auth() {
         requestID: formik.values.requestID,
       },
       onSuccess: () => {
-        Promise.resolve().then(() => router.replace("/dashboard"));
+        location.href = "/dashboard";
       },
       onError: () => {
         setIsOTPInvalid(true);
