@@ -1,0 +1,869 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>API Performance Monitor (Live-ready)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --border:#e5e7eb; --muted:#6b7280; --bg:#f9fafb; --card:#ffffff; --shadow:0 2px 14px rgba(0,0,0,.06); }
+    * { box-sizing: border-box; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; background: var(--bg); color:#111827; }
+    header { padding:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; border-bottom:1px solid var(--border); background:#fff; position:sticky; top:0; z-index:10; }
+    label { font-size: 14px; color:#374151; display:flex; gap:6px; align-items:center; }
+    input, select, button { padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:#fff; }
+    button { cursor:pointer; box-shadow: var(--shadow); border-color:#d1d5db; }
+    .container { padding:16px; }
+    .cards { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin-bottom:16px; }
+    .card { background: var(--card); border:1px solid var(--border); border-radius:14px; box-shadow: var(--shadow); padding:14px; }
+    .card h4 { margin:0 0 6px 0; font-size:14px; color:#374151; font-weight:600; }
+    .card .val { font-size:24px; font-weight:700; display:flex; align-items:center; gap:8px; }
+    .muted { color: var(--muted); font-size:12px; }
+    .trend.up { color:#b91c1c; } .trend.down { color:#15803d; } .trend.flat { color:#6b7280; }
+    .layout { display:grid; grid-template-columns: 440px 1fr; gap:16px; }
+    .panel { background: var(--card); border:1px solid var(--border); border-radius:14px; box-shadow: var(--shadow); padding:0; overflow:hidden; }
+    .panel .head { padding:12px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+    .panel .body { padding:12px; }
+    .panel .body.pad0 { padding:0; }
+    .cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { text-align:left; padding:8px 8px; border-bottom:1px solid var(--border); font-size:13px; vertical-align: middle; }
+    th { font-weight:600; color:#374151; position: sticky; top:0; background:#fff; z-index:1; }
+    .btn { padding:6px 10px; border-radius:9px; border:1px solid #d1d5db; background:#111827; color:#fff; font-size:12px; }
+    .btn.ghost { background:#fff; color:#111; }
+    .tag { font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:#fff; }
+    .rowflex { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .right { margin-left:auto; }
+    .empty { padding:24px; text-align:center; color: var(--muted); }
+    .badge { font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--border); }
+    .b-good { background:#f0fff4; color:#166534; border-color:#bbf7d0; }
+    .b-ok   { background:#fefce8; color:#854d0e; border-color:#fde68a; }
+    .b-poor { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
+    .b-crit { background:#fff1f2; color:#9f1239; border-color:#fecdd3; }
+    .pill { font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid var(--border); background:#fff; }
+    .progress { height:10px; background:#f1f5f9; border-radius:999px; overflow:hidden; }
+    .progress > div { height:100%; width:0%; background:#16a34a; transition: width .3s; }
+    .feed { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size:12px; }
+    canvas { max-width: 100%; }
+    /* modal base */
+    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); align-items:center; justify-content:center; z-index:50; }
+    .modal { background:#fff; border-radius:14px; border:1px solid var(--border); width:min(480px, 92vw); box-shadow: var(--shadow); }
+    .modal .head { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .modal .body { padding:12px 14px; max-height:70vh; overflow:auto; }
+    .close { border:none; background:#fff; font-size:20px; cursor:pointer; }
+    .field { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+    .hint { font-size:12px; color:#6b7280; }
+    @media (max-width: 1300px) { .cards { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .cols { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <label>Mode:
+    <select id="mode">
+      <option value="sample">Sample</option>
+      <option value="api" selected>API</option>
+    </select>
+  </label>
+  <label>API:
+    <input id="apiBase" size="34" value="https://api.noteria.app" />
+  </label>
+  <label>Minutes:
+    <input id="minutes" type="number" value="60" min="5" max="1440" />
+  </label>
+  <label>Upper limit (ms):
+    <input id="upperLimit" type="number" value="500" min="0" step="50" style="width:110px" />
+  </label>
+  <label>SLA target (p95 ms):
+    <input id="slaTarget" type="number" value="400" min="0" step="50" style="width:110px" />
+  </label>
+  <button id="refresh">Refresh</button>
+  <button id="signinBtn" class="btn">Sign in</button>
+  <label><input type="checkbox" id="auto" /> Auto (30s)</label>
+  <span class="muted right" id="status"><span class="pill">auth: signed out</span></span>
+</header>
+
+<div class="container">
+  <!-- KPI CARDS -->
+  <div class="cards">
+    <div class="card">
+      <h4>Total Requests</h4>
+      <div class="val"><span id="kTotal">—</span><span class="trend" id="kTotalTrend">—</span></div>
+      <div class="muted" id="kTotalInfo">last 60 min</div>
+    </div>
+    <div class="card">
+      <h4>Average Response (ms)</h4>
+      <div class="val"><span id="kAvg">—</span><span class="trend" id="kAvgTrend">—</span></div>
+      <div class="muted">∆ vs previous window</div>
+    </div>
+    <div class="card">
+      <h4>P95 Response (ms)</h4>
+      <div class="val"><span id="kP95">—</span><span class="trend" id="kP95Trend">—</span></div>
+      <div class="muted">∆ vs previous window</div>
+    </div>
+    <div class="card">
+      <h4>SLA Compliance (p95 ≤ target)</h4>
+      <div class="val"><span id="kSLA">—%</span></div>
+      <div class="progress"><div id="slaBar"></div></div>
+      <div class="muted" id="kSLAInfo">target 400 ms</div>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="layout">
+    <!-- LEFT -->
+    <div class="panel" id="leftPanel">
+      <div class="head rowflex">
+        <strong>Slow Endpoints</strong>
+        <span class="muted">by p95</span>
+        <div class="right rowflex">
+          <label>Sort by:
+            <select id="slowSort">
+              <option value="p95">p95 (ms)</option>
+              <option value="avg">avg (ms)</option>
+              <option value="count">count</option>
+            </select>
+          </label>
+          <label>Limit:
+            <input id="limit" type="number" value="15" min="5" max="100" style="width:78px" />
+          </label>
+        </div>
+      </div>
+      <div class="body pad0">
+        <div style="max-height: 44vh; overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:80px;">Compare</th>
+                <th style="width:80px;">Method</th>
+                <th>Endpoint</th>
+                <th style="width:84px;">p95</th>
+                <th style="width:84px;">avg</th>
+                <th style="width:84px;">count</th>
+                <th style="width:86px;"></th>
+              </tr>
+            </thead>
+            <tbody id="slowTable">
+              <tr><td colspan="7" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- INCIDENTS -->
+        <div class="head" style="border-top:1px solid var(--border); border-bottom:none;">
+          <strong>Incidents</strong>
+          <span class="muted">≥3 consecutive mins with ≥20% 5xx</span>
+          <button class="btn ghost right" id="recalcInc">Recalculate</button>
+        </div>
+        <div class="body pad0" style="max-height: 22vh; overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:180px;">Start</th>
+                <th style="width:100px;">Duration</th>
+                <th>Affected endpoints</th>
+              </tr>
+            </thead>
+            <tbody id="incTable">
+              <tr><td colspan="3" class="empty">No incidents in the current window.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- LIVE FEED -->
+        <div class="head" style="border-top:1px solid var(--border); border-bottom:none;">
+          <strong>Live Feed</strong>
+          <span class="muted">latest events</span>
+          <button class="btn ghost right" id="clearFeed">Clear</button>
+        </div>
+        <div class="body">
+          <div id="feed" class="feed"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="panel">
+        <div class="head rowflex">
+          <strong id="detailTitle">Selected: (none)</strong>
+          <span class="right muted">ms</span>
+        </div>
+        <div class="body">
+          <canvas id="tsChart" height="140"></canvas>
+        </div>
+      </div>
+
+      <div class="cols" style="margin-top:16px;">
+        <div class="panel">
+          <div class="head rowflex">
+            <strong>Status Code Distribution</strong>
+            <span class="muted right" id="statusInfo"></span>
+          </div>
+          <div class="body">
+            <canvas id="statusChart" height="120"></canvas>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="head rowflex">
+            <strong>Limit Exceed Ratio</strong>
+            <span class="muted right">% of endpoints with p95 > limit</span>
+          </div>
+          <div class="body">
+            <canvas id="ratioChart" height="120"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <div class="head rowflex">
+          <strong>Heatmap (p95 by hour × day)</strong>
+          <span class="muted right">darker = slower</span>
+        </div>
+        <div class="body">
+          <canvas id="heatmap" width="900" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Never 200 -->
+<div class="modal-backdrop" id="modalNeverBack">
+  <div class="modal">
+    <div class="head">
+      <strong>Endpoints that never returned 200</strong>
+      <button class="close" data-close="never">&times;</button>
+    </div>
+    <div class="body">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:110px;">Method</th>
+            <th>Endpoint</th>
+            <th style="width:100px;">Requests</th>
+            <th style="width:140px;">Most frequent status</th>
+          </tr>
+        </thead>
+        <tbody id="never200Table">
+          <tr><td colspan="4" class="empty">No items.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Sign in -->
+<div class="modal-backdrop" id="modalLoginBack">
+  <div class="modal">
+    <div class="head">
+      <strong>Sign in</strong>
+      <button class="close" data-close="login">&times;</button>
+    </div>
+    <div class="body">
+      <div class="field">
+        <label>Email</label>
+        <input id="loginEmail" type="email" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="loginPass" type="password" placeholder="••••••••" />
+      </div>
+      <div class="rowflex" style="margin:6px 0 10px;">
+        <label><input id="remember" type="checkbox" /> Remember on this device</label>
+        <span class="hint right">We will store the JWT in localStorage.</span>
+      </div>
+      <div class="rowflex">
+        <button id="loginSubmit" class="btn">Continue</button>
+        <span id="loginMsg" class="muted right"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: OTP -->
+<div class="modal-backdrop" id="modalOtpBack">
+  <div class="modal">
+    <div class="head">
+      <strong>Enter OTP</strong>
+      <button class="close" data-close="otp">&times;</button>
+    </div>
+    <div class="body">
+      <div class="field">
+        <label>6-digit OTP</label>
+        <input id="otpInput" type="text" placeholder="123456" inputmode="numeric" maxlength="6" />
+      </div>
+      <div class="rowflex">
+        <button id="otpSubmit" class="btn">Verify</button>
+        <span id="otpMsg" class="muted right"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- libs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1"></script>
+<script>
+/* ========================= AUTH STATE ========================= */
+let JWT = null;
+let REMEMBER = false;
+let REQUEST_ID = null;
+try {
+  const stored = localStorage.getItem('nauth_jwt');
+  if (stored) JWT = stored;
+} catch {}
+
+/* ========================= UI ELEMENTS ========================= */
+const modeEl = document.getElementById('mode');
+const apiBaseEl = document.getElementById('apiBase');
+const minutesEl = document.getElementById('minutes');
+const upperLimitEl = document.getElementById('upperLimit');
+const slaTargetEl = document.getElementById('slaTarget');
+const refreshBtn = document.getElementById('refresh');
+const signinBtn = document.getElementById('signinBtn');
+const autoCb = document.getElementById('auto');
+const statusEl = document.getElementById('status');
+
+const kTotal = document.getElementById('kTotal');
+const kTotalTrend = document.getElementById('kTotalTrend');
+const kTotalInfo = document.getElementById('kTotalInfo');
+const kAvg = document.getElementById('kAvg');
+const kAvgTrend = document.getElementById('kAvgTrend');
+const kP95 = document.getElementById('kP95');
+const kP95Trend = document.getElementById('kP95Trend');
+const kSLA = document.getElementById('kSLA');
+const slaBar = document.getElementById('slaBar');
+const kSLAInfo = document.getElementById('kSLAInfo');
+
+const slowSortEl = document.getElementById('slowSort');
+const limitEl = document.getElementById('limit');
+const slowTableEl = document.getElementById('slowTable');
+
+const detailTitleEl = document.getElementById('detailTitle');
+const statusInfoEl = document.getElementById('statusInfo');
+
+const incTable = document.getElementById('incTable');
+const recalcIncBtn = document.getElementById('recalcInc');
+
+const feed = document.getElementById('feed');
+const clearFeed = document.getElementById('clearFeed');
+
+/* Modals */
+const modalNeverBack = document.getElementById('modalNeverBack');
+const never200Table = document.getElementById('never200Table');
+
+const modalLoginBack = document.getElementById('modalLoginBack');
+const loginEmail = document.getElementById('loginEmail');
+const loginPass = document.getElementById('loginPass');
+const rememberCb = document.getElementById('remember');
+const loginSubmit = document.getElementById('loginSubmit');
+const loginMsg = document.getElementById('loginMsg');
+
+const modalOtpBack = document.getElementById('modalOtpBack');
+const otpInput = document.getElementById('otpInput');
+const otpSubmit = document.getElementById('otpSubmit');
+const otpMsg = document.getElementById('otpMsg');
+
+/* ========================= CHARTS SETUP ========================= */
+const thresholdPlugin = {
+  id: 'thresholdPlugin',
+  afterDraw(chart, args, opts) {
+    const limit = opts.limit;
+    if (!limit || !chart.scales?.y) return;
+    const yScale = chart.scales.y;
+    const y = yScale.getPixelForValue(limit);
+    const { ctx, chartArea } = chart;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.06)';
+    ctx.fillRect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, Math.max(0, y - chartArea.top));
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    ctx.moveTo(chartArea.left, y);
+    ctx.lineTo(chartArea.right, y);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,0,0,0.9)';
+    ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    ctx.fillText(`limit: ${limit} ms`, chartArea.left + 6, y - 6);
+    ctx.restore();
+  }
+};
+Chart.register(thresholdPlugin);
+
+const tsChart = new Chart(document.getElementById('tsChart').getContext('2d'), {
+  type: 'line',
+  data: { datasets: [] },
+  options: {
+    animation: false,
+    interaction: { mode: 'nearest', intersect: false },
+    scales: {
+      x: { type:'time', time:{ unit:'minute' } },
+      y: { beginAtZero:true, title:{ display:true, text:'ms' } }
+    },
+    plugins: {
+      legend: { position:'bottom' },
+      tooltip: {
+        callbacks: {
+          label(ctx) {
+            const y = ctx.parsed.y;
+            const base = `${ctx.dataset.label}: ${y} ms`;
+            const limit = parseInt(upperLimitEl.value||'0',10);
+            if (limit > 0 && y > limit) return `${base} (exceeded by +${y - limit} ms)`;
+            return base;
+          }
+        }
+      },
+      thresholdPlugin: { limit: parseInt(upperLimitEl.value||'0',10) }
+    },
+    elements: {
+      point: {
+        radius: (ctx) => {
+          const limit = parseInt(upperLimitEl.value||'0',10);
+          const y = ctx.parsed?.y;
+          return (limit > 0 && y > limit) ? 3 : 0;
+        },
+        backgroundColor: (ctx) => {
+          const limit = parseInt(upperLimitEl.value||'0',10);
+          const y = ctx.parsed?.y;
+          return (limit > 0 && y > limit) ? 'rgba(255,0,0,0.9)' : undefined;
+        },
+        borderWidth: 0
+      }
+    }
+  }
+});
+
+const statusChart = new Chart(document.getElementById('statusChart').getContext('2d'), {
+  type: 'pie',
+  data: { labels: ['2xx','4xx','5xx'], datasets: [{ data: [0,0,0] }] },
+  options: { animation:false, plugins:{ legend:{ position:'bottom' } } }
+});
+
+const ratioChart = new Chart(document.getElementById('ratioChart').getContext('2d'), {
+  type: 'line',
+  data: { labels: [], datasets: [{ label:'% exceed', data: [] }] },
+  options: { animation:false, scales:{ y:{ beginAtZero:true, max:100 } }, plugins:{ legend:{ display:false } } }
+});
+
+/* ========================= HELPERS ========================= */
+function maskEmail(e){ if(!e) return ''; const i=e.indexOf('@'); if(i<2) return e; return e[0]+'***'+e.slice(i-1); }
+
+function setStatus(text, good=true){
+  statusEl.innerHTML = `<span class="pill" style="border-color:${good?'#bbf7d0':'#fecaca'};background:${good?'#f0fff4':'#fff1f2'};color:${good?'#166534':'#9f1239'};">${text}</span>`;
+}
+
+function showModal(el){ el.style.display='flex'; }
+function closeModal(el){ el.style.display='none'; }
+document.querySelectorAll('.close').forEach(btn=>{
+  btn.onclick = ()=>{
+    const which = btn.getAttribute('data-close');
+    if (which==='login') closeModal(modalLoginBack);
+    if (which==='otp') closeModal(modalOtpBack);
+    if (which==='never') closeModal(modalNeverBack);
+  };
+});
+modalNeverBack.addEventListener('click', (e)=> { if (e.target===modalNeverBack) closeModal(modalNeverBack); });
+modalLoginBack.addEventListener('click', (e)=> { if (e.target===modalLoginBack) closeModal(modalLoginBack); });
+modalOtpBack.addEventListener('click', (e)=> { if (e.target===modalOtpBack) closeModal(modalOtpBack); });
+
+/* ========================= AUTH FLOW ========================= */
+async function fetchJSON(url, options={}){
+  const base = apiBaseEl.value.replace(/\/+$/,'');
+  const headers = options.headers ? new Headers(options.headers) : new Headers();
+  headers.set('Content-Type','application/json');
+  if (JWT) headers.set('nauth', JWT);
+  const res = await fetch(base + url, { ...options, headers });
+
+  // rotate nauth if provided
+  const newToken = res.headers.get('nauth');
+  if (newToken) {
+    JWT = newToken;
+    if (REMEMBER) { try { localStorage.setItem('nauth_jwt', JWT); } catch {} }
+  }
+
+  if (!res.ok) {
+    const body = await res.text().catch(()=> '');
+    throw new Error(`HTTP ${res.status} ${res.statusText} – ${body}`);
+  }
+  // JSON or empty OK
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : {};
+}
+
+async function startAuth(email, pass){
+  const payload = { email, pass };
+  const data = await fetch(apiBaseEl.value.replace(/\/+$/,'') + '/auth', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!data.ok) throw new Error(`Auth failed: ${data.status} ${data.statusText}`);
+  const resp = await data.json();
+  const rid = resp.requestID || resp.requestId || resp.RequestID || resp.RequestId;
+  if (!rid) throw new Error('requestID not found in response');
+  return rid;
+}
+
+async function verifyOtp(otp, requestID){
+  const url = apiBaseEl.value.replace(/\/+$/,'') + `/CheckOTP?OTP=${encodeURIComponent(otp)}&RequestID=${encodeURIComponent(requestID)}`;
+  const res = await fetch(url, { method:'GET' });
+  if (!res.ok) throw new Error(`OTP failed: ${res.status} ${res.statusText}`);
+
+  const token = res.headers.get('nauth');
+  if (!token) throw new Error('JWT (nauth) not found in response headers');
+  JWT = token;
+  if (REMEMBER) { try { localStorage.setItem('nauth_jwt', JWT); } catch {} }
+  return true;
+}
+
+/* Sign-in button */
+signinBtn.onclick = () => {
+  loginMsg.textContent = '';
+  loginPass.value = '';
+  showModal(modalLoginBack);
+};
+/* Submit email/pass */
+loginSubmit.onclick = async () => {
+  try {
+    loginSubmit.disabled = true;
+    loginMsg.textContent = 'Requesting OTP…';
+    REMEMBER = !!rememberCb.checked;
+    const email = loginEmail.value.trim();
+    const pass = loginPass.value;
+    REQUEST_ID = await startAuth(email, pass);
+    loginMsg.textContent = 'OTP sent. Check your device.';
+    closeModal(modalLoginBack);
+    otpMsg.textContent = '';
+    otpInput.value = '';
+    showModal(modalOtpBack);
+  } catch (e) {
+    loginMsg.textContent = e.message;
+  } finally {
+    loginSubmit.disabled = false;
+  }
+};
+/* Submit OTP */
+otpSubmit.onclick = async () => {
+  try {
+    otpSubmit.disabled = true;
+    otpMsg.textContent = 'Verifying…';
+    const ok = await verifyOtp(otpInput.value.trim(), REQUEST_ID);
+    otpMsg.textContent = ok ? 'Verified!' : 'Failed.';
+    closeModal(modalOtpBack);
+    setStatus('auth: signed in', true);
+    // after successful auth, load live data immediately
+    await load(true);
+  } catch (e) {
+    otpMsg.textContent = e.message;
+  } finally {
+    otpSubmit.disabled = false;
+  }
+};
+
+/* ========================= DATA & RENDER ========================= */
+let selectedKeys = new Set();
+let sampleFeed = []; // for live feed simulation in sample mode
+
+function setTrend(el, value, prevValue){
+  const diff = value - prevValue;
+  const pct = prevValue ? (diff/prevValue*100) : 0;
+  if (!isFinite(pct)) { el.textContent='—'; el.className='trend flat'; return; }
+  if (Math.abs(pct) < 1e-6) { el.textContent = '±0%'; el.className='trend flat'; return; }
+  const arrow = diff>0 ? '▲' : '▼';
+  el.textContent = `${arrow} ${Math.abs(pct).toFixed(1)}%`;
+  el.className = 'trend ' + (diff>0 ? 'up' : 'down');
+}
+function badgeClass(p95) {
+  if (p95 < 100) return 'b-good';
+  if (p95 < 300) return 'b-ok';
+  if (p95 < 1000) return 'b-poor';
+  return 'b-crit';
+}
+function renderSlowTable(items, allPoints){
+  slowTableEl.innerHTML = '';
+  if (!items.length) {
+    slowTableEl.innerHTML = '<tr><td colspan="7" class="empty">No data.</td></tr>';
+    return;
+  }
+  for (const it of items) {
+    const limit = parseInt(upperLimitEl.value||'0',10)||0;
+    const exceedTag = (limit > 0 && it.p95Ms > limit)
+      ? `<span class="tag" style="border-color:#f5c2c2;background:#fff5f5;color:#a00;">+${it.p95Ms - limit}</span>` : '';
+    const checked = selectedKeys.has(`${it.method} ${it.route}`) ? 'checked' : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="checkbox" ${checked} class="box"></td>
+      <td><span class="tag">${it.method}</span></td>
+      <td style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;">
+        ${it.route} &nbsp; <span class="badge ${badgeClass(it.p95Ms)}">p95 ${it.p95Ms}ms</span>
+      </td>
+      <td>${it.p95Ms} ${exceedTag}</td>
+      <td>${it.avgMs}</td>
+      <td>${it.count}</td>
+      <td><button class="btn btn-sm">Details</button></td>
+    `;
+    const key = `${it.method} ${it.route}`;
+    tr.querySelector('.box').onchange = (e) => {
+      if (e.target.checked) selectedKeys.add(key);
+      else selectedKeys.delete(key);
+      updateDetailChart(allPoints);
+    };
+    tr.querySelector('button').onclick = () => {
+      selectedKeys = new Set([key]); // focus one
+      updateDetailChart(allPoints);
+    };
+    slowTableEl.appendChild(tr);
+  }
+}
+function renderIncidents(incs){
+  incTable.innerHTML = '';
+  if (!incs.length) {
+    incTable.innerHTML = '<tr><td colspan="3" class="empty">No incidents in the current window.</td></tr>';
+    return;
+  }
+  for (const i of incs) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i.start.replace('T',' ')}</td>
+      <td>${i.durationMinutes} min</td>
+      <td>${i.affectedEndpoints}</td>
+    `;
+    incTable.appendChild(tr);
+  }
+}
+function renderStatusPie(dist){
+  const data = [dist.twoXx||dist.TwoXx||0, dist.fourXx||dist.FourXx||0, dist.fiveXx||dist.FiveXx||0];
+  statusChart.data.datasets[0].data = data;
+  statusChart.update();
+  const total = data.reduce((a,b)=>a+b,0);
+  const pct = total? data.map(x=>Math.round(x/total*100)) : [0,0,0];
+  statusInfoEl.textContent = `${pct[0]}% 2xx • ${pct[1]}% 4xx • ${pct[2]}% 5xx`;
+}
+function renderRatioTrend(points){
+  // compute per-minute ratio: endpoints with p95>limit / total endpoints
+  const limit = parseInt(upperLimitEl.value||'0',10)||0;
+  const byMinute = new Map();
+  for (const p of points) {
+    const k = p.bucketStart;
+    const v = byMinute.get(k) || { tot:0, exc:0 };
+    v.tot += 1;
+    if (limit>0 && p.p95Ms>limit) v.exc += 1;
+    byMinute.set(k, v);
+  }
+  const labels = [...byMinute.keys()].sort();
+  const data = labels.map(k => {
+    const v = byMinute.get(k);
+    return v && v.tot ? Math.round(v.exc/v.tot*100) : 0;
+  });
+  ratioChart.data.labels = labels.map(k=>k.slice(11,16));
+  ratioChart.data.datasets[0].data = data;
+  ratioChart.update();
+}
+function drawHeatmap(cells){
+  const canvas = document.getElementById('heatmap');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const days = Array.from(new Set(cells.map(x=>x.day||x.Day))).sort();
+  const hours = [...Array(24)].map((_,i)=>i);
+  const padLeft = 60, padTop = 24, cellW = (w - padLeft - 10)/hours.length, cellH = (h - padTop - 20)/Math.max(1, days.length);
+  ctx.fillStyle = '#374151'; ctx.font = '12px system-ui';
+  hours.forEach((hr,i)=> { if (i%2===0) ctx.fillText(String(hr).padStart(2,'0'), padLeft + i*cellW + 4, padTop - 6); });
+  days.forEach((d,i)=> ctx.fillText(d, 6, padTop + (i+0.7)*cellH));
+  const values = cells.map(x=>x.p95||x.P95);
+  const min = Math.min(...values, 0), max = Math.max(...values, 1);
+  function col(v){ const t = Math.min(1, Math.max(0, (v - min)/(max-min||1))); const r = Math.round(255*t), g = Math.round(160*(1-t)+40*t), b = Math.round(255*(1-t)); return `rgb(${r},${g},${b})`; }
+  for (let r=0;r<days.length;r++){
+    for (const hr of hours){
+      const rec = cells.find(x=>(x.day||x.Day)===days[r] && (x.hour===hr || x.Hour===hr));
+      const v = rec ? (rec.p95||rec.P95) : min;
+      ctx.fillStyle = col(v);
+      ctx.fillRect(padLeft + hr*cellW, padTop + r*cellH, cellW-1, cellH-1);
+    }
+  }
+}
+function updateDetailChart(allPoints){
+  const datasets = [];
+  let maxY = parseInt(upperLimitEl.value||'0',10)||0;
+  const groups = new Map();
+  for (const p of allPoints) {
+    const key = `${p.method} ${p.route}`;
+    if (selectedKeys.size && !selectedKeys.has(key)) continue;
+    (groups.get(key) ?? groups.set(key, []).get(key)).push(p);
+  }
+  if (!selectedKeys.size && groups.size) {
+    // pick worst p95 by latest minute
+    const latest = [...groups.entries()].map(([k,arr])=>{
+      const last = arr[arr.length-1]?.p95Ms ?? 0;
+      return {k,last,arr};
+    }).sort((a,b)=> b.last - a.last)[0];
+    if (latest) {
+      selectedKeys.add(latest.k);
+      groups.clear(); groups.set(latest.k, latest.arr);
+    }
+  }
+  for (const [k, arr] of groups) {
+    arr.sort((a,b)=> a.bucketStart.localeCompare(b.bucketStart));
+    const data = arr.map(p => ({ x:new Date(p.bucketStart), y:p.p95Ms }));
+    maxY = Math.max(maxY, ...data.map(d=>d.y));
+    datasets.push({ label: k, data, tension:.2, pointRadius:0 });
+  }
+  tsChart.data.datasets = datasets;
+  tsChart.options.plugins.thresholdPlugin.limit = parseInt(upperLimitEl.value||'0',10)||0;
+  tsChart.options.scales.y.suggestedMax = maxY>0 ? Math.ceil(maxY*1.1) : undefined;
+  tsChart.update();
+  detailTitleEl.textContent = datasets.length ? `Selected: ${datasets.map(d=>d.label).join(' , ')} (p95)` : 'Selected: (none)';
+}
+
+/* ========================= LIVE/LOAD ========================= */
+async function load(forceApi=false){
+  const base = apiBaseEl.value.replace(/\/+$/,'');
+  const minutes = parseInt(minutesEl.value||'60',10);
+  const isAPI = (modeEl.value === 'api') || forceApi;
+
+  if (isAPI) {
+    if (!JWT) {
+      setStatus('auth required — please sign in', false);
+      showModal(modalLoginBack);
+      return;
+    }
+    try {
+      setStatus('loading live…');
+      // 1) series
+      const last = await fetchJSON(`/metrics/last?minutes=${minutes}`);
+      // 2) top
+      const top  = await fetchJSON(`/metrics/top?minutes=15&topN=50`);
+      // 3) summary
+      const summary = await fetchJSON(`/metrics/summary?minutes=${minutes}`);
+      // 4) status distribution
+      const dist = await fetchJSON(`/metrics/status-dist?minutes=${minutes}`);
+      // 5) incidents
+      const inc = await fetchJSON(`/metrics/incidents?minutes=${minutes}&thresholdPct=20&minConsecutive=3`);
+      // 6) heatmap
+      const heat = await fetchJSON(`/metrics/heatmap?days=3`);
+      // 7) never-200
+      const never = await fetchJSON(`/metrics/never200?minutes=${minutes}`);
+
+      setStatus(`live • token ok`);
+      // KPIs
+      kTotal.textContent = (summary.totalRequests ?? summary.TotalRequests ?? 0).toLocaleString('en-US');
+      kTotalInfo.textContent = `last ${minutes} min`;
+      // trends: for now, compute previous window quickly by reusing current (or you can call with minutes*2 and split)
+      kTotalTrend.textContent = '—'; kTotalTrend.className='trend flat';
+      kAvg.textContent = Math.round(summary.avgMs ?? summary.AvgMs ?? 0);
+      kAvgTrend.textContent = '—'; kAvgTrend.className='trend flat';
+      kP95.textContent = Math.round(summary.p95Ms ?? summary.P95Ms ?? 0);
+      kP95Trend.textContent = '—'; kP95Trend.className='trend flat';
+      const slaTarget = parseInt(slaTargetEl.value||'0',10)||0;
+      if (slaTarget>0 && top.items?.length) {
+        const met = top.items.filter(x => (x.p95Ms ?? x.P95Ms) <= slaTarget).length;
+        const total = top.items.length;
+        const pct = Math.round(met/Math.max(1,total)*100);
+        kSLA.textContent = `${pct}%`;
+        slaBar.style.width = `${pct}%`;
+        kSLAInfo.textContent = `target ${slaTarget} ms • met ${met}/${total}`;
+      }
+
+      // Slow table
+      const sortKey = slowSortEl.value;
+      const limit = Math.max(5, Math.min(100, parseInt(limitEl.value||'15',10)));
+      let rows = (top.items || []).map(i => ({
+        method: i.method ?? i.Method,
+        route: i.route ?? i.Route,
+        count: i.count ?? i.CountTotal ?? i.Count,
+        avgMs: Math.round(i.avgMs ?? i.AvgMs ?? 0),
+        p95Ms: Math.round(i.p95Ms ?? i.P95Ms ?? 0)
+      }));
+      rows = rows.sort((a,b)=> sortKey==='avg' ? (b.avgMs-a.avgMs) : sortKey==='count' ? (b.count-a.count) : (b.p95Ms-a.p95Ms)).slice(0, limit);
+      renderSlowTable(rows, last.points);
+
+      // select default
+      if (!selectedKeys.size && rows.length) selectedKeys.add(`${rows[0].method} ${rows[0].route}`);
+      updateDetailChart(last.points);
+
+      // status distribution
+      renderStatusPie(dist);
+
+      // ratio trend (from last.points)
+      renderRatioTrend(last.points);
+
+      // heatmap
+      drawHeatmap(heat.cells || []);
+
+      // incidents
+      renderIncidents(inc.items || []);
+
+      // never-200 modal action
+      const neverBtnCard = document.querySelector('.cards .card:nth-child(1)'); // not used; you can add a dedicated button elsewhere if needed
+      // open with a key press or your own button:
+      window.openNever200 = () => {
+        never200Table.innerHTML = '';
+        const items = never.items || [];
+        if (!items.length) {
+          never200Table.innerHTML = '<tr><td colspan="4" class="empty">Empty 🎉</td></tr>';
+        } else {
+          for (const it of items) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><span class="tag">${it.method ?? it.Method}</span></td>
+              <td style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;">${it.route ?? it.Route}</td>
+              <td>${it.count ?? it.Count}</td>
+              <td>${it.topStatus ?? it.TopStatus}</td>
+            `;
+            never200Table.appendChild(tr);
+          }
+        }
+        showModal(modalNeverBack);
+      };
+
+    } catch (e) {
+      setStatus(`live error: ${e.message}`, false);
+      console.error(e);
+      // If unauthorized or missing token, force sign-in
+      if (String(e.message).includes('401')) {
+        JWT = null; try { localStorage.removeItem('nauth_jwt'); } catch {}
+        showModal(modalLoginBack);
+      }
+    }
+  } else {
+    // SAMPLE mode (optional: could keep for dev)
+    setStatus('demo mode — switch to API for live', true);
+    // minimal sample render: clear charts/tables
+  }
+}
+
+/* ========================= WIRE UI ========================= */
+refreshBtn.onclick = () => load();
+autoCb.onchange = () => {
+  if (autoCb.checked) window.__auto = setInterval(load, 30000);
+  else { clearInterval(window.__auto); }
+};
+upperLimitEl.onchange = () => { tsChart.options.plugins.thresholdPlugin.limit = parseInt(upperLimitEl.value||'0',10)||0; tsChart.update(); load(); };
+slaTargetEl.onchange = () => load();
+slowSortEl.onchange = () => load();
+limitEl.onchange = () => load();
+modeEl.onchange = () => {
+  const isAPI = modeEl.value === 'api';
+  apiBaseEl.disabled = !isAPI;
+  document.title = isAPI ? 'API Performance Monitor (Live)' : 'API Performance Monitor (Demo)';
+  if (isAPI && !JWT) showModal(modalLoginBack);
+  load();
+};
+clearFeed.onclick = () => { feed.textContent=''; sampleFeed=[]; };
+
+/* ========================= INIT ========================= */
+(function init(){
+  if (JWT) setStatus('auth: token loaded', true);
+  else setStatus('auth: signed out', false);
+  apiBaseEl.disabled = !(modeEl.value === 'api');
+  load();
+})();
+</script>
+</body>
+</html>
