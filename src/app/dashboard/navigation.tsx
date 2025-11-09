@@ -78,15 +78,15 @@ interface IPage {
 
 interface ISuggestion {
   resultText: string;
-  resultType: "Document" | "Person" | "Court";
+  resultType: "Document" | "Profile" | "Url";
   detail: any;
 }
 
 const suggestionIcons: { [key in ISuggestion["resultType"]]: React.ReactNode } =
   {
     Document: <File />,
-    Person: <User />,
-    Court: <Gavel />,
+    Profile: <User />,
+    Url: <Gavel />,
   };
 
 function SidebarNavigation() {
@@ -148,15 +148,14 @@ function SidebarNavigation() {
   const redirectSuggestion = (suggestion: ISuggestion) => {
     switch (suggestion.resultType) {
       case "Document":
-        selectDocument(suggestion.detail);
+        const { config, ...document } = suggestion.detail;
+        selectDocument(document);
         break;
-      case "Person":
-        router.push(`/dashboard/person/${suggestion.detail.profileID}`);
+      case "Profile":
+        router.push(`/dashboard/profile/${suggestion.detail.param}`);
         break;
-      case "Court":
-        router.push(
-          `/dashboard/court-decisions?filter=${suggestion.detail.courtOrderID}`,
-        );
+      case "Url":
+        router.push(suggestion.detail.param);
         break;
     }
 
@@ -181,7 +180,7 @@ function SidebarNavigation() {
     if (!isCommandOpen) return;
 
     const timer = window.setTimeout(() => {
-      if (search.trim().length <= 3) return;
+      if (search.trim().length < 5) return;
       getSearchOptions();
     }, 500);
 
@@ -208,10 +207,7 @@ function SidebarNavigation() {
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
       <div className="flex items-center gap-2 shrink-0">
-        <SidebarTrigger
-          className="-ml-1"
-          disabled={page?.route === pages[0].route}
-        />
+        <SidebarTrigger className="-ml-1" />
         {page && (
           <Breadcrumb className="shrink-0 hidden md:block">
             <BreadcrumbList>

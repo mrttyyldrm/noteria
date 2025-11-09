@@ -310,8 +310,8 @@ function CourtDecisions() {
                           }
                         >
                           {isDatePast(decision.expireDate)
-                            ? "Expired"
-                            : "Active"}
+                            ? t("8F554D5D6")
+                            : t("572300D84")}
                         </Badge>
                       </TableCell>
                       <TableCell className="flex justify-end items-center gap-2">

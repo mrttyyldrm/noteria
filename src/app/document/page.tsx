@@ -80,16 +80,14 @@ function Document() {
   };
 
   useEffect(() => {
-    if (!documentDetails) return;
+    if (!documentDetails || isReady) return;
 
     const timer = setTimeout(() => {
-      if (!isReady) {
-        setIsTimeout(true);
-      }
-    }, 30000);
+      setIsTimeout(true);
+    }, 10000);
 
     return () => clearTimeout(timer);
-  }, [documentDetails]);
+  }, [documentDetails, isReady]);
 
   useEffect(() => {
     if (!isReady) return;

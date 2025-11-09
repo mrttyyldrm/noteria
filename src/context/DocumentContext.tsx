@@ -219,14 +219,9 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
   const { fetch: fetchCreateFolder } = useFetch("GET", "CreateFolder");
   const { fetch: fetchRenameFolder } = useFetch("GET", "RenameFolder");
   const { fetch: fetchDeleteFolder } = useFetch("GET", "DeleteFolder");
-  const { fetch: fetchGetDocumentConfig } = useFetch(
-    "GET",
-    "GetDocumentConfig",
-  );
   const { fetch: fetchUploadDocument } = useFetch("POST", "UploadDoc");
   const { fetch: fetchRenameDocument } = useFetch("GET", "RenameDoc");
   const { fetch: fetchDeleteDocument } = useFetch("GET", "DeleteDoc");
-  const { fetch: fetchOpenDocument } = useFetch("GET", "OpenDoc");
 
   const DASHBORAD_PATH = "/dashboard";
 
