@@ -8,6 +8,7 @@ import {
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   CommandDialog,
   CommandEmpty,
@@ -16,6 +17,15 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,14 +53,17 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDocument } from "@/context/DocumentContext";
+import { Spinner } from "@/components/ui/spinner";
+import { IFile, useDocument } from "@/context/DocumentContext";
 import { LanguageDropdown, useLanguage } from "@/context/LanguageContext";
 import useFetch from "@/hooks/useFetch";
+import { cn } from "@/lib/utils";
 import {
   ChevronsUpDown,
   File,
   FileSearch2,
   Gavel,
+  Plus,
   Search,
   SearchIcon,
   SearchX,
@@ -93,7 +106,7 @@ function SidebarNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { setOpen, isMobile } = useSidebar();
-  const { selectDocument } = useDocument();
+  const { selectDocument, openProcess } = useDocument();
 
   const { data: profile, fetch: fetchGetProfile } = useFetch<IProfile>(
     "GET",
@@ -103,6 +116,11 @@ function SidebarNavigation() {
     "GET",
     "Search",
   );
+  const { fetch: fetchDrafts } = useFetch("GET", "GetDraftList");
+  const { fetch: fetchStartDocumentProcess } = useFetch(
+    "GET",
+    "StartDocProcess",
+  );
 
   const [page, setPage] = useState<IPage | null>(null);
   const [isCommandOpen, setIsCommandOpen] = useState<boolean>(false);
@@ -110,6 +128,13 @@ function SidebarNavigation() {
   const [searchSuggestions, setSearchSuggestions] = useState<
     ISuggestion[] | null
   >(null);
+  const [drafts, setDrafts] = useState<IFile[] | null>(null);
+  const [isDraftsOpen, setIsDraftsOpen] = useState<boolean>(false);
+  const [draftSearch, setDraftSearch] = useState<string>("");
+  const [draftProcessing, setDraftProcessing] = useState<{
+    id: number | null;
+    status: boolean;
+  }>({ id: null, status: false });
 
   const pages: IPage[] = [
     {
@@ -163,6 +188,41 @@ function SidebarNavigation() {
     setSearchSuggestions(null);
   };
 
+  const getDrafts = () => {
+    fetchDrafts({
+      params: {},
+      onSuccess: (data: IFile[]) => setDrafts(data),
+      onLoading: (loading) => {
+        if (loading) {
+          setDrafts(null);
+        }
+      },
+    });
+  };
+
+  const startDocumentProcess = (draftID: number) => {
+    fetchStartDocumentProcess({
+      params: { DocID: draftID },
+      onSuccess: (data: IFile) => {
+        selectDocument(data);
+      },
+      onLoading: (loading) => {
+        if (loading) return;
+
+        setDraftProcessing({ id: null, status: false });
+        setIsDraftsOpen(false);
+        setDraftSearch("");
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (!isCommandOpen) return;
+
+    setSearch("");
+    setSearchSuggestions(null);
+  }, [isCommandOpen]);
+
   useEffect(() => {
     if (isLanguageLoading) return;
 
@@ -190,6 +250,19 @@ function SidebarNavigation() {
   }, [search]);
 
   useEffect(() => {
+    if (!isDraftsOpen) return;
+
+    getDrafts();
+    setDraftSearch("");
+  }, [isDraftsOpen]);
+
+  useEffect(() => {
+    if (!draftProcessing.status || !draftProcessing.id) return;
+
+    startDocumentProcess(draftProcessing.id);
+  }, [draftProcessing]);
+
+  useEffect(() => {
     fetchGetProfile();
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -202,6 +275,12 @@ function SidebarNavigation() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const filteredDrafts = drafts
+    ? drafts.filter((draft) =>
+        draft.title.toLowerCase().includes(draftSearch.toLowerCase()),
+      )
+    : [];
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
@@ -217,23 +296,25 @@ function SidebarNavigation() {
           </Breadcrumb>
         )}
       </div>
-      <InputGroup
-        className="max-w-2xs hidden lg:flex"
-        onClick={() => setIsCommandOpen(true)}
-      >
-        <InputGroupInput
-          readOnly={true}
-          placeholder={t("D0BBBC0DB")}
-          className="cursor-pointer"
-        />
-        <InputGroupAddon>
-          <SearchIcon />
-        </InputGroupAddon>
-        <InputGroupAddon align="inline-end">
-          <Kbd>⌘</Kbd>
-          <Kbd>K</Kbd>
-        </InputGroupAddon>
-      </InputGroup>
+      <div className="max-w-2xs hidden lg:flex gap-2">
+        <InputGroup onClick={() => setIsCommandOpen(true)}>
+          <InputGroupInput
+            readOnly={true}
+            placeholder={t("D0BBBC0DB")}
+            className="cursor-pointer"
+          />
+          <InputGroupAddon>
+            <SearchIcon />
+          </InputGroupAddon>
+          <InputGroupAddon align="inline-end">
+            <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd>
+          </InputGroupAddon>
+        </InputGroup>
+        <Button size="icon" onClick={() => setIsDraftsOpen(true)}>
+          <Plus className="size-5" />
+        </Button>
+      </div>
       <div className="lg:shrink-0 flex items-center gap-2">
         {profile ? (
           <DropdownMenu>
@@ -314,6 +395,13 @@ function SidebarNavigation() {
           <Skeleton className="w-44 md:w-56 h-12" />
         )}
         <Button
+          className="lg:hidden"
+          size="icon"
+          onClick={() => setIsDraftsOpen(true)}
+        >
+          <Plus className="size-5" />
+        </Button>
+        <Button
           variant="outline"
           size="icon"
           onClick={() => setIsCommandOpen(true)}
@@ -373,15 +461,108 @@ function SidebarNavigation() {
             )
           ) : (
             <div className="flex flex-col gap-2 p-2">
-              <Skeleton className="w-full h-11" />
-              <Skeleton className="w-full h-11" />
-              <Skeleton className="w-full h-11" />
-              <Skeleton className="w-full h-11" />
-              <Skeleton className="w-full h-11" />
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Skeleton key={index} className="w-full h-11" />
+              ))}
             </div>
           )}
         </CommandList>
       </CommandDialog>
+
+      <Dialog open={isDraftsOpen} onOpenChange={setIsDraftsOpen}>
+        <DialogContent className="sm:max-w-xl p-0">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle>{t("4B19A68BC")}</DialogTitle>
+            <DialogDescription>{t("1E28955B0")}</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="px-4">
+              <InputGroup>
+                <InputGroupInput
+                  placeholder={t("EDE685569")}
+                  value={draftSearch}
+                  onChange={(e) => setDraftSearch(e.target.value)}
+                />
+                <InputGroupAddon>
+                  <SearchIcon />
+                </InputGroupAddon>
+              </InputGroup>
+            </div>
+            <div className="grid grid-cols-4 items-start gap-3 max-h-[30vh] md:max-h-[50vh] overflow-auto px-4">
+              {drafts !== null ? (
+                filteredDrafts.length > 0 ? (
+                  filteredDrafts.map((draft, index) => (
+                    <Card
+                      key={index}
+                      className="border-none group transition-colors duration-300 divide-y gap-0 overflow-hidden hover:border-primary cursor-pointer"
+                      onClick={() =>
+                        setDraftProcessing({
+                          id: draft.documentID,
+                          status: true,
+                        })
+                      }
+                    >
+                      <CardHeader
+                        className={cn(
+                          "border-none rounded-lg aspect-video flex justify-center items-center bg-accent text-muted-foreground transition-colors duration-300 group-hover:bg-primary/10 group-hover:text-primary",
+                          {
+                            "cursor-default bg-primary/10 text-primary":
+                              draftProcessing.status &&
+                              draftProcessing.id === draft.documentID,
+                          },
+                        )}
+                      >
+                        {draftProcessing.status &&
+                        draftProcessing.id === draft.documentID ? (
+                          <Spinner className="size-8" />
+                        ) : (
+                          <File className="size-8" />
+                        )}
+                      </CardHeader>
+                      <CardContent className="px-0 py-1 text-sm text-muted-foreground">
+                        {draft.title}.{draft.extension}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-4">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                          <FileSearch2 />
+                        </EmptyMedia>
+                        <EmptyTitle>{t("84833A1EB")}</EmptyTitle>
+                        <EmptyDescription>{t("EB20D261D")}</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </div>
+                )
+              ) : (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <Skeleton key={index} className="h-28" />
+                ))
+              )}
+            </div>
+          </div>
+          <DialogFooter className="p-4">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={draftProcessing.status}>
+                {t("7D8F5F809")}
+              </Button>
+            </DialogClose>
+            <Button
+              type="submit"
+              disabled={draftProcessing.status}
+              onClick={() => {
+                openProcess("upload", null, "draft");
+                setIsDraftsOpen(false);
+              }}
+            >
+              {t("6B85AF24A")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

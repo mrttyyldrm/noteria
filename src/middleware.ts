@@ -1,5 +1,5 @@
+import { NextRequest, NextResponse } from "next/server";
 import { validateToken } from "./lib/auth";
-import { NextResponse, NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
@@ -23,5 +23,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: "/dashboard/:path*",
+  matcher: ["/dashboard/:path*", "/document/:path*"],
 };
