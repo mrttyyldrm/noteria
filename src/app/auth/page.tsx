@@ -77,6 +77,7 @@ function Auth() {
       },
       onError: () => {
         setIsOTPInvalid(true);
+        setCheckOTPLoading(false);
         setCode("");
 
         setTimeout(() => {

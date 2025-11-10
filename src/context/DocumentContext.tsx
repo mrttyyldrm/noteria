@@ -260,7 +260,7 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
     if (loading.status) return;
 
     fetchGetDocuments({
-      params: { Path: path },
+      params: { Path: path.join("/") },
       onSuccess: (data: IDocuments) => {
         setDocuments(data);
       },
