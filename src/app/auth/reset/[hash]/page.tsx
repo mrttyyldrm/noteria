@@ -24,7 +24,7 @@ function Reset() {
   const { showNotification } = useNotification();
   const { t, isLanguageLoading } = useLanguage();
 
-  const { loading, fetch } = useFetch("GET", "ResetPassword");
+  const { loading, fetch } = useFetch("GET", "ResetPass");
 
   const resetPassword = () => {
     fetch({

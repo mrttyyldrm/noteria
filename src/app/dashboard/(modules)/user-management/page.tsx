@@ -95,9 +95,9 @@ function UserManagement() {
     "GET",
     "GetAllUsers",
   );
-  const { fetch: fetchToggleStatus } = useFetch("POST", "ToggleUserStatus");
-  const { fetch: fetchResetPassword } = useFetch("POST", "ForgotPassword");
-  const { fetch: fetchResetVerification } = useFetch("POST", "ResetUserMFA");
+  const { fetch: fetchToggleStatus } = useFetch("GET", "ToggleUserStatus");
+  const { fetch: fetchResetPassword } = useFetch("GET", "ResetUserPass");
+  const { fetch: fetchResetVerification } = useFetch("GET", "ResetUserMFA");
 
   const [users, setUsers] = useState<IUser[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
