@@ -107,7 +107,7 @@ function Dashboard() {
   };
 
   return (
-    <section className="relative w-full h-full gap-4 overflow-hidden flex justify-center items-center">
+    <section className="relative rounded-b-lg w-full h-full gap-4 overflow-hidden flex justify-center items-center">
       {currentStep === 1 ? (
         selectedDocument !== null ? (
           <>

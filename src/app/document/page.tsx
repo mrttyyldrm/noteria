@@ -149,7 +149,7 @@ function Document() {
 
       {documentDetails?.config && (
         <div
-          className={`w-full h-full flex flex-col rounded-b-lg overflow-hidden ${
+          className={`w-full h-full flex flex-col overflow-hidden ${
             !isReady ? "opacity-0" : ""
           }`}
         >
