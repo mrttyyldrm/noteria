@@ -10,9 +10,14 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-4 md:p-6">
         <div className="relative flex justify-center gap-2 md:justify-between">
-          <div className="flex items-center gap-2 font-semibold text-lg">
-            <Image src="/logo.svg" alt="Logo" width={32} height={32} />
-            Noteria
+          <div className="flex items-center gap-2 font-semibold text-xl text-foreground">
+            <Image src="/logo.svg" alt="Noteria Logo" width={42} height={42} />
+            <div className="flex items-center">
+              Noteria
+              <span className="ml-1 mt-1 text-xs text-muted-foreground font-medium">
+                v{process.env.NEXT_PUBLIC_APP_VERSION}
+              </span>
+            </div>
           </div>
           <div className="absolute top-1/2 right-0 -translate-y-1/2">
             <LanguageDropdown />

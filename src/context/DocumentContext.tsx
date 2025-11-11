@@ -1275,9 +1275,19 @@ function DocumentsSidebar() {
             <SidebarMenuItem>
               <div className="w-full flex items-center gap-2 font-semibold text-xl text-foreground">
                 <Link href="/dashboard">
-                  <Image src="/logo.svg" alt="Logo" width={42} height={42} />
+                  <Image
+                    src="/logo.svg"
+                    alt="Noteria Logo"
+                    width={42}
+                    height={42}
+                  />
                 </Link>
-                <div className="flex items-center">Noteria</div>
+                <div className="flex items-center">
+                  Noteria
+                  <span className="ml-1 mt-1 text-xs text-muted-foreground font-medium">
+                    v{process.env.NEXT_PUBLIC_APP_VERSION}
+                  </span>
+                </div>
                 <Button
                   variant="outline"
                   size="icon-sm"
