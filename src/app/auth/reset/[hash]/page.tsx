@@ -8,14 +8,19 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { Spinner } from "@/components/ui/spinner";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useFetch from "@/hooks/useFetch";
 import { useFormik } from "formik";
+import { Eye, EyeOff } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as Yup from "yup";
 
 function Reset() {
@@ -25,6 +30,7 @@ function Reset() {
   const { t, isLanguageLoading } = useLanguage();
 
   const { loading, fetch } = useFetch("GET", "ResetPass");
+  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 
   const resetPassword = () => {
     fetch({
@@ -81,15 +87,24 @@ function Reset() {
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="password">{t("CE78FC317")}</FieldLabel>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                disabled={loading}
-                placeholder={t("CE78FC317")}
-                value={formik.values.password}
-                onChange={formik.handleChange}
-              />
+              <InputGroup>
+                <InputGroupInput
+                  id="password"
+                  name="password"
+                  type={isPasswordVisible ? "text" : "password"}
+                  disabled={loading}
+                  placeholder={t("CE78FC317")}
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                />
+                <InputGroupAddon align="inline-end" className="cursor-pointer">
+                  {isPasswordVisible ? (
+                    <EyeOff onClick={() => setIsPasswordVisible(false)} />
+                  ) : (
+                    <Eye onClick={() => setIsPasswordVisible(true)} />
+                  )}
+                </InputGroupAddon>
+              </InputGroup>
               <FieldDescription className="text-xs">
                 {t("3E5A68B3D")}
               </FieldDescription>
@@ -99,15 +114,24 @@ function Reset() {
             </Field>
             <Field>
               <FieldLabel htmlFor="repassword">{t("A2B162E01")}</FieldLabel>
-              <Input
-                id="repassword"
-                name="repassword"
-                type="password"
-                disabled={loading}
-                placeholder={t("A2B162E01")}
-                value={formik.values.repassword}
-                onChange={formik.handleChange}
-              />
+              <InputGroup>
+                <InputGroupInput
+                  id="repassword"
+                  name="repassword"
+                  type={isPasswordVisible ? "text" : "password"}
+                  disabled={loading}
+                  placeholder={t("A2B162E01")}
+                  value={formik.values.repassword}
+                  onChange={formik.handleChange}
+                />
+                <InputGroupAddon align="inline-end" className="cursor-pointer">
+                  {isPasswordVisible ? (
+                    <EyeOff onClick={() => setIsPasswordVisible(false)} />
+                  ) : (
+                    <Eye onClick={() => setIsPasswordVisible(true)} />
+                  )}
+                </InputGroupAddon>
+              </InputGroup>
               {formik.touched.repassword && formik.errors.repassword && (
                 <FieldError>{formik.errors.repassword}</FieldError>
               )}

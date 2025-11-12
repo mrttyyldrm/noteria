@@ -9,6 +9,11 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
@@ -17,6 +22,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useLanguage } from "@/context/LanguageContext";
 import useFetch from "@/hooks/useFetch";
 import { useFormik } from "formik";
+import { Eye, EyeOff } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
 import * as Yup from "yup";
@@ -51,6 +57,7 @@ function Auth() {
   const [code, setCode] = useState<string>("");
   const [isOTPInvalid, setIsOTPInvalid] = useState<boolean>(false);
   const [checkOTPLoading, setCheckOTPLoading] = useState<boolean>(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 
   const auth = () => {
     fetchAuth({
@@ -151,20 +158,27 @@ function Auth() {
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="password">{t("CE78FC317")}</FieldLabel>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    disabled={authLoading}
-                    placeholder={t("CE78FC317")}
-                    value={formik.values.password}
-                    onChange={formik.handleChange}
-                    aria-invalid={
-                      formik.touched.password && formik.errors.password
-                        ? "true"
-                        : "false"
-                    }
-                  />
+                  <InputGroup>
+                    <InputGroupInput
+                      id="password"
+                      name="password"
+                      type={isPasswordVisible ? "text" : "password"}
+                      disabled={authLoading}
+                      placeholder={t("CE78FC317")}
+                      value={formik.values.password}
+                      onChange={formik.handleChange}
+                    />
+                    <InputGroupAddon
+                      align="inline-end"
+                      className="cursor-pointer"
+                    >
+                      {isPasswordVisible ? (
+                        <EyeOff onClick={() => setIsPasswordVisible(false)} />
+                      ) : (
+                        <Eye onClick={() => setIsPasswordVisible(true)} />
+                      )}
+                    </InputGroupAddon>
+                  </InputGroup>
                   {formik.touched.password && formik.errors.password && (
                     <FieldError>{formik.errors.password}</FieldError>
                   )}
