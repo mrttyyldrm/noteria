@@ -172,9 +172,7 @@ export const DropzoneEmptyState = ({
 
   let caption = "";
 
-  if (minSize && maxSize) {
-    caption += ` ${t("C0CE13DEE")} ${renderBytes(minSize)} - ${renderBytes(maxSize)}`;
-  } else if (minSize) {
+  if (minSize) {
     caption += ` ${t("D23763F9B")} ${renderBytes(minSize)}`;
   } else if (maxSize) {
     caption += ` ${t("4B8ABD448")} ${renderBytes(maxSize)}`;

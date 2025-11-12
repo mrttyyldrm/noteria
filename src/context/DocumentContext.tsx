@@ -99,6 +99,7 @@ import {
   RefreshCw,
   Save,
   SearchIcon,
+  SearchX,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -672,7 +673,13 @@ export function DocumentManager({ filter }: { filter: string }) {
                   size="icon-sm"
                   onClick={() => getDocuments()}
                 >
-                  <RefreshCw />
+                  <RefreshCw
+                    className={
+                      loading.status && loading.documentType === "all"
+                        ? "animate-spin"
+                        : ""
+                    }
+                  />
                 </Button>
               </TableHead>
             </TableRow>
@@ -908,7 +915,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                       <Empty className="p-2">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">
-                            <File />
+                            <SearchX />
                           </EmptyMedia>
                           <EmptyTitle>{t("D7B9A5B42")}</EmptyTitle>
                           <EmptyDescription>{t("B0DBB3098")}</EmptyDescription>

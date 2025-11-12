@@ -123,7 +123,7 @@ function Notification({
     <Item
       variant="outline"
       size="sm"
-      className="bg-white min-w-sm max-w-md items-start transition-all duration-300 animate-fade-right"
+      className="bg-white sm:min-w-xs max-w-[calc(100vw-2rem)] sm:max-w-md items-start transition-all duration-300 animate-fade-right"
     >
       <ItemContent className="flex flex-row items-center gap-2 my-auto">
         <ItemMedia className="mb-auto">

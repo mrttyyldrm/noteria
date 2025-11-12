@@ -31,7 +31,7 @@ import { useDocument, type IFile } from "@/context/DocumentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import useFetch from "@/hooks/useFetch";
 import { formatDate, isDatePast } from "@/lib/date";
-import { File, Gavel, SearchIcon } from "lucide-react";
+import { File, SearchIcon, SearchX } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -274,7 +274,7 @@ function Person() {
                       <Empty className="p-2">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">
-                            <Gavel />
+                            <SearchX />
                           </EmptyMedia>
                           <EmptyTitle>{t("6540F0E5A")}</EmptyTitle>
                           <EmptyDescription>{t("EB20D261D")}</EmptyDescription>

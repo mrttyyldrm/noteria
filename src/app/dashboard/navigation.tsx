@@ -54,12 +54,18 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { IFile, useDocument } from "@/context/DocumentContext";
 import { LanguageDropdown, useLanguage } from "@/context/LanguageContext";
 import useFetch from "@/hooks/useFetch";
 import { cn } from "@/lib/utils";
 import {
   ChevronsUpDown,
+  CircleAlert,
   File,
   FileSearch2,
   Gavel,
@@ -282,6 +288,9 @@ function SidebarNavigation() {
       )
     : [];
 
+  const isSearchSuggestionsEmpty =
+    searchSuggestions && searchSuggestions.length === 0;
+
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
       <div className="flex items-center gap-2 shrink-0">
@@ -423,16 +432,40 @@ function SidebarNavigation() {
             searchSuggestions && searchSuggestions.length > 0 ? (
               <>
                 <CommandGroup heading={t("B8936AA58")}>
-                  {searchSuggestions.map((suggestion: ISuggestion, index) => (
-                    <CommandItem
-                      key={index}
-                      value={suggestion.resultText}
-                      onSelect={() => redirectSuggestion(suggestion)}
-                    >
-                      {suggestionIcons[suggestion.resultType]}
-                      {suggestion.resultText}
-                    </CommandItem>
-                  ))}
+                  {searchSuggestions.map((suggestion: ISuggestion, index) => {
+                    const isParamExist =
+                      suggestion.detail.param !== undefined &&
+                      suggestion.detail.param !== null &&
+                      suggestion.detail.param !== "";
+
+                    return (
+                      <CommandItem
+                        key={index}
+                        value={suggestion.resultText}
+                        className={
+                          !isParamExist
+                            ? "data-[selected=true]:bg-white !text-muted-foreground data-[selected=true]:text-muted-foreground"
+                            : "cursor-pointer"
+                        }
+                        onSelect={() =>
+                          isParamExist && redirectSuggestion(suggestion)
+                        }
+                      >
+                        {!isParamExist && (
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant="destructive" className="p-1">
+                                <CircleAlert className="text-white !size-3" />
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>{t("865810336")}</TooltipContent>
+                          </Tooltip>
+                        )}
+                        {suggestionIcons[suggestion.resultType]}
+                        {suggestion.resultText}
+                      </CommandItem>
+                    );
+                  })}
                 </CommandGroup>
                 <CommandEmpty>
                   <Empty>
@@ -451,10 +484,18 @@ function SidebarNavigation() {
                 <Empty>
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
-                      <FileSearch2 />
+                      {isSearchSuggestionsEmpty ? <SearchX /> : <FileSearch2 />}
                     </EmptyMedia>
-                    <EmptyTitle>{t("1928A896B")}</EmptyTitle>
-                    <EmptyDescription>{t("EAFB1CD6B")}</EmptyDescription>
+                    <EmptyTitle>
+                      {isSearchSuggestionsEmpty
+                        ? t("8453B3772")
+                        : t("1928A896B")}
+                    </EmptyTitle>
+                    <EmptyDescription>
+                      {isSearchSuggestionsEmpty
+                        ? t("EB20D261D")
+                        : t("EAFB1CD6B")}
+                    </EmptyDescription>
                   </EmptyHeader>
                 </Empty>
               </div>

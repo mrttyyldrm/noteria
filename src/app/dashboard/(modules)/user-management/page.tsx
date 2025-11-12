@@ -56,12 +56,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useFetch from "@/hooks/useFetch";
 import { useFormik } from "formik";
-import {
-  EllipsisVertical,
-  RefreshCw,
-  SearchIcon,
-  UserRound,
-} from "lucide-react";
+import { EllipsisVertical, RefreshCw, SearchIcon, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import * as yup from "yup";
 
@@ -232,7 +227,7 @@ function UserManagement() {
                   size="icon-sm"
                   onClick={() => getUsers()}
                 >
-                  <RefreshCw />
+                  <RefreshCw className={usersLoading ? "animate-spin" : ""} />
                 </Button>
               </TableHead>
             </TableRow>
@@ -317,7 +312,7 @@ function UserManagement() {
                   <Empty className="p-2">
                     <EmptyHeader>
                       <EmptyMedia variant="icon">
-                        <UserRound />
+                        <SearchX />
                       </EmptyMedia>
                       <EmptyTitle>{t("786FCFBC7")}</EmptyTitle>
                       <EmptyDescription>{t("16920FC7F")}</EmptyDescription>

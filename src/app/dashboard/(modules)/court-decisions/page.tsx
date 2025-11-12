@@ -76,9 +76,9 @@ import { useFormik } from "formik";
 import {
   CircleAlert,
   EllipsisVertical,
-  Gavel,
   RefreshCw,
   SearchIcon,
+  SearchX,
   Sparkles,
   Trash2,
   X,
@@ -243,7 +243,9 @@ function CourtDecisions() {
                   size="icon-sm"
                   onClick={() => getCourtDecisions()}
                 >
-                  <RefreshCw />
+                  <RefreshCw
+                    className={courtDecisionsLoading ? "animate-spin" : ""}
+                  />
                 </Button>
               </TableHead>
             </TableRow>
@@ -376,7 +378,7 @@ function CourtDecisions() {
                       <Empty className="p-2">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">
-                            <Gavel />
+                            <SearchX />
                           </EmptyMedia>
                           <EmptyTitle>{t("6540F0E5A")}</EmptyTitle>
                           <EmptyDescription>{t("DCE27C5E5")}</EmptyDescription>
