@@ -75,7 +75,7 @@ interface IUser {
 function UserManagementLoading() {
   return Array.from({ length: 5 }).map((_, index) => (
     <TableRow key={index}>
-      <TableCell colSpan={7} className="p-1 bg-white">
+      <TableCell colSpan={7} className="p-1 bg-card">
         <Skeleton className="h-11" />
       </TableCell>
     </TableRow>
@@ -308,7 +308,7 @@ function UserManagement() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="bg-white">
+                <TableCell colSpan={7} className="bg-card">
                   <Empty className="p-2">
                     <EmptyHeader>
                       <EmptyMedia variant="icon">

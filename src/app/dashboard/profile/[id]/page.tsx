@@ -200,7 +200,7 @@ function Person() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={2} className="bg-white">
+                    <TableCell colSpan={2} className="bg-card">
                       <Empty className="p-2">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">
@@ -270,7 +270,7 @@ function Person() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="bg-white">
+                    <TableCell colSpan={6} className="bg-card">
                       <Empty className="p-2">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">

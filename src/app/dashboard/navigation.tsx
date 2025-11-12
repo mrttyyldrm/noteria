@@ -61,6 +61,7 @@ import {
 } from "@/components/ui/tooltip";
 import { IFile, useDocument } from "@/context/DocumentContext";
 import { LanguageDropdown, useLanguage } from "@/context/LanguageContext";
+import { ThemeButton } from "@/context/ThemeContext";
 import useFetch from "@/hooks/useFetch";
 import { cn } from "@/lib/utils";
 import {
@@ -292,9 +293,9 @@ function SidebarNavigation() {
     searchSuggestions && searchSuggestions.length === 0;
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b border-ring">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 border-b">
       <div className="flex items-center gap-2 shrink-0">
-        <SidebarTrigger className="-ml-1" />
+        <SidebarTrigger className="-ml-1 text-foreground" />
         {page && (
           <Breadcrumb className="shrink-0 hidden md:block">
             <BreadcrumbList>
@@ -351,14 +352,8 @@ function SidebarNavigation() {
                         })()
                       : profile.fullName}
                     <Badge
-                      className={`scale-90 ${
-                        profile.userTypeID !== 1
-                          ? "bg-primary text-white"
-                          : "bg-white"
-                      }`}
-                      variant={
-                        profile.userTypeID !== 1 ? "secondary" : "outline"
-                      }
+                      className="scale-90"
+                      variant={profile.userTypeID !== 1 ? "default" : "outline"}
                     >
                       {profile.userType}
                     </Badge>
@@ -382,7 +377,7 @@ function SidebarNavigation() {
                         onSelect={() => router.push(page.route)}
                         className="flex-col sm:flex-row items-start gap-2"
                       >
-                        <div className="shrink-0 rounded-lg bg-white flex justify-center items-center border border-border aspect-square w-10 sm:mt-1">
+                        <div className="shrink-0 rounded-lg flex justify-center items-center border border-border aspect-square w-10 sm:mt-1">
                           {page.icon}
                         </div>
                         <div className="flex flex-col">
@@ -419,6 +414,7 @@ function SidebarNavigation() {
           <Search />
         </Button>
         <LanguageDropdown />
+        <ThemeButton />
       </div>
 
       <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
@@ -444,7 +440,7 @@ function SidebarNavigation() {
                         value={suggestion.resultText}
                         className={
                           !isParamExist
-                            ? "data-[selected=true]:bg-white !text-muted-foreground data-[selected=true]:text-muted-foreground"
+                            ? "data-[selected=true]:bg-card !text-muted-foreground data-[selected=true]:text-muted-foreground"
                             : "cursor-pointer"
                         }
                         onSelect={() =>
@@ -535,7 +531,7 @@ function SidebarNavigation() {
                   filteredDrafts.map((draft, index) => (
                     <Card
                       key={index}
-                      className="border-none group transition-colors duration-300 divide-y gap-0 overflow-hidden hover:border-primary cursor-pointer"
+                      className="border-none group transition-colors duration-300 divide-y gap-0 overflow-hidden hover:border-primary cursor-pointer bg-background"
                       onClick={() =>
                         setDraftProcessing({
                           id: draft.documentID,

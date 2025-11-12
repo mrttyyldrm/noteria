@@ -545,7 +545,7 @@ export function useDocument() {
 const TableRowSkeleton = () => {
   return (
     <TableRow>
-      <TableCell colSpan={3} className="p-2 bg-white">
+      <TableCell colSpan={3} className="p-2 bg-card">
         <Skeleton className="h-8" />
       </TableCell>
     </TableRow>
@@ -911,7 +911,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                   </>
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="bg-white">
+                    <TableCell colSpan={3}>
                       <Empty className="p-2">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">
@@ -1308,7 +1308,7 @@ function DocumentsSidebar() {
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent className="flex flex-col h-full px-4 sm:p-2 gap-4">
-          <InputGroup className="bg-white">
+          <InputGroup className="bg-background">
             <InputGroupInput
               placeholder={t("91832C904")}
               value={searchTerm}

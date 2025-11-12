@@ -147,7 +147,7 @@ export function useLanguage() {
 
 function LanguageLoader() {
   return (
-    <dialog className="fixed left-0 top-0 z-[100] flex h-full w-full items-center justify-center bg-white p-4 lg:h-screen">
+    <dialog className="fixed left-0 top-0 z-[100] flex h-full w-full items-center justify-center bg-background p-4 lg:h-screen">
       <div className="relative h-28 w-28 scale-75 md:scale-100">
         <div className="absolute inset-0 rounded-full bg-primary/15 animate-ping"></div>
         <div className="absolute inset-0 flex items-center justify-center rounded-lg">

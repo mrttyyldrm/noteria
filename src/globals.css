@@ -1,51 +1,72 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant hover (&:hover);
 
-/*#region Variables*/
-
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: #fff;
   --foreground: #364a63;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --card: #fff;
+  --card-foreground: #364a63;
+  --popover: #fff;
   --popover-foreground: #364a63;
   --primary: #0063dd;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #364a63;
+  --muted: #f5f5f5;
   --muted-foreground: #526484;
-  --accent: oklch(0.97 0 0);
+  --accent: #f5f5f5;
   --accent-foreground: #364a63;
   --destructive: #ff3333;
-  --constructive: oklch(0.6 0.118 184.704);
-  --border: oklch(0.922 0 0);
+  --constructive: #009689;
+  --border: #dadfe6;
   --input: #dadfe6;
   --ring: #dadfe6;
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: #fafafa;
   --sidebar-foreground: #364a63;
   --sidebar-primary: #0063dd;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f5f5;
   --sidebar-accent-foreground: #364a63;
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-border: #dadfe6;
   --sidebar-ring: #dadfe6;
+
+  --font-sans: "Outfit", sans-serif;
+  --radius: 0.625rem;
 }
 
-/*#endregion*/
-
-/*#region Theme Light & Dark*/
+.dark {
+  --background: #0e111b;
+  --foreground: #d8dfe4;
+  --card: #171a24;
+  --card-foreground: #d8dfe4;
+  --popover: #171a24;
+  --popover-foreground: #d8dfe4;
+  --primary: #0063dd;
+  --primary-foreground: #ffffff;
+  --secondary: #232838;
+  --secondary-foreground: #d8dfe4;
+  --muted: #232838;
+  --muted-foreground: #798093;
+  --accent: #232838;
+  --accent-foreground: #d8dfe4;
+  --destructive: #ff4d4f;
+  --constructive: #00b3a5;
+  --border: #2a2e3a;
+  --input: #2a2e3a;
+  --ring: #2a2e3a;
+  --sidebar: #171a24;
+  --sidebar-foreground: #d8dfe4;
+  --sidebar-primary: #0063dd;
+  --sidebar-primary-foreground: #0e111b;
+  --sidebar-accent: #232838;
+  --sidebar-accent-foreground: #d8dfe4;
+  --sidebar-border: #d8dfe426;
+  --sidebar-ring: #0063dd;
+}
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -65,11 +86,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -79,8 +95,12 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-*: initial;
-  --font-outfit: "Outfit", sans-serif;
+  --font-sans: var(--font-sans);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
   --background-image-auth: url("/auth-bg.png");
 
@@ -123,37 +143,11 @@
   }
 }
 
-/*#endregion*/
-
 @layer base {
   * {
-    @apply border-border outline-ring/50 font-outfit;
+    @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-  }
-}
-
-/*---break---*/
-
-.dark {
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
-
-/*---break---*/
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+    @apply bg-background;
   }
 }

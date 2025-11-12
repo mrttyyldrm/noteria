@@ -115,7 +115,7 @@ function Dashboard() {
               <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50 flex justify-center items-center">
                 <Empty className="p-2">
                   <EmptyHeader>
-                    <EmptyMedia variant="icon" className="bg-white/20">
+                    <EmptyMedia variant="icon" className="bg-muted">
                       <FileUp />
                     </EmptyMedia>
                     <EmptyTitle>{t("4BB8EF004")}</EmptyTitle>

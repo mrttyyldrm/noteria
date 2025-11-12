@@ -117,7 +117,7 @@ interface DecisionDialogProps {
 function CourtDecisionsLoading() {
   return Array.from({ length: 5 }).map((_, index) => (
     <TableRow key={index}>
-      <TableCell colSpan={6} className="p-2 bg-white">
+      <TableCell colSpan={6} className="p-2 bg-card">
         <Skeleton className="h-8" />
       </TableCell>
     </TableRow>
@@ -149,7 +149,7 @@ function checkIsMissing(
       <div>
         <Badge
           variant="destructive"
-          className="!bg-white border-destructive text-destructive"
+          className="!bg-card border-destructive text-destructive"
         >
           {t("71AA54348")}
         </Badge>
@@ -259,7 +259,7 @@ function CourtDecisions() {
                   processes.length > 0 &&
                   processes.map((process, index) => (
                     <TableRow key={index}>
-                      <TableCell colSpan={6} className="p-1 bg-white">
+                      <TableCell colSpan={6} className="p-1 bg-card">
                         <Skeleton className="p-3 flex justify-center items-center gap-2 text-center">
                           <Sparkles className="size-4" /> {process}{" "}
                           {t("B6F05A869")}
@@ -374,7 +374,7 @@ function CourtDecisions() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="bg-white">
+                    <TableCell colSpan={6} className="bg-card">
                       <Empty className="p-2">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">

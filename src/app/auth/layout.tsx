@@ -1,6 +1,7 @@
 "use client";
 
 import { LanguageDropdown, useLanguage } from "@/context/LanguageContext";
+import { ThemeButton } from "@/context/ThemeContext";
 import Image from "next/image";
 
 function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -19,22 +20,21 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
               </span>
             </div>
           </div>
-          <div className="absolute top-1/2 right-0 -translate-y-1/2">
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 flex items-center gap-2">
             <LanguageDropdown />
+            <ThemeButton />
           </div>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">{children}</div>
+          <div className="w-full max-w-xs text-foreground">{children}</div>
         </div>
       </div>
-      <div className="bg-muted relative hidden lg:flex overflow-hidden m-2 ml-0 rounded-lg bg-auth bg-bottom-left bg-cover bg-no-repeat flex-col justify-end p-8 gap-10">
+      <div className="relative hidden lg:flex overflow-hidden m-2 ml-0 rounded-lg bg-auth bg-bottom-left bg-cover bg-no-repeat flex-col justify-end p-8 gap-10 text-white">
         <div className="flex flex-col">
-          <p className="text-3xl text-muted font-light max-w-sm">
-            {t("7CDB799A1")}
-          </p>
-          <h1 className="text-9xl text-muted font-semibold">Noteria</h1>
+          <p className="text-3xl font-light max-w-sm">{t("7CDB799A1")}</p>
+          <h1 className="text-9xl font-semibold">Noteria</h1>
         </div>
-        <p className="text-muted font-normal text-sm">{t("EB8175EF2")}</p>
+        <p className="font-normal text-sm">{t("EB8175EF2")}</p>
       </div>
     </div>
   );

@@ -109,7 +109,7 @@ function Document() {
         <Skeleton className="absolute top-0 left-0 w-full h-full rounded-t-none z-50 flex justify-center items-center">
           <Empty className="p-2">
             <EmptyHeader>
-              <EmptyMedia variant="icon" className="bg-white/20">
+              <EmptyMedia variant="icon" className="bg-muted">
                 <FileClock />
               </EmptyMedia>
               <EmptyTitle>{t("970D0B4CE")}</EmptyTitle>
@@ -120,7 +120,7 @@ function Document() {
       )}
 
       {isTimeout && (
-        <div className="bg-white absolute top-0 left-0 w-full h-full rounded-t-none z-50 flex justify-center items-center">
+        <div className="bg-card absolute top-0 left-0 w-full h-full rounded-t-none z-50 flex justify-center items-center">
           <Empty className="p-2">
             <EmptyHeader>
               <EmptyMedia variant="icon">
