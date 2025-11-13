@@ -723,7 +723,7 @@ export function DocumentManager({ filter }: { filter: string }) {
                                   onChange={(e) =>
                                     handleRenameInput(e.target.value)
                                   }
-                                  className="max-w-40"
+                                  className="max-w-40 text-foreground"
                                 />
                               ) : (
                                 <p
@@ -832,10 +832,10 @@ export function DocumentManager({ filter }: { filter: string }) {
                               />
                               <p
                                 className={cn(
-                                  "cursor-pointer hover:underline",
+                                  "transition-all duration-300 cursor-pointer hover:underline",
                                   {
                                     "text-primary": isSelected,
-                                    "text-foreground": !isSelected,
+                                    "hover:text-foreground": !isSelected,
                                   },
                                 )}
                                 onClick={() =>
@@ -1277,8 +1277,8 @@ function DocumentsSidebar() {
   return (
     <>
       <Sidebar variant="inset">
-        <SidebarHeader>
-          <SidebarMenu className="p-2 pb-0 md:p-0">
+        <SidebarHeader className="p-4">
+          <SidebarMenu className="p-0">
             <SidebarMenuItem>
               <div className="w-full flex items-center gap-2 font-semibold text-xl text-foreground">
                 <Link href="/dashboard">
@@ -1307,8 +1307,8 @@ function DocumentsSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
-        <SidebarContent className="flex flex-col h-full px-4 sm:p-2 gap-4">
-          <InputGroup className="bg-background">
+        <SidebarContent className="flex flex-col h-full px-4 md:p-2 gap-4">
+          <InputGroup className="bg-card">
             <InputGroupInput
               placeholder={t("91832C904")}
               value={searchTerm}
@@ -1320,7 +1320,7 @@ function DocumentsSidebar() {
           </InputGroup>
           <DocumentManager filter={searchTerm} />
         </SidebarContent>
-        <SidebarFooter className="border-t mt-2">
+        <SidebarFooter className="border-t mt-4 md:mt-2">
           <SidebarMenu className="p-2 md:p-0 md:pt-2 flex flex-col gap-2">
             <SidebarMenuItem>
               <Button

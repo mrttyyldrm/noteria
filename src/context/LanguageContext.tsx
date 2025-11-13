@@ -149,14 +149,14 @@ function LanguageLoader() {
   return (
     <dialog className="fixed left-0 top-0 z-[100] flex h-full w-full items-center justify-center bg-background p-4 lg:h-screen">
       <div className="relative h-28 w-28 scale-75 md:scale-100">
-        <div className="absolute inset-0 rounded-full bg-primary/15 animate-ping"></div>
+        <div className="absolute inset-0 rounded-full bg-primary/15 animate-ping duration-1000"></div>
         <div className="absolute inset-0 flex items-center justify-center rounded-lg">
           <Image
             src="/logo.svg"
             alt="Logo"
             width={96}
             height={96}
-            className="w-full h-full animate-scale"
+            className="w-full h-full animate-in zoom-in-25 duration-500"
           />
         </div>
       </div>

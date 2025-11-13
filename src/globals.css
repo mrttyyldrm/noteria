@@ -1,10 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 @import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant hover (&:hover);
 
 :root {
-  --background: #fff;
+  --background: #fafafa;
   --foreground: #364a63;
   --card: #fff;
   --card-foreground: #364a63;
@@ -103,51 +104,10 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --background-image-auth: url("/auth-bg.png");
-
-  --animate-scale: fade-scale 0.3s ease-out;
-  --animate-fade-up: fade-up 0.3s ease-out;
-  --animate-fade-right: fade-right 0.3s ease-out;
-  --animate-ping: ping 1.25s ease infinite;
-
-  @keyframes fade-scale {
-    0% {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes fade-up {
-    0% {
-      opacity: 0;
-      transform: translateY(1rem);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fade-right {
-    0% {
-      opacity: 0;
-      transform: translateX(-1rem);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
 }
 
 @layer base {
   * {
     @apply border-border;
-  }
-  body {
-    @apply bg-background;
   }
 }

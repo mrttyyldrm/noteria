@@ -21,13 +21,15 @@ export function ThemeButton() {
     dark: <Sun />,
   };
 
+  const currentTheme = (theme === "system" ? systemTheme : theme) || "light";
+
   return (
     <Button
       variant="outline"
       size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      onClick={() => setTheme(currentTheme === "light" ? "dark" : "light")}
     >
-      {themeIcons[theme ?? systemTheme ?? "light"]}
+      {themeIcons[currentTheme]}
     </Button>
   );
 }

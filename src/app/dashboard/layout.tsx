@@ -12,7 +12,9 @@ export default function DashboardLayout({
       <DocumentProvider>
         <SidebarInset className="flex flex-col rounded-lg overflow-hidden">
           <SidebarNavigation />
-          <div className="flex flex-1 flex-col gap-4 w-full">{children}</div>
+          <div className="flex flex-1 flex-col gap-4 w-full bg-card">
+            {children}
+          </div>
         </SidebarInset>
       </DocumentProvider>
     </SidebarProvider>

@@ -34,6 +34,7 @@ import { useDocument } from "@/context/DocumentContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import useFetch from "@/hooks/useFetch";
+import { cn } from "@/lib/utils";
 import { File, FileUp } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -126,7 +127,9 @@ function Dashboard() {
             )}
             <iframe
               src={`${process.env.NEXT_PUBLIC_BASE_URL}/document?id=${selectedDocument.documentID}&mode=edit`}
-              className="w-full h-full"
+              className={cn("w-full h-full", {
+                "pointer-events-none opacity-0": isVerifying,
+              })}
             />
             <Card className="p-2 absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 shadow-lg">
               <Button variant="outline" onClick={() => selectDocument(null)}>

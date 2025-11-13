@@ -215,8 +215,7 @@ function UserManagement() {
         <Table className="p-1">
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="pl-3">#</TableHead>
-              <TableHead>{t("B90C49F20")}</TableHead>
+              <TableHead className="pl-3">{t("B90C49F20")}</TableHead>
               <TableHead>{t("F69047778")}</TableHead>
               <TableHead>{t("722C02C19")}</TableHead>
               <TableHead>{t("49A56F386")}</TableHead>
@@ -238,8 +237,7 @@ function UserManagement() {
             ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user, index) => (
                 <TableRow key={index}>
-                  <TableCell className="pl-3">{user.userID}</TableCell>
-                  <TableCell>{user.fullName}</TableCell>
+                  <TableCell className="pl-3">{user.fullName}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.userType.value}</TableCell>
                   <TableCell>
