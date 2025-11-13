@@ -1277,7 +1277,7 @@ function DocumentsSidebar() {
   return (
     <>
       <Sidebar variant="inset">
-        <SidebarHeader className="p-4">
+        <SidebarHeader className="p-4 md:px-2">
           <SidebarMenu className="p-0">
             <SidebarMenuItem>
               <div className="w-full flex items-center gap-2 font-semibold text-xl text-foreground">

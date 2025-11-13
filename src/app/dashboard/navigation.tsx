@@ -300,7 +300,7 @@ function SidebarNavigation() {
           <Breadcrumb className="shrink-0 hidden md:block">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <p className="max-w-44 truncate">{page.name}</p>
+                <p className="max-w-44 truncate text-foreground">{page.name}</p>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
