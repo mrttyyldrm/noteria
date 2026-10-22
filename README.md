@@ -3,7 +3,6 @@
   
   # Noteria
   ### Kosovo's AI-Powered Notary Application
-  *Developed by [Zhvillo®](https://zhvillo.com)*  
 </div>
 
 ## Description
@@ -72,9 +71,3 @@ notary/
 ├── tailwind.config.ts                   # Tailwind CSS configuration
 └── tsconfig.json                        # TypeScript configuration
 ```
-
-## License
-
-This project is proprietary software developed by **Zhvillo®**. All rights reserved.
-
-For licensing inquiries, please contact [Zhvillo®](mailto:info@zhvillo.com).
